@@ -16,6 +16,11 @@
 			path = pinNest;
 			sourceTree = "<group>";
 		};
+		ABEB28ED2F46046F00A1FF9E /* docs */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = docs;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +37,7 @@
 		ABEB28CF2F4600A300A1FF9E = {
 			isa = PBXGroup;
 			children = (
+				ABEB28ED2F46046F00A1FF9E /* docs */,
 				ABEB28DA2F4600A300A1FF9E /* pinNest */,
 				ABEB28D92F4600A300A1FF9E /* Products */,
 			);
@@ -62,6 +68,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				ABEB28DA2F4600A300A1FF9E /* pinNest */,
+				ABEB28ED2F46046F00A1FF9E /* docs */,
 			);
 			name = pinNest;
 			packageProductDependencies = (
