@@ -9,6 +9,7 @@
 
 - **アプリ名**: pinNest
 - **プラットフォーム**: iOS
+- **ターゲット OS**: iOS 26.1 以上
 - **言語**: Swift 6
 - **UI フレームワーク**: SwiftUI
 - **アーキテクチャ**: The Composable Architecture（TCA）
@@ -25,6 +26,8 @@
 | アーキテクチャ方針 | TCA の設計・実装パターン | `docs/architecture.md` |
 | コーディング規約 | 命名・ファイル構成・実装ルール | `docs/coding-conventions.md` |
 | UI/UX ガイドライン | Apple HIG ベースの UI 設計方針 | `docs/ui-ux-guidelines.md` |
+| 要件定義 | 機能一覧・画面一覧・非機能要件 | `docs/requirements.md` |
+| タスク一覧 | フェーズ別タスク・進捗管理 | `docs/tasks.md` |
 
 ---
 

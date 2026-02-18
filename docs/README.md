@@ -26,6 +26,8 @@ pinNest は SwiftUI で構築された iOS アプリケーションです。
 | [architecture.md](./architecture.md) | TCA を用いたアーキテクチャ設計方針・実装例 |
 | [coding-conventions.md](./coding-conventions.md) | Swift / SwiftUI / TCA のコーディング規約 |
 | [ui-ux-guidelines.md](./ui-ux-guidelines.md) | Apple HIG ベースの UI/UX 設計方針 |
+| [requirements.md](./requirements.md) | 機能要件・画面一覧・非機能要件 |
+| [tasks.md](./tasks.md) | フェーズ別タスク一覧・進捗管理 |
 
 ---
 
