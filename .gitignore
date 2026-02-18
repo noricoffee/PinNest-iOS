@@ -1,0 +1,56 @@
+# Xcode
+#
+build/
+*.pbxuser
+!*.pbxuser/UserInterfaceState.xcuserstate
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+DerivedData
+*.xcuserstate
+
+# Package Manager
+#
+*.package
+.build/
+
+# Swift Package Manager
+#
+Packages/
+
+# CocoaPods
+#
+# We recommend against adding the Pods directory to your .gitignore.
+# However if you must, the following lines will do that.
+# Pods/
+
+# Carthage
+#
+Carthage/
+
+# fastlane
+#
+# It is recommended to not store the screenshots in the git repo. Instead, use fastlane to re-generate the screenshots.
+# For more information about the recommended setup visit:
+# https://docs.fastlane.tools/best-practices/source-control/ 
+fastlane/report.xml
+fastlane/screenshots/
+fastlane/test_output
+
+# Crashlytics
+#
+Crashlytics.framework
+
+# Others
+#
+*.swp
+*.lock
+*.DS_Store
+
+# Tabs
+#
+*.idt
+*.idb
