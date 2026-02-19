@@ -18,6 +18,23 @@
 
 ---
 
+## フェーズ 0: UI プロトタイプ（イメージ確認用）
+
+- ✅ 🔴 ホーム画面 UI（PinListView / PinCardView）
+  - ✅ 🔴 2カラム マソンリーグリッド
+  - ✅ 🔴 種別フィルターチップ（横スクロール）
+  - ✅ 🔴 フローティング TabBar（ホーム / 履歴 / 検索）
+  - ✅ 🔴 フローティング FAB（＋ボタン）
+- ⬜ 🔴 ピン作成画面 UI（PinCreateView）
+- ⬜ 🔴 ピン詳細画面 UI（PinDetailView）
+- ⬜ 🟡 コレクション詳細画面 UI（CollectionDetailView）
+- ⬜ 🟡 検索画面 UI（SearchView）
+- ⬜ 🟡 設定画面 UI（SettingsView）
+
+> ⚠️ このフェーズは UI の見た目確認用。TCA Reducer・SwiftData は未実装。確認完了後に各フェーズで本実装を行う。
+
+---
+
 ## フェーズ 1: 環境構築・基盤
 
 - ⬜ 🔴 プロジェクトセットアップ（Xcode / Swift Package Manager）
@@ -148,3 +165,4 @@
 | 2026-02-19 | 初版作成 |
 | 2026-02-19 | 認証フェーズ削除、SwiftData モデルフェーズ追加、URL メタデータ取得フェーズ追加 |
 | 2026-02-19 | Share Extension フェーズ追加（フェーズ 5）、2-9 を△→◎に昇格 |
+| 2026-02-19 | フェーズ 0（UI プロトタイプ）追加。ホーム画面 UI 実装完了 |
