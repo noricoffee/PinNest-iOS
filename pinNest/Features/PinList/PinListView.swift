@@ -2,18 +2,14 @@ import SwiftUI
 
 struct PinListView: View {
     @State private var selectedFilter: PinContentType? = nil
-    @State private var selectedTab: TabItem = .home
 
     // MARK: - Body
 
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottom) {
-                scrollContent
-                floatingBar
-            }
-            .navigationTitle("pinNest")
-            .navigationBarTitleDisplayMode(.large)
+            scrollContent
+                .navigationTitle("pinNest")
+                .navigationBarTitleDisplayMode(.large)
         }
     }
 
@@ -26,7 +22,7 @@ struct PinListView: View {
                 masonryGrid
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, 104)
+            .padding(.bottom, 80)
         }
         .scrollIndicators(.hidden)
     }
@@ -84,61 +80,6 @@ struct PinListView: View {
         return result
     }
 
-    // MARK: - Floating Bar
-
-    private var floatingBar: some View {
-        HStack(alignment: .center, spacing: 12) {
-            tabBar
-            fabButton
-        }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 36)
-    }
-
-    private var tabBar: some View {
-        HStack(spacing: 0) {
-            TabBarButton(
-                icon: "house.fill",
-                label: "ホーム",
-                isSelected: selectedTab == .home
-            ) { selectedTab = .home }
-
-            TabBarButton(
-                icon: "clock.fill",
-                label: "履歴",
-                isSelected: selectedTab == .history
-            ) { selectedTab = .history }
-
-            TabBarButton(
-                icon: "magnifyingglass",
-                label: "検索",
-                isSelected: selectedTab == .search
-            ) { selectedTab = .search }
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 8)
-        .background(.regularMaterial, in: Capsule())
-        .shadow(color: .black.opacity(0.1), radius: 16, y: 4)
-    }
-
-    private var fabButton: some View {
-        Button {
-        } label: {
-            Image(systemName: "plus")
-                .font(.title2.weight(.bold))
-                .foregroundStyle(.white)
-                .frame(width: 56, height: 56)
-                .background(Color.accentColor, in: Circle())
-                .shadow(color: Color.accentColor.opacity(0.45), radius: 10, y: 4)
-        }
-        .accessibilityLabel("ピンを追加")
-    }
-
-    // MARK: - TabItem
-
-    private enum TabItem {
-        case home, history, search
-    }
 }
 
 // MARK: - FilterChip
@@ -166,30 +107,6 @@ private struct FilterChip: View {
                 in: Capsule()
             )
             .foregroundStyle(isSelected ? .white : .primary)
-        }
-        .animation(.easeInOut(duration: 0.15), value: isSelected)
-        .accessibilityLabel(label)
-    }
-}
-
-// MARK: - TabBarButton
-
-private struct TabBarButton: View {
-    let icon: String
-    let label: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 3) {
-                Image(systemName: icon)
-                    .font(.system(size: 20, weight: isSelected ? .semibold : .regular))
-                Text(label)
-                    .font(.caption2)
-            }
-            .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
-            .frame(minWidth: 72, minHeight: 44)
         }
         .animation(.easeInOut(duration: 0.15), value: isSelected)
         .accessibilityLabel(label)
