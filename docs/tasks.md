@@ -24,36 +24,71 @@
 - ⬜ 🔴 TCA パッケージの導入
 - ⬜ 🔴 AppReducer / ルート NavigationStack の実装
 - ⬜ 🔴 ディレクトリ構成の整備（App / Features / Shared）
-- ⬜ 🔴 Dependency プロトコルの定義（APIClient など）
+- ⬜ 🔴 Dependency プロトコルの定義（PinClient / MetadataClient など）
 
 ---
 
-## フェーズ 2: 認証
+## フェーズ 2: データ層（SwiftData）
 
-- ⬜ 🔴 認証画面 UI（ログイン / サインアップ）
-- ⬜ 🔴 AuthReducer の実装
-- ⬜ 🔴 サインアップ処理
-- ⬜ 🔴 ログイン処理
-- ⬜ 🔴 ログアウト処理
-- ⬜ 🟡 パスワードリセット
-- ⬜ 🟡 アカウント削除
-- ⬜ 🟢 SNS ログイン（Apple / Google）
+- ⬜ 🔴 `Pin` モデル定義（id / contentType / title / memo / createdAt / isFavorite）
+- ⬜ 🔴 `ContentType` enum（url / image / video / pdf / text）とペイロード設計
+- ⬜ 🔴 `Collection` モデル定義（id / name / pins）
+- ⬜ 🔴 `Tag` モデル定義
+- ⬜ 🔴 SwiftData `ModelContainer` の DI 設定（`@Dependency`）
+- ⬜ 🔴 `PinClient` プロトコル + SwiftData 実装（CRUD）
 
 ---
 
 ## フェーズ 3: ピン管理（MVP コア機能）
 
 - ⬜ 🔴 ピン一覧画面（PinListView / PinListReducer）
+  - ⬜ 🔴 グリッド / リスト 切替
+  - ⬜ 🔴 種別フィルタバー（URL / 画像 / 動画 / PDF / テキスト / すべて）
 - ⬜ 🔴 ピン作成画面（PinCreateView / PinCreateReducer）
+  - ⬜ 🔴 種別選択 UI
+  - ⬜ 🔴 URL 入力 → メタデータ取得フロー
+  - ⬜ 🔴 画像ピッカー（PhotosUI）
+  - ⬜ 🟡 動画ピッカー（PhotosUI）
+  - ⬜ 🟡 PDF インポート（FileImporter）
+  - ⬜ 🔴 テキスト入力
 - ⬜ 🔴 ピン詳細画面（PinDetailView / PinDetailReducer）
-- ⬜ 🔴 ピン編集機能
+  - ⬜ 🔴 種別ごとの詳細 UI（URL: WebView / 画像: 全画面 / 動画: AVPlayer / PDF: PDFKit / テキスト: テキスト表示）
+- ⬜ 🔴 ピン編集機能（タイトル・メモ・タグ）
 - ⬜ 🔴 ピン削除機能（スワイプ削除 / 確認アラート）
 - ⬜ 🟡 お気に入り登録・解除
 - ⬜ 🟢 並び替え
 
 ---
 
-## フェーズ 4: コレクション管理
+## フェーズ 4: URL メタデータ取得・サムネイル表示
+
+- ⬜ 🔴 `MetadataClient` プロトコル定義（`fetch(url:) async throws -> URLMetadata`）
+- ⬜ 🔴 `LPMetadataProvider` を使った実装（og:title / og:image / favicon 取得）
+- ⬜ 🔴 取得した og:image をアプリコンテナにキャッシュ保存
+- ⬜ 🔴 ピン一覧でのサムネイル表示（非同期・遅延読み込み）
+- ⬜ 🔴 メタデータ取得失敗時のフォールバック UI（ファビコン or プレースホルダー）
+- ⬜ 🟡 既存 URL ピンのメタデータ再取得（手動リフレッシュ）
+
+---
+
+## フェーズ 5: Share Extension
+
+- ⬜ 🔴 Share Extension ターゲットの追加（Xcode）
+- ⬜ 🔴 App Group の設定（ホストアプリと SwiftData ストアを共有）
+- ⬜ 🔴 `NSExtensionActivationRule` の設定（`public.url` / `public.image` / `public.movie` / `com.adobe.pdf` / `public.plain-text`）
+- ⬜ 🔴 `NSItemProvider` からのコンテンツ種別判定ロジック
+- ⬜ 🔴 Share Extension UI（ShareView / ShareReducer）
+  - ⬜ 🔴 受け取ったコンテンツのプレビュー表示
+  - ⬜ 🔴 タイトル・メモ・コレクション選択フォーム
+  - ⬜ 🔴 保存 / キャンセルアクション
+- ⬜ 🔴 URL 受信時のメタデータ取得（`MetadataClient` 再利用）
+- ⬜ 🔴 画像 / 動画受信時のアプリコンテナへのコピー保存
+- ⬜ 🔴 PDF 受信時のアプリコンテナへのコピー保存
+- ⬜ 🔴 保存完了後の Extension の閉じ処理
+
+---
+
+## フェーズ 6: コレクション管理
 
 - ⬜ 🔴 コレクション一覧画面
 - ⬜ 🔴 コレクション作成・編集・削除
@@ -62,7 +97,7 @@
 
 ---
 
-## フェーズ 5: 検索・タグ
+## フェーズ 7: 検索・タグ
 
 - ⬜ 🟡 検索画面（SearchView / SearchReducer）
 - ⬜ 🟡 キーワード検索
@@ -74,7 +109,7 @@
 
 ---
 
-## フェーズ 6: 設定
+## フェーズ 8: 設定
 
 - ⬜ 🔴 設定画面（SettingsView / SettingsReducer）
 - ⬜ 🔴 アプリバージョン・ライセンス表示
@@ -84,11 +119,11 @@
 
 ---
 
-## フェーズ 7: テスト・品質
+## フェーズ 9: テスト・品質
 
-- ⬜ 🔴 AuthReducer のユニットテスト
 - ⬜ 🔴 PinListReducer のユニットテスト
 - ⬜ 🔴 PinCreateReducer のユニットテスト
+- ⬜ 🔴 MetadataClient のユニットテスト（モック使用）
 - ⬜ 🟡 SearchReducer のユニットテスト
 - ⬜ 🟡 SettingsReducer のユニットテスト
 - ⬜ 🟡 アクセシビリティ検証（VoiceOver / Dynamic Type）
@@ -96,7 +131,7 @@
 
 ---
 
-## フェーズ 8: リリース準備
+## フェーズ 10: リリース準備
 
 - ⬜ 🔴 App Icon / スプラッシュ画面
 - ⬜ 🔴 App Store Connect 登録
@@ -111,3 +146,5 @@
 | 日付 | 変更内容 |
 |------|---------|
 | 2026-02-19 | 初版作成 |
+| 2026-02-19 | 認証フェーズ削除、SwiftData モデルフェーズ追加、URL メタデータ取得フェーズ追加 |
+| 2026-02-19 | Share Extension フェーズ追加（フェーズ 5）、2-9 を△→◎に昇格 |

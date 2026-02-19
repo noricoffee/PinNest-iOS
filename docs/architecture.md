@@ -60,23 +60,47 @@ TCA は [Point-Free](https://github.com/pointfreeco/swift-composable-architectur
 ```
 pinNest/
 ├── App/
-│   ├── pinNestApp.swift          # @main エントリポイント、ルート Store の生成
-│   └── AppReducer.swift          # アプリ全体のルート Reducer
+│   ├── pinNestApp.swift              # @main エントリポイント、ルート Store の生成
+│   └── AppReducer.swift              # アプリ全体のルート Reducer・NavigationStack
 │
-├── Features/                     # 機能単位のモジュール群
-│   ├── FeatureA/
-│   │   ├── FeatureAView.swift    # SwiftUI View
-│   │   └── FeatureAReducer.swift # @Reducer（State / Action / body を含む）
-│   └── FeatureB/
-│       ├── FeatureBView.swift
-│       └── FeatureBReducer.swift
+├── Features/                         # 機能単位のモジュール群
+│   ├── PinList/
+│   │   ├── PinListView.swift         # ホーム画面（グリッド / リスト・種別フィルタ）
+│   │   └── PinListReducer.swift
+│   ├── PinCreate/
+│   │   ├── PinCreateView.swift       # ピン作成画面（種別選択 → コンテンツ入力）
+│   │   └── PinCreateReducer.swift
+│   ├── PinDetail/
+│   │   ├── PinDetailView.swift       # ピン詳細画面（種別ごとの UI）
+│   │   └── PinDetailReducer.swift
+│   ├── Collection/
+│   │   ├── CollectionListView.swift
+│   │   ├── CollectionListReducer.swift
+│   │   ├── CollectionDetailView.swift
+│   │   └── CollectionDetailReducer.swift
+│   ├── Search/
+│   │   ├── SearchView.swift
+│   │   └── SearchReducer.swift
+│   └── Settings/
+│       ├── SettingsView.swift
+│       └── SettingsReducer.swift
 │
-├── Shared/                       # 複数 Feature で共有するコード
-│   ├── Models/                   # ドメインモデル（値型中心）
-│   ├── APIClient/                # DI 可能な API クライアント（TCA Dependency）
+├── ShareExtension/                   # Share Extension ターゲット（別 Xcode Target）
+│   ├── ShareView.swift               # 他アプリからの共有受け取り UI
+│   └── ShareReducer.swift
+│
+├── Shared/                           # 複数 Feature で共有するコード
+│   ├── Models/
+│   │   ├── Pin.swift                 # @Model（SwiftData）
+│   │   ├── ContentType.swift         # enum（url / image / video / pdf / text）
+│   │   ├── PinCollection.swift       # @Model（SwiftData）
+│   │   └── Tag.swift                 # @Model（SwiftData）
+│   ├── Clients/
+│   │   ├── PinClient.swift           # CRUD 操作の Dependency
+│   │   └── MetadataClient.swift      # LPMetadataProvider ラッパーの Dependency
 │   └── Extensions/
 │
-└── architecture.md               # 本ドキュメント
+└── docs/                             # プロジェクトドキュメント
 ```
 
 ---
@@ -259,6 +283,60 @@ struct AppReducer {
     }
 }
 ```
+
+---
+
+## データ層（SwiftData）
+
+- `Pin` / `PinCollection` / `Tag` は `@Model` マクロで定義し、SwiftData で永続化する
+- `ModelContainer` は `PinClient` の内部で保持し、`@Dependency(\.pinClient)` 経由で各 Reducer に注入する
+- Share Extension とホストアプリは **App Group** を通じて同一の `ModelContainer` ストア（`group.<bundle-id>.pinNest`）を共有する
+
+```swift
+// Shared/Clients/PinClient.swift
+struct PinClient {
+    var fetchAll: @Sendable () async throws -> [Pin]
+    var create: @Sendable (Pin) async throws -> Void
+    var update: @Sendable (Pin) async throws -> Void
+    var delete: @Sendable (Pin) async throws -> Void
+}
+
+extension DependencyValues {
+    var pinClient: PinClient {
+        get { self[PinClient.self] }
+        set { self[PinClient.self] = newValue }
+    }
+}
+```
+
+---
+
+## URL メタデータ取得（MetadataClient）
+
+- `LPMetadataProvider` をラップした `MetadataClient` を `@Dependency` として注入する
+- 取得した `og:image` はアプリコンテナ（`FileManager`）にキャッシュし、`Pin` には画像ファイルのパスを保存する
+- Share Extension からも同一の `MetadataClient` を再利用できるよう `Shared/Clients/` に配置する
+
+```swift
+// Shared/Clients/MetadataClient.swift
+struct MetadataClient {
+    var fetch: @Sendable (URL) async throws -> URLMetadata
+}
+
+struct URLMetadata: Equatable {
+    var title: String?
+    var thumbnailData: Data?
+    var faviconData: Data?
+}
+```
+
+---
+
+## Share Extension アーキテクチャ
+
+- Share Extension は **別 Xcode Target** として実装する
+- `ShareReducer` が `NSExtensionContext` から `NSItemProvider` を受け取り、コンテンツ種別を判定して `PinClient.create` を呼ぶ
+- Extension 内では SwiftUI + TCA を使用し、`ShareView` / `ShareReducer` のみで完結させる（ホストアプリの Feature には依存しない）
 
 ---
 
