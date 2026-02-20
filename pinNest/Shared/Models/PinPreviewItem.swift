@@ -2,7 +2,8 @@ import SwiftUI
 
 // MARK: - PinContentType
 
-enum PinContentType: CaseIterable {
+enum PinContentType: CaseIterable, Identifiable {
+    var id: Self { self }
     case url, image, video, pdf, text
 
     var iconName: String {

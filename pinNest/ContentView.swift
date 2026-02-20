@@ -2,6 +2,8 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selectedTab: TabItem = .home
+    @State private var isFABExpanded = false
+    @State private var createContentType: PinContentType? = nil
 
     // MARK: - Body
 
@@ -23,6 +25,30 @@ struct ContentView: View {
         .safeAreaInset(edge: .bottom) {
             floatingBar
         }
+        // 暗転オーバーレイ（タップで閉じる）
+        .overlay {
+            if isFABExpanded {
+                Color.black.opacity(0.35)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation(.spring(duration: 0.3)) { isFABExpanded = false }
+                    }
+                    .transition(.opacity)
+            }
+        }
+        // タイプ選択メニュー（FAB の上に展開）
+        .overlay(alignment: .bottomTrailing) {
+            if isFABExpanded {
+                fabTypeMenu
+                    .padding(.trailing, 20)
+                    .padding(.bottom, 80) // floating bar height (8 top + 56 content + 16 bottom)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .animation(.spring(duration: 0.3), value: isFABExpanded)
+        .sheet(item: $createContentType) { type in
+            PinCreateView(contentType: type)
+        }
     }
 
     // MARK: - Floating Bar
@@ -30,6 +56,7 @@ struct ContentView: View {
     private var floatingBar: some View {
         HStack(alignment: .center, spacing: 12) {
             mainTabGroup
+            Spacer()
             fabButton
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -67,7 +94,6 @@ struct ContentView: View {
             .frame(minWidth: 64, minHeight: 44)
             .padding(.horizontal, 8)
             .padding(.vertical, 6)
-            // 選択中は内側に白いピル背景（写真アプリスタイル）
             .background(
                 isSelected ? Color(.systemBackground).opacity(0.85) : .clear,
                 in: Capsule()
@@ -79,15 +105,55 @@ struct ContentView: View {
 
     private var fabButton: some View {
         Button {
+            withAnimation(.spring(duration: 0.3)) { isFABExpanded.toggle() }
         } label: {
-            Image(systemName: "plus")
+            Image(systemName: isFABExpanded ? "xmark" : "plus")
                 .font(.title2.weight(.bold))
                 .foregroundStyle(.white)
                 .frame(width: 56, height: 56)
-                .background(Color.accentColor, in: Circle())
-                .shadow(color: Color.accentColor.opacity(0.45), radius: 10, y: 4)
+                .background(
+                    isFABExpanded ? Color(.systemGray) : Color.accentColor,
+                    in: Circle()
+                )
+                .shadow(
+                    color: Color.accentColor.opacity(isFABExpanded ? 0 : 0.45),
+                    radius: 10, y: 4
+                )
         }
-        .accessibilityLabel("ピンを追加")
+        .accessibilityLabel(isFABExpanded ? "閉じる" : "ピンを追加")
+    }
+
+    // MARK: - FAB Type Menu
+
+    private var fabTypeMenu: some View {
+        VStack(alignment: .trailing, spacing: 8) {
+            ForEach(Array(PinContentType.allCases.reversed())) { type in
+                fabTypeMenuItem(type: type)
+            }
+        }
+    }
+
+    private func fabTypeMenuItem(type: PinContentType) -> some View {
+        Button {
+            withAnimation(.spring(duration: 0.3)) { isFABExpanded = false }
+            createContentType = type
+        } label: {
+            HStack(spacing: 12) {
+                Text(type.label)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.primary)
+                Image(systemName: type.iconName)
+                    .font(.body)
+                    .foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+                    .background(Color.accentColor, in: Circle())
+            }
+            .padding(.leading, 16)
+            .padding(.trailing, 8)
+            .padding(.vertical, 8)
+            .glassEffect(in: Capsule())
+        }
+        .accessibilityLabel("\(type.label)を追加")
     }
 
     // MARK: - TabItem
