@@ -30,10 +30,12 @@
   - ✅ 🔴 コンテンツタイプ切り替え pill（横スクロール）
   - ✅ 🔴 URL 入力（TextField + クリアボタン）
   - ✅ 🔴 テキスト入力（TextEditor）
-  - ✅ 🔴 画像・動画・PDF 選択プレースホルダー
+  - ✅ 🔴 画像選択（PhotosPicker / `.images`）・選択後サムネイル表示
+  - ✅ 🟡 動画選択（PhotosPicker / `.videos`）・選択済み表示
+  - ✅ 🟡 PDF インポート（`.fileImporter` / `.pdf`）・ファイル名表示
   - ✅ 🔴 タイトル入力（TextField）
   - ✅ 🔴 メモ入力（TextEditor、任意）
-  - ✅ 🔴 保存ボタン disabled 制御（タイトル空のとき）
+  - ✅ 🔴 タイトル自動補完（URL/テキストは本文から・空欄時は日時 `yyyy-MM-dd'T'HH:mm:ss`）
 - ✅ 🔴 履歴画面 UI（HistoryView）
 - ⬜ 🔴 ピン詳細画面 UI（PinDetailView）
 - ⬜ 🟡 コレクション詳細画面 UI（CollectionDetailView）
@@ -176,3 +178,4 @@
 | 2026-02-19 | Share Extension フェーズ追加（フェーズ 5）、2-9 を△→◎に昇格 |
 | 2026-02-19 | フェーズ 0（UI プロトタイプ）追加。ホーム画面 UI 実装完了 |
 | 2026-02-20 | FAB 展開メニュー実装（タイプ選択・暗転・＋↔×）、PinCreateView 実装（タイプ切り替え・URL/テキスト/ファイル入力・タイトル・メモ）、履歴画面 UI 完了を反映 |
+| 2026-02-21 | PinCreateView: 画像/動画（PhotosPicker）・PDF（fileImporter）の実際のファイル選択を実装。タイトル自動補完ロジック追加（URL/テキスト→本文、その他→日時） |
