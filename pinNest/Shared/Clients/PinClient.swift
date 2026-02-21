@@ -1,5 +1,6 @@
 import Dependencies
 import Foundation
+import SwiftData
 
 struct PinClient: Sendable {
     var fetchAll: @Sendable () async throws -> [Pin]
@@ -8,14 +9,43 @@ struct PinClient: Sendable {
     var delete: @Sendable (UUID) async throws -> Void
 }
 
+// MARK: - Live Implementation
+
 extension PinClient: DependencyKey {
-    // Phase 2 で SwiftData を使った実装に差し替える
-    static let liveValue = PinClient(
-        fetchAll: { [] },
-        create: { _ in },
-        update: { _ in },
-        delete: { _ in }
-    )
+    static let liveValue: PinClient = {
+        let container: ModelContainer
+        do {
+            let schema = Schema([Pin.self, PinCollection.self, Tag.self])
+            let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+            container = try ModelContainer(for: schema, configurations: config)
+        } catch {
+            fatalError("Failed to create ModelContainer: \(error)")
+        }
+        let store = PinDataStore(modelContainer: container)
+
+        return PinClient(
+            fetchAll: {
+                try await store.fetchAll()
+            },
+            create: { pin in
+                try await store.create(pin)
+            },
+            update: { pin in
+                try await store.update(
+                    id: pin.id,
+                    title: pin.title,
+                    memo: pin.memo,
+                    isFavorite: pin.isFavorite,
+                    urlString: pin.urlString,
+                    filePath: pin.filePath,
+                    bodyText: pin.bodyText
+                )
+            },
+            delete: { id in
+                try await store.delete(id: id)
+            }
+        )
+    }()
 
     static let testValue = PinClient(
         fetchAll: unimplemented("\(Self.self).fetchAll", placeholder: []),

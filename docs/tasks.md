@@ -67,12 +67,12 @@
 
 ## フェーズ 2: データ層（SwiftData）
 
-- ⬜ 🔴 `Pin` モデル定義（id / contentType / title / memo / createdAt / isFavorite）
-- ⬜ 🔴 `ContentType` enum（url / image / video / pdf / text）とペイロード設計
-- ⬜ 🔴 `Collection` モデル定義（id / name / pins）
-- ⬜ 🔴 `Tag` モデル定義
-- ⬜ 🔴 SwiftData `ModelContainer` の DI 設定（`@Dependency`）
-- ⬜ 🔴 `PinClient` プロトコル + SwiftData 実装（CRUD）
+- ✅ 🔴 `Pin` モデル定義（id / contentType / title / memo / createdAt / isFavorite）
+- ✅ 🔴 `ContentType` enum（url / image / video / pdf / text）とペイロード設計
+- ✅ 🔴 `Collection` モデル定義（id / name / pins）
+- ✅ 🔴 `Tag` モデル定義
+- ✅ 🔴 SwiftData `ModelContainer` の DI 設定（`@Dependency`）
+- ✅ 🔴 `PinClient` プロトコル + SwiftData 実装（CRUD）
 
 ---
 
@@ -190,3 +190,4 @@
 | 2026-02-21 | PinCreateView: 画像/動画（PhotosPicker）・PDF（fileImporter）の実際のファイル選択を実装。タイトル自動補完ロジック追加（URL/テキスト→本文、その他→日時） |
 | 2026-02-21 | 検索画面 UI 完了（`.searchable` 標準検索バー・部分一致・マソンリー結果表示）。ピン詳細画面 UI 完了（タイプ別詳細・追加日時/タイプ metaHeader・PinListView / SearchView からモーダル表示）。PinPreviewItem に addedAt: Date 追加 |
 | 2026-02-21 | フェーズ 1 完了。AppReducer（State/Action/BindingReducer）実装・AppView（ContentView を TCA 対応にリネーム）・App/ ディレクトリ整備・PinClient / MetadataClient の Dependency 定義（liveValue 空実装・testValue unimplemented）・Pin / ContentType プレースホルダー構造体追加 |
+| 2026-02-21 | フェーズ 2 完了。Pin を @Model に移行（urlString / filePath / bodyText ペイロードフィールド + Tag / PinCollection Relationship）・ContentType を別ファイルに分離（Codable/Hashable 対応）・PinCollection / Tag を @Model で新規作成・PinDataStore（@ModelActor）で CRUD 実装・PinClient.liveValue を ModelContainer + PinDataStore ベースの実装に更新 |
