@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SearchView: View {
     @State private var searchText = ""
+    @State private var selectedItem: PinPreviewItem? = nil
 
     // MARK: - Body
 
@@ -15,6 +16,9 @@ struct SearchView: View {
                     placement: .navigationBarDrawer(displayMode: .always),
                     prompt: "タイトル・本文で検索"
                 )
+                .sheet(item: $selectedItem) { item in
+                    PinDetailView(item: item)
+                }
         }
     }
 
@@ -83,7 +87,13 @@ struct SearchView: View {
     private func columnView(items: [PinPreviewItem]) -> some View {
         LazyVStack(spacing: 12) {
             ForEach(items) { item in
-                PinCardView(item: item)
+                Button {
+                    selectedItem = item
+                } label: {
+                    PinCardView(item: item)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(item.title)
             }
         }
     }

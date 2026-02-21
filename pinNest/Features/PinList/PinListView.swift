@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PinListView: View {
     @State private var selectedFilter: PinContentType? = nil
+    @State private var selectedItem: PinPreviewItem? = nil
 
     // MARK: - Body
 
@@ -10,6 +11,9 @@ struct PinListView: View {
             scrollContent
                 .navigationTitle("pinNest")
                 .navigationBarTitleDisplayMode(.large)
+                .sheet(item: $selectedItem) { item in
+                    PinDetailView(item: item)
+                }
         }
     }
 
@@ -67,7 +71,13 @@ struct PinListView: View {
     private func columnView(items: [PinPreviewItem]) -> some View {
         LazyVStack(spacing: 12) {
             ForEach(items) { item in
-                PinCardView(item: item)
+                Button {
+                    selectedItem = item
+                } label: {
+                    PinCardView(item: item)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(item.title)
             }
         }
     }

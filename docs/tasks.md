@@ -37,9 +37,18 @@
   - ✅ 🔴 メモ入力（TextEditor、任意）
   - ✅ 🔴 タイトル自動補完（URL/テキストは本文から・空欄時は日時 `yyyy-MM-dd'T'HH:mm:ss`）
 - ✅ 🔴 履歴画面 UI（HistoryView）
-- ⬜ 🔴 ピン詳細画面 UI（PinDetailView）
+- ✅ 🔴 ピン詳細画面 UI（PinDetailView）
+  - ✅ 🔴 タイプ別詳細表示（URL / 画像 / 動画 / PDF / テキスト）
+  - ✅ 🔴 追加日時・コンテンツタイプ表示（metaHeader）
+  - ✅ 🔴 URL タイプ: サムネイル・ドメイン・「Safari で開く」ボタン
+  - ✅ 🔴 テキストタイプ: 全文表示
+  - ✅ 🔴 PinListView / SearchView のカードタップ → モーダル表示
 - ⬜ 🟡 コレクション詳細画面 UI（CollectionDetailView）
-- ⬜ 🟡 検索画面 UI（SearchView）
+- ✅ 🟡 検索画面 UI（SearchView）
+  - ✅ 🟡 標準検索バー（`.searchable`）によるリアルタイム検索
+  - ✅ 🟡 タイトル・subtitle・本文の部分一致検索
+  - ✅ 🟡 結果: マソンリーグリッド（PinCardView 再利用）
+  - ✅ 🟡 空状態 / 結果なし状態（ContentUnavailableView）
 - ⬜ 🟡 設定画面 UI（SettingsView）
 
 > ⚠️ このフェーズは UI の見た目確認用。TCA Reducer・SwiftData は未実装。確認完了後に各フェーズで本実装を行う。
@@ -179,3 +188,4 @@
 | 2026-02-19 | フェーズ 0（UI プロトタイプ）追加。ホーム画面 UI 実装完了 |
 | 2026-02-20 | FAB 展開メニュー実装（タイプ選択・暗転・＋↔×）、PinCreateView 実装（タイプ切り替え・URL/テキスト/ファイル入力・タイトル・メモ）、履歴画面 UI 完了を反映 |
 | 2026-02-21 | PinCreateView: 画像/動画（PhotosPicker）・PDF（fileImporter）の実際のファイル選択を実装。タイトル自動補完ロジック追加（URL/テキスト→本文、その他→日時） |
+| 2026-02-21 | 検索画面 UI 完了（`.searchable` 標準検索バー・部分一致・マソンリー結果表示）。ピン詳細画面 UI 完了（タイプ別詳細・追加日時/タイプ metaHeader・PinListView / SearchView からモーダル表示）。PinPreviewItem に addedAt: Date 追加 |
