@@ -1,23 +1,22 @@
+import ComposableArchitecture
 import SwiftUI
 
-struct ContentView: View {
-    @State private var selectedTab: TabItem = .home
-    @State private var isFABExpanded = false
-    @State private var createContentType: PinContentType? = nil
+struct AppView: View {
+    @Bindable var store: StoreOf<AppReducer>
 
     // MARK: - Body
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            Tab(value: TabItem.home) {
+        TabView(selection: $store.selectedTab.sending(\.tabSelected)) {
+            Tab(value: AppReducer.Tab.home) {
                 PinListView()
                     .toolbar(.hidden, for: .tabBar)
             }
-            Tab(value: TabItem.history) {
+            Tab(value: AppReducer.Tab.history) {
                 HistoryView()
                     .toolbar(.hidden, for: .tabBar)
             }
-            Tab(value: TabItem.search) {
+            Tab(value: AppReducer.Tab.search) {
                 SearchView()
                     .toolbar(.hidden, for: .tabBar)
             }
@@ -27,26 +26,26 @@ struct ContentView: View {
         }
         // 暗転オーバーレイ（タップで閉じる）
         .overlay {
-            if isFABExpanded {
+            if store.isFABExpanded {
                 Color.black.opacity(0.35)
                     .ignoresSafeArea()
                     .onTapGesture {
-                        withAnimation(.spring(duration: 0.3)) { isFABExpanded = false }
+                        store.send(.overlayTapped, animation: .spring(duration: 0.3))
                     }
                     .transition(.opacity)
             }
         }
         // タイプ選択メニュー（FAB の上に展開）
         .overlay(alignment: .bottomTrailing) {
-            if isFABExpanded {
+            if store.isFABExpanded {
                 fabTypeMenu
                     .padding(.trailing, 20)
                     .padding(.bottom, 80) // floating bar height (8 top + 56 content + 16 bottom)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .animation(.spring(duration: 0.3), value: isFABExpanded)
-        .sheet(item: $createContentType) { type in
+        .animation(.spring(duration: 0.3), value: store.isFABExpanded)
+        .sheet(item: $store.createContentType) { type in
             PinCreateView(contentType: type)
         }
     }
@@ -75,15 +74,23 @@ struct ContentView: View {
         .padding(4)
         .glassEffect(in: Capsule())
         .contextMenu {
-            Button("ホーム", systemImage: "house.fill") { selectedTab = .home }
-            Button("履歴", systemImage: "clock.fill") { selectedTab = .history }
-            Button("検索", systemImage: "magnifyingglass") { selectedTab = .search }
+            Button("ホーム", systemImage: "house.fill") {
+                store.send(.tabSelected(.home))
+            }
+            Button("履歴", systemImage: "clock.fill") {
+                store.send(.tabSelected(.history))
+            }
+            Button("検索", systemImage: "magnifyingglass") {
+                store.send(.tabSelected(.search))
+            }
         }
     }
 
-    private func tabPill(_ tab: TabItem, icon: String, label: String) -> some View {
-        let isSelected = selectedTab == tab
-        return Button { selectedTab = tab } label: {
+    private func tabPill(_ tab: AppReducer.Tab, icon: String, label: String) -> some View {
+        let isSelected = store.selectedTab == tab
+        return Button {
+            store.send(.tabSelected(tab))
+        } label: {
             VStack(spacing: 3) {
                 Image(systemName: icon)
                     .font(.system(size: 20, weight: isSelected ? .semibold : .regular))
@@ -100,27 +107,27 @@ struct ContentView: View {
             )
         }
         .accessibilityLabel(label)
-        .animation(.easeInOut(duration: 0.2), value: selectedTab)
+        .animation(.easeInOut(duration: 0.2), value: store.selectedTab)
     }
 
     private var fabButton: some View {
         Button {
-            withAnimation(.spring(duration: 0.3)) { isFABExpanded.toggle() }
+            store.send(.fabButtonTapped, animation: .spring(duration: 0.3))
         } label: {
-            Image(systemName: isFABExpanded ? "xmark" : "plus")
+            Image(systemName: store.isFABExpanded ? "xmark" : "plus")
                 .font(.title2.weight(.bold))
                 .foregroundStyle(.white)
                 .frame(width: 56, height: 56)
                 .background(
-                    isFABExpanded ? Color(.systemGray) : Color.accentColor,
+                    store.isFABExpanded ? Color(.systemGray) : Color.accentColor,
                     in: Circle()
                 )
                 .shadow(
-                    color: Color.accentColor.opacity(isFABExpanded ? 0 : 0.45),
+                    color: Color.accentColor.opacity(store.isFABExpanded ? 0 : 0.45),
                     radius: 10, y: 4
                 )
         }
-        .accessibilityLabel(isFABExpanded ? "閉じる" : "ピンを追加")
+        .accessibilityLabel(store.isFABExpanded ? "閉じる" : "ピンを追加")
     }
 
     // MARK: - FAB Type Menu
@@ -135,8 +142,7 @@ struct ContentView: View {
 
     private func fabTypeMenuItem(type: PinContentType) -> some View {
         Button {
-            withAnimation(.spring(duration: 0.3)) { isFABExpanded = false }
-            createContentType = type
+            store.send(.fabMenuItemTapped(type), animation: .spring(duration: 0.3))
         } label: {
             HStack(spacing: 12) {
                 Text(type.label)
@@ -155,14 +161,10 @@ struct ContentView: View {
         }
         .accessibilityLabel("\(type.label)を追加")
     }
-
-    // MARK: - TabItem
-
-    enum TabItem: Hashable {
-        case home, history, search
-    }
 }
 
 #Preview {
-    ContentView()
+    AppView(store: Store(initialState: AppReducer.State()) {
+        AppReducer()
+    })
 }

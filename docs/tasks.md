@@ -57,11 +57,11 @@
 
 ## フェーズ 1: 環境構築・基盤
 
-- ⬜ 🔴 プロジェクトセットアップ（Xcode / Swift Package Manager）
-- ⬜ 🔴 TCA パッケージの導入
-- ⬜ 🔴 AppReducer / ルート NavigationStack の実装
-- ⬜ 🔴 ディレクトリ構成の整備（App / Features / Shared）
-- ⬜ 🔴 Dependency プロトコルの定義（PinClient / MetadataClient など）
+- ✅ 🔴 プロジェクトセットアップ（Xcode / Swift Package Manager）
+- ✅ 🔴 TCA パッケージの導入
+- ✅ 🔴 AppReducer / ルート NavigationStack の実装
+- ✅ 🔴 ディレクトリ構成の整備（App / Features / Shared）
+- ✅ 🔴 Dependency プロトコルの定義（PinClient / MetadataClient など）
 
 ---
 
@@ -189,3 +189,4 @@
 | 2026-02-20 | FAB 展開メニュー実装（タイプ選択・暗転・＋↔×）、PinCreateView 実装（タイプ切り替え・URL/テキスト/ファイル入力・タイトル・メモ）、履歴画面 UI 完了を反映 |
 | 2026-02-21 | PinCreateView: 画像/動画（PhotosPicker）・PDF（fileImporter）の実際のファイル選択を実装。タイトル自動補完ロジック追加（URL/テキスト→本文、その他→日時） |
 | 2026-02-21 | 検索画面 UI 完了（`.searchable` 標準検索バー・部分一致・マソンリー結果表示）。ピン詳細画面 UI 完了（タイプ別詳細・追加日時/タイプ metaHeader・PinListView / SearchView からモーダル表示）。PinPreviewItem に addedAt: Date 追加 |
+| 2026-02-21 | フェーズ 1 完了。AppReducer（State/Action/BindingReducer）実装・AppView（ContentView を TCA 対応にリネーム）・App/ ディレクトリ整備・PinClient / MetadataClient の Dependency 定義（liveValue 空実装・testValue unimplemented）・Pin / ContentType プレースホルダー構造体追加 |
