@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 @Model
-final class PinCollection {
+final class PinCollection: @unchecked Sendable {
     #Unique<PinCollection>([\.id])
 
     var id: UUID
@@ -23,4 +23,4 @@ final class PinCollection {
     }
 }
 
-extension PinCollection: @unchecked Sendable {}
+

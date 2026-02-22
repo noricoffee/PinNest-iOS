@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 @Model
-final class Pin {
+final class Pin: @unchecked Sendable {
     #Unique<Pin>([\.id])
 
     var id: UUID
@@ -53,7 +53,3 @@ final class Pin {
         self.bodyText = bodyText
     }
 }
-
-// @Model クラスはミュータブルな参照型のため Sendable を自動合成できない。
-// SwiftData の ModelContext が排他アクセスを保証する前提で @unchecked Sendable を付与する。
-extension Pin: @unchecked Sendable {}

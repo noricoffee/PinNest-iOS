@@ -1,12 +1,12 @@
 import Foundation
 
-// SwiftUI を import しないことで @MainActor 隔離を防ぎ、
-// Equatable / Hashable / Sendable を非隔離で合成できるようにする。
-enum PinContentType: CaseIterable, Identifiable, Equatable, Hashable, Sendable {
-    var id: Self { self }
+// SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor 環境で computed property が
+// @MainActor に隔離されないよう nonisolated を明示する。
+// Identifiable は @MainActor 隔離との競合が生じるため、ForEach では id: \.self を使う。
+enum PinContentType: CaseIterable, Equatable, Hashable, Sendable {
     case url, image, video, pdf, text
 
-    var iconName: String {
+    nonisolated var iconName: String {
         switch self {
         case .url:   "globe"
         case .image: "photo.fill"
@@ -16,7 +16,7 @@ enum PinContentType: CaseIterable, Identifiable, Equatable, Hashable, Sendable {
         }
     }
 
-    var label: String {
+    nonisolated var label: String {
         switch self {
         case .url:   "URL"
         case .image: "画像"

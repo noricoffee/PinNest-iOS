@@ -106,7 +106,7 @@ struct PinCreateView: View {
     private var typeSelectorSection: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(PinContentType.allCases) { type in
+                ForEach(PinContentType.allCases, id: \.self) { type in
                     typeChip(type)
                 }
             }
@@ -193,7 +193,7 @@ struct PinCreateView: View {
             switch selectedType {
             case .image:
                 PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                    pickerPlaceholder(icon: selectedType.iconName, label: "画像を選択")
+                    PickerPlaceholderView(icon: PinContentType.image.iconName, label: "画像を選択")
                 }
                 .accessibilityLabel("フォトライブラリから画像を選択")
                 if let image = selectedImage {
@@ -207,7 +207,7 @@ struct PinCreateView: View {
                 }
             case .video:
                 PhotosPicker(selection: $selectedPhotoItem, matching: .videos) {
-                    pickerPlaceholder(icon: selectedType.iconName, label: "動画を選択")
+                    PickerPlaceholderView(icon: PinContentType.video.iconName, label: "動画を選択")
                 }
                 .accessibilityLabel("フォトライブラリから動画を選択")
                 if selectedPhotoItem != nil {
@@ -215,7 +215,7 @@ struct PinCreateView: View {
                 }
             case .pdf:
                 Button { isFileImporterPresented = true } label: {
-                    pickerPlaceholder(icon: selectedType.iconName, label: "PDFを選択")
+                    PickerPlaceholderView(icon: PinContentType.pdf.iconName, label: "PDFを選択")
                 }
                 .accessibilityLabel("ファイルから PDF を選択")
                 if let name = selectedFileName {
@@ -225,27 +225,6 @@ struct PinCreateView: View {
                 EmptyView()
             }
         }
-    }
-
-    private func pickerPlaceholder(icon: String, label: String) -> some View {
-        VStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 36))
-                .foregroundStyle(Color.accentColor)
-            Text(label)
-                .font(.body.weight(.medium))
-                .foregroundStyle(Color.accentColor)
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 140)
-        .background(Color.accentColor.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(
-                    Color.accentColor.opacity(0.3),
-                    style: StrokeStyle(lineWidth: 1.5, dash: [6])
-                )
-        )
     }
 
     private func selectedItemRow(icon: String, name: String) -> some View {
@@ -297,6 +276,37 @@ struct PinCreateView: View {
         Text(text)
             .font(.footnote.weight(.semibold))
             .foregroundStyle(.secondary)
+    }
+}
+
+// MARK: - PickerPlaceholderView
+// PhotosPicker の label クロージャは PhotosUI 側が nonisolated 扱いのため、
+// @MainActor メソッドを直接呼べない。独立した View struct にすることで解決する。
+
+private struct PickerPlaceholderView: View {
+    let icon: String
+    let label: String
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 36))
+                .foregroundStyle(Color.accentColor)
+            Text(label)
+                .font(.body.weight(.medium))
+                .foregroundStyle(Color.accentColor)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 140)
+        .background(Color.accentColor.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(
+                    Color.accentColor.opacity(0.3),
+                    style: StrokeStyle(lineWidth: 1.5, dash: [6])
+                )
+        )
+        .accessibilityHidden(true)
     }
 }
 

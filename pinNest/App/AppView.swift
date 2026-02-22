@@ -141,7 +141,7 @@ struct AppView: View {
 
     private var fabTypeMenu: some View {
         VStack(alignment: .trailing, spacing: 8) {
-            ForEach(Array(PinContentType.allCases.reversed())) { type in
+            ForEach(Array(PinContentType.allCases.reversed()), id: \.self) { type in
                 fabTypeMenuItem(type: type)
             }
         }

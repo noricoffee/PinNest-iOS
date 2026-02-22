@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 @Model
-final class Tag {
+final class Tag: @unchecked Sendable {
     #Unique<Tag>([\.id])
 
     var id: UUID
@@ -20,4 +20,4 @@ final class Tag {
     }
 }
 
-extension Tag: @unchecked Sendable {}
+
