@@ -22,3 +22,5 @@ final class PinCollection {
         self.createdAt = createdAt
     }
 }
+
+extension PinCollection: @unchecked Sendable {}

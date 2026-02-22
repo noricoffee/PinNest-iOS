@@ -45,8 +45,15 @@ struct AppView: View {
             }
         }
         .animation(.spring(duration: 0.3), value: store.isFABExpanded)
-        .sheet(item: $store.createContentType) { type in
-            PinCreateView(contentType: type)
+        .sheet(
+            isPresented: Binding(
+                get: { store.createContentType != nil },
+                set: { if !$0 { store.send(.createSheetDismissed) } }
+            )
+        ) {
+            if let type = store.createContentType {
+                PinCreateView(contentType: type)
+            }
         }
     }
 

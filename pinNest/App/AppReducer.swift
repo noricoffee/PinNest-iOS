@@ -20,40 +20,40 @@ struct AppReducer {
 
     // MARK: - Action
 
-    enum Action: BindableAction {
-        case binding(BindingAction<State>)
+    enum Action {
         case tabSelected(Tab)
         case fabButtonTapped
         case fabMenuItemTapped(PinContentType)
         case overlayTapped
+        case createSheetDismissed
     }
 
-    // MARK: - Body
+    // MARK: - Reducer
+    // Note: `body` で `some ReducerOf<Self>` を使うと TCA マクロが循環参照を起こすため
+    //       `reduce(into:action:)` を直接実装している。
 
-    var body: some ReducerOf<Self> {
-        BindingReducer()
-        Reduce { state, action in
-            switch action {
-            case .binding:
-                return .none
+    func reduce(into state: inout State, action: Action) -> Effect<Action> {
+        switch action {
+        case let .tabSelected(tab):
+            state.selectedTab = tab
+            return .none
 
-            case let .tabSelected(tab):
-                state.selectedTab = tab
-                return .none
+        case .fabButtonTapped:
+            state.isFABExpanded.toggle()
+            return .none
 
-            case .fabButtonTapped:
-                state.isFABExpanded.toggle()
-                return .none
+        case let .fabMenuItemTapped(type):
+            state.isFABExpanded = false
+            state.createContentType = type
+            return .none
 
-            case let .fabMenuItemTapped(type):
-                state.isFABExpanded = false
-                state.createContentType = type
-                return .none
+        case .overlayTapped:
+            state.isFABExpanded = false
+            return .none
 
-            case .overlayTapped:
-                state.isFABExpanded = false
-                return .none
-            }
+        case .createSheetDismissed:
+            state.createContentType = nil
+            return .none
         }
     }
 }

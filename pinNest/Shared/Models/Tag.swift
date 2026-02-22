@@ -19,3 +19,5 @@ final class Tag {
         self.name = name
     }
 }
+
+extension Tag: @unchecked Sendable {}
