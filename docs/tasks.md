@@ -115,18 +115,39 @@
 
 ## フェーズ 5: Share Extension
 
-- ⬜ 🔴 Share Extension ターゲットの追加（Xcode）
-- ⬜ 🔴 App Group の設定（ホストアプリと SwiftData ストアを共有）
-- ⬜ 🔴 `NSExtensionActivationRule` の設定（`public.url` / `public.image` / `public.movie` / `com.adobe.pdf` / `public.plain-text`）
-- ⬜ 🔴 `NSItemProvider` からのコンテンツ種別判定ロジック
-- ⬜ 🔴 Share Extension UI（ShareView / ShareReducer）
-  - ⬜ 🔴 受け取ったコンテンツのプレビュー表示
-  - ⬜ 🔴 タイトル・メモ・コレクション選択フォーム
-  - ⬜ 🔴 保存 / キャンセルアクション
-- ⬜ 🔴 URL 受信時のメタデータ取得（`MetadataClient` 再利用）
-- ⬜ 🔴 画像 / 動画受信時のアプリコンテナへのコピー保存
-- ⬜ 🔴 PDF 受信時のアプリコンテナへのコピー保存
-- ⬜ 🔴 保存完了後の Extension の閉じ処理
+- 🔄 🔴 Share Extension ターゲットの追加（Xcode）← コード生成済み。Xcode での手動設定が必要
+- 🔄 🔴 App Group の設定（ホストアプリと SwiftData ストアを共有）← entitlements 生成済み。Xcode での Signing & Capabilities 設定が必要
+- ✅ 🔴 `NSExtensionActivationRule` の設定（`public.url` / `public.image` / `public.movie` / `com.adobe.pdf` / `public.plain-text`）
+- ✅ 🔴 `NSItemProvider` からのコンテンツ種別判定ロジック
+- ✅ 🔴 Share Extension UI（ShareView / ShareReducer）
+  - ✅ 🔴 受け取ったコンテンツのプレビュー表示
+  - ✅ 🔴 タイトル・メモ入力フォーム
+  - ✅ 🔴 保存 / キャンセルアクション
+- ✅ 🔴 URL 受信時のメタデータ取得（`MetadataClient` 再利用）
+- ✅ 🔴 画像 / 動画受信時のアプリコンテナへのコピー保存
+- ✅ 🔴 PDF 受信時のアプリコンテナへのコピー保存
+- ✅ 🔴 保存完了後の Extension の閉じ処理
+
+---
+
+## フェーズ 5.5: Apple Developer / Xcode 設定（Share Extension 有効化）
+
+> フェーズ 5 で生成したコードを実際に動かすために必要な Xcode・Apple Developer 側の設定。後回し可。
+
+- ⬜ 🔴 Apple Developer Portal で App Group `group.com.yoshidanoriyuki.pinnest` を作成・登録
+- ⬜ 🔴 Xcode で Share Extension ターゲットを追加
+  - File > New > Target > Share Extension、Product Name: `pinNestShareExtension`
+- ⬜ 🔴 Extension ターゲットのソースファイル設定
+  - `pinNestShareExtension/` 配下の Swift 3 ファイルを Extension ターゲットに追加
+  - `pinNest/Shared/` 配下の共有コード（PinClient, PinDataStore, MetadataClient, ThumbnailCache, AppGroupContainer, Pin, ContentType, PinCollection, Tag）を Extension ターゲットのメンバーに追加
+- ⬜ 🔴 両ターゲットに App Groups 設定
+  - Signing & Capabilities > App Groups > `group.com.yoshidanoriyuki.pinnest`（pinNest・Extension 両方）
+- ⬜ 🔴 Code Signing Entitlements の設定
+  - pinNest: `pinNest/pinNest.entitlements`
+  - pinNestShareExtension: `pinNestShareExtension/pinNestShareExtension.entitlements`
+- ⬜ 🔴 ComposableArchitecture を Extension ターゲットにリンク（Frameworks and Libraries）
+- ⬜ 🔴 Extension の Info.plist ファイルを Build Settings で指定（`pinNestShareExtension/Info.plist`）
+- ⬜ 🟡 実機 / Simulator で動作確認（Safari URL 共有・写真共有・PDF 共有）
 
 ---
 
@@ -200,3 +221,4 @@
 | 2026-02-23 | フェーズ 3 完了。ContentType に displayColor/iconName/label を追加・PinContentType を typealias に統合・PinListReducer / PinDetailReducer / PinCreateReducer 作成・AppReducer に pinList/pinCreate state 統合・全 View を TCA Store 接続に更新（PinListView / PinDetailView / PinCreateView）。お気に入り・削除アラート・編集・Safari 開く を実装 |
 | 2026-02-23 | クラッシュ修正。`store.scope(state: \.pinCreate!, …)` の force-unwrap に起因する ScopedCore.state.getter クラッシュを修正。AppReducer / PinListReducer を `@Presents` + `body:` + `ifLet` パターンに変更し、View の sheet を `sheet(item: $store.scope(state:action:))` に差し替え |
 | 2026-02-23 | フェーズ 4 完了。MetadataClient を LPMetadataProvider で実装（og:title / og:image / favicon 取得）。ThumbnailCache を新規作成（cachesDirectory/thumbnails/ に JPEG 保存）。NewPin に id フィールドを追加。PinCreateReducer の URL 保存フローにメタデータ取得を組み込み。PinCardView / PinDetailView でサムネイル表示。PinDetailReducer / PinDetailView に手動再取得ボタンを追加 |
+| 2026-02-24 | フェーズ 5 コード実装。AppGroupContainer（共有コンテナ管理）新規作成。PinClient / ThumbnailCache を App Group 対応に修正。ShareReducer / ShareView / ShareViewController を pinNestShareExtension/ に作成。Info.plist（NSExtensionActivationRule）・entitlements（App Group）生成。Xcode でのターゲット追加・App Group 設定は手動対応が必要 |

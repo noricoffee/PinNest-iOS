@@ -33,7 +33,13 @@ extension PinClient: DependencyKey {
         let container: ModelContainer
         do {
             let schema = Schema([Pin.self, PinCollection.self, Tag.self])
-            let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+            // App Group コンテナが利用可能な場合はそちらに保存（Share Extension と共有）
+            let config: ModelConfiguration
+            if let storeURL = AppGroupContainer.storeURL {
+                config = ModelConfiguration(schema: schema, url: storeURL)
+            } else {
+                config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+            }
             container = try ModelContainer(for: schema, configurations: config)
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")

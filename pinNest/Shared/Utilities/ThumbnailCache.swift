@@ -42,6 +42,11 @@ enum ThumbnailCache {
     // MARK: - Private
 
     private static func cacheDirectory() throws -> URL {
+        // App Group コンテナが利用可能な場合はそちらを優先（Share Extension と共有）
+        if let dir = AppGroupContainer.thumbnailsURL {
+            return dir
+        }
+        // フォールバック: アプリのキャッシュディレクトリ
         let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
         let dir = base.appendingPathComponent("thumbnails", isDirectory: true)
         if !FileManager.default.fileExists(atPath: dir.path) {
