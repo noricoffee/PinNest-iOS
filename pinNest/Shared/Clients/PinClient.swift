@@ -32,7 +32,7 @@ extension PinClient: DependencyKey {
     static let liveValue: PinClient = {
         let container: ModelContainer
         do {
-            let schema = Schema([Pin.self, PinCollection.self, Tag.self])
+            let schema = Schema([Pin.self, Tag.self])
             // App Group コンテナが利用可能な場合はそちらに保存（Share Extension と共有）
             let config: ModelConfiguration
             if let storeURL = AppGroupContainer.storeURL {

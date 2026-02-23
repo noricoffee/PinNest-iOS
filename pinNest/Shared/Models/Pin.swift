@@ -26,9 +26,6 @@ final class Pin: @unchecked Sendable {
     @Relationship(deleteRule: .nullify, inverse: \Tag.pins)
     var tags: [Tag] = []
 
-    @Relationship(deleteRule: .nullify, inverse: \PinCollection.pins)
-    var collection: PinCollection?
-
     // MARK: - Init
 
     init(
