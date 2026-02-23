@@ -54,7 +54,7 @@ struct PinCreateReducer {
         /// タイトル入力欄のプレースホルダー
         var titlePlaceholder: String {
             switch contentType {
-            case .url:   "任意（空欄時は URL をタイトルとして使用）"
+            case .url:   "任意（空欄時は OG タイトルまたは URL を使用）"
             case .text:  "任意（空欄時は本文をタイトルとして使用）"
             case .image, .video, .pdf: "任意（空欄時は日時を設定）"
             }
@@ -98,6 +98,7 @@ struct PinCreateReducer {
 
     func reduce(into state: inout State, action: Action) -> Effect<Action> {
         @Dependency(\.pinClient) var pinClient
+        @Dependency(\.metadataClient) var metadataClient
         switch action {
 
         case let .contentTypeChanged(type):
@@ -130,19 +131,52 @@ struct PinCreateReducer {
             state.isSaving = true
             state.saveError = nil
 
-            // @Model を actor 境界越えに渡すとクラッシュするため、
-            // Sendable な value type として必要な値だけ抽出してから .run へ渡す。
             let contentType = state.contentType
-            let title = state.effectiveTitle
+            let titleInput = state.effectiveTitle
             let memo = state.memo
             let urlString = contentType == .url ? state.urlText.trimmingCharacters(in: .whitespaces) : nil
             let bodyText = contentType == .text ? state.bodyText : nil
 
             switch state.mode {
             case .create:
+                // URL ピン: メタデータ取得 → サムネイルキャッシュ → create
+                if contentType == .url,
+                   let urlString,
+                   !urlString.isEmpty,
+                   let url = URL(string: urlString) {
+                    return .run { send in
+                        // メタデータ取得（失敗してもサムネイルなしで続行）
+                        let metadata = (try? await metadataClient.fetch(url)) ?? URLMetadata()
+
+                        // サムネイル保存（og:image 優先、なければ favicon）
+                        let pinID = UUID()
+                        var thumbnailPath: String? = nil
+                        if let imageData = metadata.thumbnailData ?? metadata.faviconData {
+                            thumbnailPath = try? ThumbnailCache.save(data: imageData, for: pinID)
+                        }
+
+                        // og:title があればユーザー入力タイトルより優先（ユーザーが入力していない場合のみ）
+                        let ogTitle = metadata.title?.trimmingCharacters(in: .whitespaces)
+                        let finalTitle = (ogTitle?.isEmpty == false) ? ogTitle! : titleInput
+
+                        let newPin = NewPin(
+                            id: pinID,
+                            contentType: contentType,
+                            title: finalTitle,
+                            memo: memo,
+                            urlString: urlString,
+                            filePath: thumbnailPath
+                        )
+                        await send(.saveResponse(Result {
+                            try await pinClient.create(newPin)
+                        }))
+                    }
+                }
+
+                // URL 以外（または URL が空/不正）は直接 create
                 let newPin = NewPin(
                     contentType: contentType,
-                    title: title,
+                    title: titleInput,
                     memo: memo,
                     urlString: urlString,
                     bodyText: bodyText
@@ -159,7 +193,7 @@ struct PinCreateReducer {
                 let filePath = existing.filePath
                 return .run { send in
                     await send(.saveResponse(Result {
-                        try await pinClient.update(id, title, memo, isFavorite, urlString, filePath, bodyText)
+                        try await pinClient.update(id, titleInput, memo, isFavorite, urlString, filePath, bodyText)
                     }))
                 }
             }

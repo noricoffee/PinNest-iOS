@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import SwiftUI
+import UIKit
 
 struct PinDetailView: View {
     @Bindable var store: StoreOf<PinDetailReducer>
@@ -22,7 +23,7 @@ struct PinDetailView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
-                        store.send(.deleteAlertDismissed) // dismiss handled by parent
+                        store.send(.closeButtonTapped)
                     } label: {
                         Image(systemName: "xmark")
                             .font(.body.weight(.medium))
@@ -94,18 +95,34 @@ struct PinDetailView: View {
         }
     }
 
+    @ViewBuilder
     private var urlHeader: some View {
-        store.pin.contentType.displayColor
-            .aspectRatio(store.pin.contentType.defaultAspectRatio, contentMode: .fit)
-            .frame(maxWidth: .infinity)
-            .overlay(alignment: .topTrailing) {
-                Image(systemName: "globe")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .padding(6)
-                    .background(.ultraThinMaterial, in: Circle())
-                    .padding(12)
-            }
+        if let filePath = store.pin.filePath,
+           let uiImage = UIImage(contentsOfFile: filePath) {
+            // Color.clear でアスペクト比フレームを確立し、Image を overlay で乗せる
+            Color.clear
+                .aspectRatio(store.pin.contentType.defaultAspectRatio, contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                .overlay {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                }
+                .clipped()
+                .accessibilityLabel("URL サムネイル")
+        } else {
+            store.pin.contentType.displayColor
+                .aspectRatio(store.pin.contentType.defaultAspectRatio, contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                .overlay(alignment: .topTrailing) {
+                    Image(systemName: "globe")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(6)
+                        .background(.ultraThinMaterial, in: Circle())
+                        .padding(12)
+                }
+        }
     }
 
     private var imageHeader: some View {
@@ -197,6 +214,28 @@ struct PinDetailView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             }
             .accessibilityLabel("Safari で開く")
+
+            // メタデータ手動再取得ボタン
+            Button {
+                store.send(.refreshMetadataTapped)
+            } label: {
+                HStack(spacing: 8) {
+                    if store.isRefreshingMetadata {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                    }
+                    Text(store.isRefreshingMetadata ? "取得中..." : "サムネイルを再取得")
+                        .font(.subheadline.weight(.medium))
+                }
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+            }
+            .disabled(store.isRefreshingMetadata)
+            .accessibilityLabel("サムネイルを再取得")
         }
     }
 

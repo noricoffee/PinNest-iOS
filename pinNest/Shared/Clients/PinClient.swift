@@ -8,6 +8,7 @@ import SwiftData
 /// create 時は value type で必要なフィールドを受け渡し、
 /// Pin の生成は @ModelActor 内で行う。
 struct NewPin: Sendable {
+    var id: UUID = UUID()
     var contentType: ContentType
     var title: String
     var memo: String = ""

@@ -21,6 +21,7 @@ actor PinDataStore {
     /// actor 境界を越えた @Model 渡しによるクラッシュを防ぐ。
     func create(_ newPin: NewPin) throws {
         let pin = Pin(
+            id: newPin.id,
             contentType: newPin.contentType,
             title: newPin.title,
             memo: newPin.memo,

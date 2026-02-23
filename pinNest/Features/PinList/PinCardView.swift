@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct PinCardView: View {
     let pin: Pin
@@ -39,18 +40,36 @@ struct PinCardView: View {
         )
     }
 
+    @ViewBuilder
     private var urlThumbnail: some View {
-        pin.contentType.displayColor
-            .aspectRatio(pin.contentType.defaultAspectRatio, contentMode: .fit)
-            .overlay(alignment: .topTrailing) {
-                Image(systemName: "globe")
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .padding(5)
-                    .background(.ultraThinMaterial, in: Circle())
-                    .padding(8)
-            }
-            .clipShape(topRoundedShape)
+        if let filePath = pin.filePath,
+           let uiImage = UIImage(contentsOfFile: filePath) {
+            // Color.clear でアスペクト比フレームを確立し、Image を overlay で乗せる
+            // （scaledToFill + frame(maxWidth:.infinity) + aspectRatio の組み合わせは
+            //   SwiftUI レイアウトを混乱させるためこのパターンを使用）
+            Color.clear
+                .aspectRatio(pin.contentType.defaultAspectRatio, contentMode: .fit)
+                .overlay {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                }
+                .clipped()
+                .clipShape(topRoundedShape)
+                .accessibilityLabel("URL サムネイル")
+        } else {
+            pin.contentType.displayColor
+                .aspectRatio(pin.contentType.defaultAspectRatio, contentMode: .fit)
+                .overlay(alignment: .topTrailing) {
+                    Image(systemName: "globe")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(5)
+                        .background(.ultraThinMaterial, in: Circle())
+                        .padding(8)
+                }
+                .clipShape(topRoundedShape)
+        }
     }
 
     private var imageThumbnail: some View {

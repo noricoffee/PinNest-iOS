@@ -104,12 +104,12 @@
 
 ## フェーズ 4: URL メタデータ取得・サムネイル表示
 
-- ⬜ 🔴 `MetadataClient` プロトコル定義（`fetch(url:) async throws -> URLMetadata`）
-- ⬜ 🔴 `LPMetadataProvider` を使った実装（og:title / og:image / favicon 取得）
-- ⬜ 🔴 取得した og:image をアプリコンテナにキャッシュ保存
-- ⬜ 🔴 ピン一覧でのサムネイル表示（非同期・遅延読み込み）
-- ⬜ 🔴 メタデータ取得失敗時のフォールバック UI（ファビコン or プレースホルダー）
-- ⬜ 🟡 既存 URL ピンのメタデータ再取得（手動リフレッシュ）
+- ✅ 🔴 `MetadataClient` プロトコル定義（`fetch(url:) async throws -> URLMetadata`）
+- ✅ 🔴 `LPMetadataProvider` を使った実装（og:title / og:image / favicon 取得）
+- ✅ 🔴 取得した og:image をアプリコンテナにキャッシュ保存（`ThumbnailCache` / `cachesDirectory/thumbnails/`）
+- ✅ 🔴 ピン一覧でのサムネイル表示（`PinCardView` で `pin.filePath` から `UIImage` を読み込み）
+- ✅ 🔴 メタデータ取得失敗時のフォールバック UI（カラー背景 + globe アイコン）
+- ✅ 🟡 既存 URL ピンのメタデータ再取得（手動リフレッシュ：PinDetailView の「サムネイルを再取得」ボタン）
 
 ---
 
@@ -199,3 +199,4 @@
 | 2026-02-23 | Swift 6 移行完了（SWIFT_VERSION=6.0 / SWIFT_STRICT_CONCURRENCY=complete）。SWIFT_DEFAULT_ACTOR_ISOLATION=MainActor を削除（TCA Reducer と DI 非互換のため）。@Model クラスに @unchecked Sendable 付与 |
 | 2026-02-23 | フェーズ 3 完了。ContentType に displayColor/iconName/label を追加・PinContentType を typealias に統合・PinListReducer / PinDetailReducer / PinCreateReducer 作成・AppReducer に pinList/pinCreate state 統合・全 View を TCA Store 接続に更新（PinListView / PinDetailView / PinCreateView）。お気に入り・削除アラート・編集・Safari 開く を実装 |
 | 2026-02-23 | クラッシュ修正。`store.scope(state: \.pinCreate!, …)` の force-unwrap に起因する ScopedCore.state.getter クラッシュを修正。AppReducer / PinListReducer を `@Presents` + `body:` + `ifLet` パターンに変更し、View の sheet を `sheet(item: $store.scope(state:action:))` に差し替え |
+| 2026-02-23 | フェーズ 4 完了。MetadataClient を LPMetadataProvider で実装（og:title / og:image / favicon 取得）。ThumbnailCache を新規作成（cachesDirectory/thumbnails/ に JPEG 保存）。NewPin に id フィールドを追加。PinCreateReducer の URL 保存フローにメタデータ取得を組み込み。PinCardView / PinDetailView でサムネイル表示。PinDetailReducer / PinDetailView に手動再取得ボタンを追加 |
