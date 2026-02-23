@@ -2,10 +2,26 @@ import Dependencies
 import Foundation
 import SwiftData
 
+// MARK: - NewPin (value type for create)
+
+/// @Model の Pin をアクター境界を越えて渡せないため、
+/// create 時は value type で必要なフィールドを受け渡し、
+/// Pin の生成は @ModelActor 内で行う。
+struct NewPin: Sendable {
+    var contentType: ContentType
+    var title: String
+    var memo: String = ""
+    var urlString: String? = nil
+    var filePath: String? = nil
+    var bodyText: String? = nil
+}
+
+// MARK: - PinClient
+
 struct PinClient: Sendable {
     var fetchAll: @Sendable () async throws -> [Pin]
-    var create: @Sendable (Pin) async throws -> Void
-    var update: @Sendable (Pin) async throws -> Void
+    var create: @Sendable (NewPin) async throws -> Void
+    var update: @Sendable (UUID, String, String, Bool, String?, String?, String?) async throws -> Void
     var delete: @Sendable (UUID) async throws -> Void
 }
 
@@ -27,18 +43,18 @@ extension PinClient: DependencyKey {
             fetchAll: {
                 try await store.fetchAll()
             },
-            create: { pin in
-                try await store.create(pin)
+            create: { newPin in
+                try await store.create(newPin)
             },
-            update: { pin in
+            update: { id, title, memo, isFavorite, urlString, filePath, bodyText in
                 try await store.update(
-                    id: pin.id,
-                    title: pin.title,
-                    memo: pin.memo,
-                    isFavorite: pin.isFavorite,
-                    urlString: pin.urlString,
-                    filePath: pin.filePath,
-                    bodyText: pin.bodyText
+                    id: id,
+                    title: title,
+                    memo: memo,
+                    isFavorite: isFavorite,
+                    urlString: urlString,
+                    filePath: filePath,
+                    bodyText: bodyText
                 )
             },
             delete: { id in

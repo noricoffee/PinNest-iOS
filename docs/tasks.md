@@ -45,10 +45,9 @@
   - ✅ 🔴 PinListView / SearchView のカードタップ → モーダル表示
 - ⬜ 🟡 コレクション詳細画面 UI（CollectionDetailView）
 - ✅ 🟡 検索画面 UI（SearchView）
-  - ✅ 🟡 標準検索バー（`.searchable`）によるリアルタイム検索
-  - ✅ 🟡 タイトル・subtitle・本文の部分一致検索
-  - ✅ 🟡 結果: マソンリーグリッド（PinCardView 再利用）
+  - ✅ 🟡 標準検索バー（`.searchable`）
   - ✅ 🟡 空状態 / 結果なし状態（ContentUnavailableView）
+  - ⬜ 🟡 実データ検索・結果グリッド表示（フェーズ 7 で対応）
 - ⬜ 🟡 設定画面 UI（SettingsView）
 
 > ⚠️ このフェーズは UI の見た目確認用。TCA Reducer・SwiftData は未実装。確認完了後に各フェーズで本実装を行う。
@@ -78,21 +77,27 @@
 
 ## フェーズ 3: ピン管理（MVP コア機能）
 
-- ⬜ 🔴 ピン一覧画面（PinListView / PinListReducer）
+- ✅ 🔴 ピン一覧画面（PinListView / PinListReducer）
   - ⬜ 🔴 グリッド / リスト 切替
-  - ⬜ 🔴 種別フィルタバー（URL / 画像 / 動画 / PDF / テキスト / すべて）
-- ⬜ 🔴 ピン作成画面（PinCreateView / PinCreateReducer）
-  - ⬜ 🔴 種別選択 UI
-  - ⬜ 🔴 URL 入力 → メタデータ取得フロー
-  - ⬜ 🔴 画像ピッカー（PhotosUI）
-  - ⬜ 🟡 動画ピッカー（PhotosUI）
-  - ⬜ 🟡 PDF インポート（FileImporter）
-  - ⬜ 🔴 テキスト入力
-- ⬜ 🔴 ピン詳細画面（PinDetailView / PinDetailReducer）
-  - ⬜ 🔴 種別ごとの詳細 UI（URL: WebView / 画像: 全画面 / 動画: AVPlayer / PDF: PDFKit / テキスト: テキスト表示）
-- ⬜ 🔴 ピン編集機能（タイトル・メモ・タグ）
-- ⬜ 🔴 ピン削除機能（スワイプ削除 / 確認アラート）
-- ⬜ 🟡 お気に入り登録・解除
+  - ✅ 🔴 種別フィルタバー（URL / 画像 / 動画 / PDF / テキスト / すべて）
+  - ✅ 🔴 ピン一覧取得（SwiftData 経由）・空状態表示
+  - ✅ 🔴 カードタップ → 詳細シート表示
+- ✅ 🔴 ピン作成画面（PinCreateView / PinCreateReducer）
+  - ✅ 🔴 種別選択 UI（pill チップ）
+  - ⬜ 🔴 URL 入力 → メタデータ取得フロー（フェーズ 4 で対応）
+  - ✅ 🔴 URL 入力 + 保存（SwiftData）
+  - ✅ 🔴 画像ピッカー（PhotosUI）
+  - ✅ 🟡 動画ピッカー（PhotosUI）
+  - ✅ 🟡 PDF インポート（FileImporter）
+  - ✅ 🔴 テキスト入力 + 保存
+  - ✅ 🔴 タイトル自動補完（URL/テキスト→本文、その他→日時）
+  - ✅ 🔴 作成 / 編集モード切り替え（Mode: .create / .edit）
+- ✅ 🔴 ピン詳細画面（PinDetailView / PinDetailReducer）
+  - ✅ 🔴 種別ごとの詳細 UI（URL / 画像 / 動画 / PDF / テキスト）
+  - ✅ 🔴 URL タイプ: Safari で開く（`openURL` Dependency）
+- ✅ 🔴 ピン編集機能（PinCreateReducer .edit モードで対応）
+- ✅ 🔴 ピン削除機能（確認アラート → SwiftData 削除）
+- ✅ 🟡 お気に入り登録・解除（ハートボタン・SwiftData 更新）
 - ⬜ 🟢 並び替え
 
 ---
@@ -191,3 +196,6 @@
 | 2026-02-21 | 検索画面 UI 完了（`.searchable` 標準検索バー・部分一致・マソンリー結果表示）。ピン詳細画面 UI 完了（タイプ別詳細・追加日時/タイプ metaHeader・PinListView / SearchView からモーダル表示）。PinPreviewItem に addedAt: Date 追加 |
 | 2026-02-21 | フェーズ 1 完了。AppReducer（State/Action/BindingReducer）実装・AppView（ContentView を TCA 対応にリネーム）・App/ ディレクトリ整備・PinClient / MetadataClient の Dependency 定義（liveValue 空実装・testValue unimplemented）・Pin / ContentType プレースホルダー構造体追加 |
 | 2026-02-21 | フェーズ 2 完了。Pin を @Model に移行（urlString / filePath / bodyText ペイロードフィールド + Tag / PinCollection Relationship）・ContentType を別ファイルに分離（Codable/Hashable 対応）・PinCollection / Tag を @Model で新規作成・PinDataStore（@ModelActor）で CRUD 実装・PinClient.liveValue を ModelContainer + PinDataStore ベースの実装に更新 |
+| 2026-02-23 | Swift 6 移行完了（SWIFT_VERSION=6.0 / SWIFT_STRICT_CONCURRENCY=complete）。SWIFT_DEFAULT_ACTOR_ISOLATION=MainActor を削除（TCA Reducer と DI 非互換のため）。@Model クラスに @unchecked Sendable 付与 |
+| 2026-02-23 | フェーズ 3 完了。ContentType に displayColor/iconName/label を追加・PinContentType を typealias に統合・PinListReducer / PinDetailReducer / PinCreateReducer 作成・AppReducer に pinList/pinCreate state 統合・全 View を TCA Store 接続に更新（PinListView / PinDetailView / PinCreateView）。お気に入り・削除アラート・編集・Safari 開く を実装 |
+| 2026-02-23 | クラッシュ修正。`store.scope(state: \.pinCreate!, …)` の force-unwrap に起因する ScopedCore.state.getter クラッシュを修正。AppReducer / PinListReducer を `@Presents` + `body:` + `ifLet` パターンに変更し、View の sheet を `sheet(item: $store.scope(state:action:))` に差し替え |

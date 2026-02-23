@@ -1,56 +1,15 @@
-import SwiftUI
+import ComposableArchitecture
 import PhotosUI
+import SwiftUI
 import UniformTypeIdentifiers
 
 struct PinCreateView: View {
-    @State private var selectedType: PinContentType
-    @State private var urlText = ""
-    @State private var bodyText = ""
-    @State private var title = ""
-    @State private var memo = ""
+    @Bindable var store: StoreOf<PinCreateReducer>
 
-    // ファイル選択系
+    // 非 Sendable のため View の @State で管理
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var selectedImage: Image?
-    @State private var selectedFileName: String?
     @State private var isFileImporterPresented = false
-
-    @Environment(\.dismiss) private var dismiss
-
-    init(contentType: PinContentType) {
-        _selectedType = State(initialValue: contentType)
-    }
-
-    /// 保存時に実際に使用されるタイトル
-    private var effectiveTitle: String {
-        let trimmed = title.trimmingCharacters(in: .whitespaces)
-        if !trimmed.isEmpty { return trimmed }
-        switch selectedType {
-        case .url:
-            let url = urlText.trimmingCharacters(in: .whitespaces)
-            return url.isEmpty ? currentDateTimeString : url
-        case .text:
-            let body = bodyText.trimmingCharacters(in: .whitespaces)
-            return body.isEmpty ? currentDateTimeString : String(body.prefix(100))
-        case .image, .video, .pdf:
-            return currentDateTimeString
-        }
-    }
-
-    private var currentDateTimeString: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-        return formatter.string(from: Date())
-    }
-
-    /// タイトル TextField のプレースホルダー
-    private var titlePlaceholder: String {
-        switch selectedType {
-        case .url:   "任意（空欄時は URL をタイトルとして使用）"
-        case .text:  "任意（空欄時は本文をタイトルとして使用）"
-        case .image, .video, .pdf: "任意（空欄時は日時を設定）"
-        }
-    }
 
     // MARK: - Body
 
@@ -68,15 +27,20 @@ struct PinCreateView: View {
                 .padding(.top, 16)
                 .padding(.bottom, 40)
             }
-            .navigationTitle("ピンを作成")
+            .navigationTitle(store.mode == .create ? "ピンを作成" : "ピンを編集")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("キャンセル") { dismiss() }
+                    Button("キャンセル") {
+                        store.send(.cancelButtonTapped)
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("保存") { dismiss() }
-                        .fontWeight(.semibold)
+                    Button(store.isSaving ? "保存中..." : "保存") {
+                        store.send(.saveButtonTapped)
+                    }
+                    .fontWeight(.semibold)
+                    .disabled(store.isSaving)
                 }
             }
             .fileImporter(
@@ -84,19 +48,18 @@ struct PinCreateView: View {
                 allowedContentTypes: [.pdf]
             ) { result in
                 if case .success(let url) = result {
-                    selectedFileName = url.lastPathComponent
+                    store.send(.fileNameSelected(url.lastPathComponent))
                 }
             }
             .task(id: selectedPhotoItem) {
                 guard let item = selectedPhotoItem else { return }
-                if selectedType == .image {
+                if store.contentType == .image {
                     selectedImage = try? await item.loadTransferable(type: Image.self)
                 }
             }
-            .onChange(of: selectedType) {
+            .onChange(of: store.contentType) {
                 selectedPhotoItem = nil
                 selectedImage = nil
-                selectedFileName = nil
             }
         }
     }
@@ -106,7 +69,7 @@ struct PinCreateView: View {
     private var typeSelectorSection: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(PinContentType.allCases, id: \.self) { type in
+                ForEach(ContentType.allCases, id: \.self) { type in
                     typeChip(type)
                 }
             }
@@ -114,10 +77,10 @@ struct PinCreateView: View {
         }
     }
 
-    private func typeChip(_ type: PinContentType) -> some View {
-        let isSelected = selectedType == type
+    private func typeChip(_ type: ContentType) -> some View {
+        let isSelected = store.contentType == type
         return Button {
-            withAnimation(.easeInOut(duration: 0.2)) { selectedType = type }
+            store.send(.contentTypeChanged(type), animation: .easeInOut(duration: 0.2))
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: type.iconName)
@@ -134,14 +97,14 @@ struct PinCreateView: View {
             )
         }
         .accessibilityLabel("\(type.label)を選択")
-        .animation(.easeInOut(duration: 0.2), value: selectedType)
+        .animation(.easeInOut(duration: 0.2), value: store.contentType)
     }
 
     // MARK: - Content Input
 
     @ViewBuilder
     private var contentInputSection: some View {
-        switch selectedType {
+        switch store.contentType {
         case .url:
             urlInputSection
         case .text:
@@ -157,13 +120,16 @@ struct PinCreateView: View {
             HStack(spacing: 10) {
                 Image(systemName: "globe")
                     .foregroundStyle(.secondary)
-                TextField("https://", text: $urlText)
-                    .keyboardType(.URL)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                if !urlText.isEmpty {
+                TextField("https://", text: Binding(
+                    get: { store.urlText },
+                    set: { store.send(.urlTextChanged($0)) }
+                ))
+                .keyboardType(.URL)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+                if !store.urlText.isEmpty {
                     Button {
-                        urlText = ""
+                        store.send(.urlTextChanged(""))
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundStyle(.secondary)
@@ -179,21 +145,24 @@ struct PinCreateView: View {
     private var textInputSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             sectionLabel("テキスト")
-            TextEditor(text: $bodyText)
-                .frame(minHeight: 120)
-                .padding(10)
-                .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+            TextEditor(text: Binding(
+                get: { store.bodyText },
+                set: { store.send(.bodyTextChanged($0)) }
+            ))
+            .frame(minHeight: 120)
+            .padding(10)
+            .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
         }
     }
 
     @ViewBuilder
     private var filePickerSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionLabel(selectedType.label)
-            switch selectedType {
+            sectionLabel(store.contentType.label)
+            switch store.contentType {
             case .image:
                 PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                    PickerPlaceholderView(icon: PinContentType.image.iconName, label: "画像を選択")
+                    PickerPlaceholderView(icon: ContentType.image.iconName, label: "画像を選択")
                 }
                 .accessibilityLabel("フォトライブラリから画像を選択")
                 if let image = selectedImage {
@@ -207,7 +176,7 @@ struct PinCreateView: View {
                 }
             case .video:
                 PhotosPicker(selection: $selectedPhotoItem, matching: .videos) {
-                    PickerPlaceholderView(icon: PinContentType.video.iconName, label: "動画を選択")
+                    PickerPlaceholderView(icon: ContentType.video.iconName, label: "動画を選択")
                 }
                 .accessibilityLabel("フォトライブラリから動画を選択")
                 if selectedPhotoItem != nil {
@@ -215,10 +184,10 @@ struct PinCreateView: View {
                 }
             case .pdf:
                 Button { isFileImporterPresented = true } label: {
-                    PickerPlaceholderView(icon: PinContentType.pdf.iconName, label: "PDFを選択")
+                    PickerPlaceholderView(icon: ContentType.pdf.iconName, label: "PDFを選択")
                 }
                 .accessibilityLabel("ファイルから PDF を選択")
-                if let name = selectedFileName {
+                if let name = store.selectedFileName {
                     selectedItemRow(icon: "doc.richtext.fill", name: name)
                 }
             case .url, .text:
@@ -250,9 +219,12 @@ struct PinCreateView: View {
         VStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
                 sectionLabel("タイトル")
-                TextField(titlePlaceholder, text: $title)
-                    .padding(12)
-                    .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+                TextField(store.titlePlaceholder, text: Binding(
+                    get: { store.title },
+                    set: { store.send(.titleChanged($0)) }
+                ))
+                .padding(12)
+                .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
             }
 
             VStack(alignment: .leading, spacing: 8) {
@@ -262,10 +234,13 @@ struct PinCreateView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                TextEditor(text: $memo)
-                    .frame(minHeight: 100)
-                    .padding(10)
-                    .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+                TextEditor(text: Binding(
+                    get: { store.memo },
+                    set: { store.send(.memoChanged($0)) }
+                ))
+                .frame(minHeight: 100)
+                .padding(10)
+                .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
             }
         }
     }
@@ -311,5 +286,9 @@ private struct PickerPlaceholderView: View {
 }
 
 #Preview {
-    PinCreateView(contentType: .image)
+    PinCreateView(store: Store(
+        initialState: PinCreateReducer.State(contentType: .image)
+    ) {
+        PinCreateReducer()
+    })
 }

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct PinCardView: View {
-    let item: PinPreviewItem
+    let pin: Pin
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -16,7 +16,7 @@ struct PinCardView: View {
 
     @ViewBuilder
     private var thumbnailView: some View {
-        switch item.contentType {
+        switch pin.contentType {
         case .url:
             urlThumbnail
         case .image:
@@ -30,9 +30,18 @@ struct PinCardView: View {
         }
     }
 
+    private var topRoundedShape: UnevenRoundedRectangle {
+        UnevenRoundedRectangle(
+            topLeadingRadius: 14,
+            bottomLeadingRadius: 0,
+            bottomTrailingRadius: 0,
+            topTrailingRadius: 14
+        )
+    }
+
     private var urlThumbnail: some View {
-        item.thumbnailColor
-            .aspectRatio(item.thumbnailAspectRatio, contentMode: .fit)
+        pin.contentType.displayColor
+            .aspectRatio(pin.contentType.defaultAspectRatio, contentMode: .fit)
             .overlay(alignment: .topTrailing) {
                 Image(systemName: "globe")
                     .font(.caption2.weight(.semibold))
@@ -41,52 +50,31 @@ struct PinCardView: View {
                     .background(.ultraThinMaterial, in: Circle())
                     .padding(8)
             }
-            .clipShape(
-                UnevenRoundedRectangle(
-                    topLeadingRadius: 14,
-                    bottomLeadingRadius: 0,
-                    bottomTrailingRadius: 0,
-                    topTrailingRadius: 14
-                )
-            )
+            .clipShape(topRoundedShape)
     }
 
     private var imageThumbnail: some View {
-        item.thumbnailColor
-            .aspectRatio(item.thumbnailAspectRatio, contentMode: .fit)
+        pin.contentType.displayColor
+            .aspectRatio(pin.contentType.defaultAspectRatio, contentMode: .fit)
             .overlay(alignment: .topTrailing) {
                 Image(systemName: "photo.fill")
                     .font(.caption2)
                     .foregroundStyle(.white.opacity(0.9))
                     .padding(6)
             }
-            .clipShape(
-                UnevenRoundedRectangle(
-                    topLeadingRadius: 14,
-                    bottomLeadingRadius: 0,
-                    bottomTrailingRadius: 0,
-                    topTrailingRadius: 14
-                )
-            )
+            .clipShape(topRoundedShape)
     }
 
     private var videoThumbnail: some View {
-        item.thumbnailColor
-            .aspectRatio(item.thumbnailAspectRatio, contentMode: .fit)
+        pin.contentType.displayColor
+            .aspectRatio(pin.contentType.defaultAspectRatio, contentMode: .fit)
             .overlay {
                 Image(systemName: "play.circle.fill")
                     .font(.system(size: 36))
                     .foregroundStyle(.white)
                     .shadow(color: .black.opacity(0.3), radius: 6)
             }
-            .clipShape(
-                UnevenRoundedRectangle(
-                    topLeadingRadius: 14,
-                    bottomLeadingRadius: 0,
-                    bottomTrailingRadius: 0,
-                    topTrailingRadius: 14
-                )
-            )
+            .clipShape(topRoundedShape)
     }
 
     private var pdfThumbnail: some View {
@@ -99,18 +87,11 @@ struct PinCardView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 16)
         .background(Color(.tertiarySystemBackground))
-        .clipShape(
-            UnevenRoundedRectangle(
-                topLeadingRadius: 14,
-                bottomLeadingRadius: 0,
-                bottomTrailingRadius: 0,
-                topTrailingRadius: 14
-            )
-        )
+        .clipShape(topRoundedShape)
     }
 
     private var textPreview: some View {
-        Text(item.previewText ?? "")
+        Text(pin.bodyText ?? "")
             .font(.caption)
             .foregroundStyle(.secondary)
             .lineLimit(5)
@@ -119,52 +100,31 @@ struct PinCardView: View {
             .padding(.top, 12)
             .padding(.bottom, 4)
             .background(Color(.tertiarySystemBackground))
-            .clipShape(
-                UnevenRoundedRectangle(
-                    topLeadingRadius: 14,
-                    bottomLeadingRadius: 0,
-                    bottomTrailingRadius: 0,
-                    topTrailingRadius: 14
-                )
-            )
+            .clipShape(topRoundedShape)
     }
 
     // MARK: - Info
 
     private var infoView: some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(item.title)
+            Text(pin.title)
                 .font(.subheadline.weight(.medium))
                 .lineLimit(2)
                 .foregroundStyle(.primary)
 
-            if let subtitle = item.subtitle {
-                HStack(spacing: 3) {
-                    Image(systemName: item.contentType.iconName)
-                        .font(.caption2)
-                    Text(subtitle)
+            HStack(spacing: 3) {
+                Image(systemName: pin.contentType.iconName)
+                    .font(.caption2)
+                if let urlString = pin.urlString,
+                   let host = URL(string: urlString)?.host() {
+                    Text(host)
                         .font(.caption)
                         .lineLimit(1)
                 }
-                .foregroundStyle(.secondary)
             }
+            .foregroundStyle(.secondary)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 9)
     }
-}
-
-#Preview {
-    HStack(alignment: .top, spacing: 12) {
-        VStack(spacing: 12) {
-            PinCardView(item: PinPreviewItem.samples[0])
-            PinCardView(item: PinPreviewItem.samples[2])
-        }
-        VStack(spacing: 12) {
-            PinCardView(item: PinPreviewItem.samples[1])
-            PinCardView(item: PinPreviewItem.samples[5])
-        }
-    }
-    .padding()
-    .background(Color(.systemBackground))
 }

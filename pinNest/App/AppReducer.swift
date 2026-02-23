@@ -9,7 +9,8 @@ struct AppReducer {
     struct State: Equatable {
         var selectedTab: Tab = .home
         var isFABExpanded: Bool = false
-        var createContentType: PinContentType? = nil
+        var pinList: PinListReducer.State = .init()
+        @Presents var pinCreate: PinCreateReducer.State? = nil
     }
 
     // MARK: - Tab
@@ -23,37 +24,62 @@ struct AppReducer {
     enum Action {
         case tabSelected(Tab)
         case fabButtonTapped
-        case fabMenuItemTapped(PinContentType)
+        case fabMenuItemTapped(ContentType)
         case overlayTapped
-        case createSheetDismissed
+        case pinList(PinListReducer.Action)
+        case create(PresentationAction<PinCreateReducer.Action>)
     }
 
-    // MARK: - Reducer
-    // Note: `body` で `some ReducerOf<Self>` を使うと TCA マクロが循環参照を起こすため
-    //       `reduce(into:action:)` を直接実装している。
+    // MARK: - Body
 
-    func reduce(into state: inout State, action: Action) -> Effect<Action> {
-        switch action {
-        case let .tabSelected(tab):
-            state.selectedTab = tab
-            return .none
+    var body: some ReducerOf<Self> {
+        Reduce { state, action in
+            switch action {
 
-        case .fabButtonTapped:
-            state.isFABExpanded.toggle()
-            return .none
+            case let .tabSelected(tab):
+                state.selectedTab = tab
+                return .none
 
-        case let .fabMenuItemTapped(type):
-            state.isFABExpanded = false
-            state.createContentType = type
-            return .none
+            case .fabButtonTapped:
+                state.isFABExpanded.toggle()
+                return .none
 
-        case .overlayTapped:
-            state.isFABExpanded = false
-            return .none
+            case let .fabMenuItemTapped(type):
+                state.isFABExpanded = false
+                state.pinCreate = PinCreateReducer.State(contentType: type)
+                return .none
 
-        case .createSheetDismissed:
-            state.createContentType = nil
-            return .none
+            case .overlayTapped:
+                state.isFABExpanded = false
+                return .none
+
+            case let .pinList(listAction):
+                // 詳細画面の「編集」ボタン → PinCreate シートを開く
+                if case .detail(.presented(.editButtonTapped)) = listAction,
+                   let pin = state.pinList.detail?.pin {
+                    state.pinList.detail = nil
+                    state.pinCreate = PinCreateReducer.State(mode: .edit(pin), contentType: pin.contentType)
+                }
+                return .none
+
+            case .create(.presented(.saveResponse(.success))):
+                state.pinCreate = nil
+                return .send(.pinList(.refresh))
+
+            case .create(.presented(.cancelButtonTapped)):
+                state.pinCreate = nil
+                return .none
+
+            case .create:
+                return .none
+            }
+        }
+        .ifLet(\.$pinCreate, action: \.create) {
+            PinCreateReducer()
+        }
+
+        Scope(state: \.pinList, action: \.pinList) {
+            PinListReducer()
         }
     }
 }

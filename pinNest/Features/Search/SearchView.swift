@@ -2,7 +2,6 @@ import SwiftUI
 
 struct SearchView: View {
     @State private var searchText = ""
-    @State private var selectedItem: PinPreviewItem? = nil
 
     // MARK: - Body
 
@@ -16,9 +15,6 @@ struct SearchView: View {
                     placement: .navigationBarDrawer(displayMode: .always),
                     prompt: "タイトル・本文で検索"
                 )
-                .sheet(item: $selectedItem) { item in
-                    PinDetailView(item: item)
-                }
         }
     }
 
@@ -28,10 +24,8 @@ struct SearchView: View {
     private var scrollContent: some View {
         if searchText.isEmpty {
             emptyPrompt
-        } else if filteredItems.isEmpty {
-            noResultsView
         } else {
-            resultGrid
+            noResultsView
         }
     }
 
@@ -45,65 +39,6 @@ struct SearchView: View {
 
     private var noResultsView: some View {
         ContentUnavailableView.search(text: searchText)
-    }
-
-    // MARK: - Filtered Items
-
-    private var filteredItems: [PinPreviewItem] {
-        let query = searchText.lowercased()
-        return PinPreviewItem.samples.filter { item in
-            item.title.lowercased().contains(query)
-                || (item.subtitle?.lowercased().contains(query) ?? false)
-                || (item.previewText?.lowercased().contains(query) ?? false)
-        }
-    }
-
-    // MARK: - Result Grid
-
-    private var resultGrid: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("\(filteredItems.count)件")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 16)
-                masonryGrid
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 80)
-            }
-            .padding(.top, 8)
-        }
-        .scrollIndicators(.hidden)
-    }
-
-    private var masonryGrid: some View {
-        let columns = splitIntoColumns(filteredItems, count: 2)
-        return HStack(alignment: .top, spacing: 12) {
-            columnView(items: columns[0])
-            columnView(items: columns[1])
-        }
-    }
-
-    private func columnView(items: [PinPreviewItem]) -> some View {
-        LazyVStack(spacing: 12) {
-            ForEach(items) { item in
-                Button {
-                    selectedItem = item
-                } label: {
-                    PinCardView(item: item)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(item.title)
-            }
-        }
-    }
-
-    private func splitIntoColumns(_ items: [PinPreviewItem], count: Int) -> [[PinPreviewItem]] {
-        var result = Array(repeating: [PinPreviewItem](), count: count)
-        for (index, item) in items.enumerated() {
-            result[index % count].append(item)
-        }
-        return result
     }
 }
 

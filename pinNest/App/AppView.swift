@@ -9,7 +9,7 @@ struct AppView: View {
     var body: some View {
         TabView(selection: $store.selectedTab.sending(\.tabSelected)) {
             Tab(value: AppReducer.Tab.home) {
-                PinListView()
+                PinListView(store: store.scope(state: \.pinList, action: \.pinList))
                     .toolbar(.hidden, for: .tabBar)
             }
             Tab(value: AppReducer.Tab.history) {
@@ -40,20 +40,13 @@ struct AppView: View {
             if store.isFABExpanded {
                 fabTypeMenu
                     .padding(.trailing, 20)
-                    .padding(.bottom, 80) // floating bar height (8 top + 56 content + 16 bottom)
+                    .padding(.bottom, 80)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
         .animation(.spring(duration: 0.3), value: store.isFABExpanded)
-        .sheet(
-            isPresented: Binding(
-                get: { store.createContentType != nil },
-                set: { if !$0 { store.send(.createSheetDismissed) } }
-            )
-        ) {
-            if let type = store.createContentType {
-                PinCreateView(contentType: type)
-            }
+        .sheet(item: $store.scope(state: \.pinCreate, action: \.create)) { createStore in
+            PinCreateView(store: createStore)
         }
     }
 
@@ -71,7 +64,6 @@ struct AppView: View {
         .padding(.bottom, 16)
     }
 
-    // 左グループ: ホーム + 履歴 + 検索を1つのガラスカプセルに
     private var mainTabGroup: some View {
         HStack(spacing: 4) {
             tabPill(.home, icon: "house.fill", label: "ホーム")
@@ -141,13 +133,13 @@ struct AppView: View {
 
     private var fabTypeMenu: some View {
         VStack(alignment: .trailing, spacing: 8) {
-            ForEach(Array(PinContentType.allCases.reversed()), id: \.self) { type in
+            ForEach(Array(ContentType.allCases.reversed()), id: \.self) { type in
                 fabTypeMenuItem(type: type)
             }
         }
     }
 
-    private func fabTypeMenuItem(type: PinContentType) -> some View {
+    private func fabTypeMenuItem(type: ContentType) -> some View {
         Button {
             store.send(.fabMenuItemTapped(type), animation: .spring(duration: 0.3))
         } label: {

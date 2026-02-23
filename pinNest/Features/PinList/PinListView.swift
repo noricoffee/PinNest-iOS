@@ -1,8 +1,8 @@
+import ComposableArchitecture
 import SwiftUI
 
 struct PinListView: View {
-    @State private var selectedFilter: PinContentType? = nil
-    @State private var selectedItem: PinPreviewItem? = nil
+    @Bindable var store: StoreOf<PinListReducer>
 
     // MARK: - Body
 
@@ -11,8 +11,11 @@ struct PinListView: View {
             scrollContent
                 .navigationTitle("pinNest")
                 .navigationBarTitleDisplayMode(.large)
-                .sheet(item: $selectedItem) { item in
-                    PinDetailView(item: item)
+                .onAppear {
+                    store.send(.onAppear)
+                }
+                .sheet(item: $store.scope(state: \.detail, action: \.detail)) { detailStore in
+                    PinDetailView(store: detailStore)
                 }
         }
     }
@@ -23,7 +26,15 @@ struct PinListView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 filterChips
-                masonryGrid
+                if store.isLoading {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 60)
+                } else if store.filteredPins.isEmpty {
+                    emptyState
+                } else {
+                    masonryGrid
+                }
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 80)
@@ -31,21 +42,40 @@ struct PinListView: View {
         .scrollIndicators(.hidden)
     }
 
+    // MARK: - Empty State
+
+    private var emptyState: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "pin.slash")
+                .font(.system(size: 48))
+                .foregroundStyle(.secondary)
+            Text("ピンがありません")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+            Text("右下の + ボタンからピンを追加してみましょう")
+                .font(.subheadline)
+                .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 60)
+    }
+
     // MARK: - Filter Chips
 
     private var filterChips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                FilterChip(label: "すべて", isSelected: selectedFilter == nil) {
-                    selectedFilter = nil
+                FilterChip(label: "すべて", isSelected: store.selectedFilter == nil) {
+                    store.send(.filterSelected(nil))
                 }
-                ForEach(PinContentType.allCases, id: \.self) { type in
+                ForEach(ContentType.allCases, id: \.self) { type in
                     FilterChip(
                         label: type.label,
                         icon: type.iconName,
-                        isSelected: selectedFilter == type
+                        isSelected: store.selectedFilter == type
                     ) {
-                        selectedFilter = type
+                        store.send(.filterSelected(type))
                     }
                 }
             }
@@ -55,41 +85,36 @@ struct PinListView: View {
 
     // MARK: - Masonry Grid
 
-    private var filteredItems: [PinPreviewItem] {
-        guard let filter = selectedFilter else { return PinPreviewItem.samples }
-        return PinPreviewItem.samples.filter { $0.contentType == filter }
-    }
-
     private var masonryGrid: some View {
-        let columns = splitIntoColumns(filteredItems, count: 2)
+        let pins = store.filteredPins
+        let columns = splitIntoColumns(pins, count: 2)
         return HStack(alignment: .top, spacing: 12) {
-            columnView(items: columns[0])
-            columnView(items: columns[1])
+            columnView(pins: columns[0])
+            columnView(pins: columns[1])
         }
     }
 
-    private func columnView(items: [PinPreviewItem]) -> some View {
+    private func columnView(pins: [Pin]) -> some View {
         LazyVStack(spacing: 12) {
-            ForEach(items) { item in
+            ForEach(pins, id: \.id) { pin in
                 Button {
-                    selectedItem = item
+                    store.send(.pinTapped(pin))
                 } label: {
-                    PinCardView(item: item)
+                    PinCardView(pin: pin)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(item.title)
+                .accessibilityLabel(pin.title)
             }
         }
     }
 
-    private func splitIntoColumns(_ items: [PinPreviewItem], count: Int) -> [[PinPreviewItem]] {
-        var result = Array(repeating: [PinPreviewItem](), count: count)
-        for (index, item) in items.enumerated() {
-            result[index % count].append(item)
+    private func splitIntoColumns(_ pins: [Pin], count: Int) -> [[Pin]] {
+        var result = Array(repeating: [Pin](), count: count)
+        for (index, pin) in pins.enumerated() {
+            result[index % count].append(pin)
         }
         return result
     }
-
 }
 
 // MARK: - FilterChip
@@ -126,5 +151,7 @@ private struct FilterChip: View {
 // MARK: - Preview
 
 #Preview {
-    PinListView()
+    PinListView(store: Store(initialState: PinListReducer.State()) {
+        PinListReducer()
+    })
 }

@@ -1,8 +1,8 @@
+import ComposableArchitecture
 import SwiftUI
 
 struct PinDetailView: View {
-    let item: PinPreviewItem
-    @Environment(\.dismiss) private var dismiss
+    @Bindable var store: StoreOf<PinDetailReducer>
 
     // MARK: - Body
 
@@ -22,7 +22,7 @@ struct PinDetailView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
-                        dismiss()
+                        store.send(.deleteAlertDismissed) // dismiss handled by parent
                     } label: {
                         Image(systemName: "xmark")
                             .font(.body.weight(.medium))
@@ -30,13 +30,48 @@ struct PinDetailView: View {
                     .accessibilityLabel("閉じる")
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        // TODO: シェア
-                    } label: {
-                        Image(systemName: "square.and.arrow.up")
+                    HStack(spacing: 16) {
+                        Button {
+                            store.send(.favoriteButtonTapped)
+                        } label: {
+                            Image(systemName: store.pin.isFavorite ? "heart.fill" : "heart")
+                                .foregroundStyle(store.pin.isFavorite ? .red : .primary)
+                        }
+                        .disabled(store.isFavoriteLoading)
+                        .accessibilityLabel(store.pin.isFavorite ? "お気に入り解除" : "お気に入りに追加")
+
+                        Button {
+                            store.send(.editButtonTapped)
+                        } label: {
+                            Image(systemName: "pencil")
+                        }
+                        .accessibilityLabel("編集")
+
+                        Button {
+                            store.send(.deleteButtonTapped)
+                        } label: {
+                            Image(systemName: "trash")
+                                .foregroundStyle(.red)
+                        }
+                        .accessibilityLabel("削除")
                     }
-                    .accessibilityLabel("シェア")
                 }
+            }
+            .alert(
+                "ピンを削除しますか？",
+                isPresented: Binding(
+                    get: { store.isDeleteAlertPresented },
+                    set: { if !$0 { store.send(.deleteAlertDismissed) } }
+                )
+            ) {
+                Button("削除", role: .destructive) {
+                    store.send(.deleteConfirmed)
+                }
+                Button("キャンセル", role: .cancel) {
+                    store.send(.deleteAlertDismissed)
+                }
+            } message: {
+                Text("この操作は取り消せません。")
             }
         }
     }
@@ -45,7 +80,7 @@ struct PinDetailView: View {
 
     @ViewBuilder
     private var headerView: some View {
-        switch item.contentType {
+        switch store.pin.contentType {
         case .url:
             urlHeader
         case .image:
@@ -60,8 +95,8 @@ struct PinDetailView: View {
     }
 
     private var urlHeader: some View {
-        item.thumbnailColor
-            .aspectRatio(item.thumbnailAspectRatio, contentMode: .fit)
+        store.pin.contentType.displayColor
+            .aspectRatio(store.pin.contentType.defaultAspectRatio, contentMode: .fit)
             .frame(maxWidth: .infinity)
             .overlay(alignment: .topTrailing) {
                 Image(systemName: "globe")
@@ -74,8 +109,8 @@ struct PinDetailView: View {
     }
 
     private var imageHeader: some View {
-        item.thumbnailColor
-            .aspectRatio(item.thumbnailAspectRatio, contentMode: .fit)
+        store.pin.contentType.displayColor
+            .aspectRatio(store.pin.contentType.defaultAspectRatio, contentMode: .fit)
             .frame(maxWidth: .infinity)
             .overlay(alignment: .topTrailing) {
                 Image(systemName: "photo.fill")
@@ -86,8 +121,8 @@ struct PinDetailView: View {
     }
 
     private var videoHeader: some View {
-        item.thumbnailColor
-            .aspectRatio(item.thumbnailAspectRatio, contentMode: .fit)
+        store.pin.contentType.displayColor
+            .aspectRatio(store.pin.contentType.defaultAspectRatio, contentMode: .fit)
             .frame(maxWidth: .infinity)
             .overlay {
                 Image(systemName: "play.circle.fill")
@@ -113,7 +148,7 @@ struct PinDetailView: View {
 
     @ViewBuilder
     private var contentView: some View {
-        switch item.contentType {
+        switch store.pin.contentType {
         case .url:
             urlContent
         case .image:
@@ -131,22 +166,23 @@ struct PinDetailView: View {
         VStack(alignment: .leading, spacing: 16) {
             metaHeader
 
-            Text(item.title)
+            Text(store.pin.title)
                 .font(.title2.bold())
                 .fixedSize(horizontal: false, vertical: true)
 
-            if let subtitle = item.subtitle {
+            if let urlString = store.pin.urlString,
+               let host = URL(string: urlString)?.host() {
                 HStack(spacing: 6) {
                     Image(systemName: "globe")
                         .font(.footnote)
-                    Text(subtitle)
+                    Text(host)
                         .font(.footnote)
                 }
                 .foregroundStyle(.secondary)
             }
 
             Button {
-                // TODO: Safari で開く
+                store.send(.safariOpenTapped)
             } label: {
                 HStack {
                     Text("Safari で開く")
@@ -167,7 +203,7 @@ struct PinDetailView: View {
     private var imageContent: some View {
         VStack(alignment: .leading, spacing: 12) {
             metaHeader
-            Text(item.title)
+            Text(store.pin.title)
                 .font(.title2.bold())
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -176,7 +212,7 @@ struct PinDetailView: View {
     private var videoContent: some View {
         VStack(alignment: .leading, spacing: 12) {
             metaHeader
-            Text(item.title)
+            Text(store.pin.title)
                 .font(.title2.bold())
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -185,7 +221,7 @@ struct PinDetailView: View {
     private var pdfContent: some View {
         VStack(alignment: .leading, spacing: 12) {
             metaHeader
-            Text(item.title)
+            Text(store.pin.title)
                 .font(.title2.bold())
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -195,13 +231,13 @@ struct PinDetailView: View {
         VStack(alignment: .leading, spacing: 16) {
             metaHeader
 
-            Text(item.title)
+            Text(store.pin.title)
                 .font(.title2.bold())
                 .fixedSize(horizontal: false, vertical: true)
 
             Divider()
 
-            if let body = item.previewText {
+            if let body = store.pin.bodyText, !body.isEmpty {
                 Text(body)
                     .font(.body)
                     .foregroundStyle(.primary)
@@ -214,30 +250,16 @@ struct PinDetailView: View {
 
     private var metaHeader: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(item.addedAt, format: .dateTime.year().month().day().hour().minute())
+            Text(store.pin.createdAt, format: .dateTime.year().month().day().hour().minute())
                 .font(.caption2)
                 .foregroundStyle(.secondary)
             HStack(spacing: 4) {
-                Image(systemName: item.contentType.iconName)
+                Image(systemName: store.pin.contentType.iconName)
                     .font(.caption2)
-                Text(item.contentType.label)
+                Text(store.pin.contentType.label)
                     .font(.caption2)
             }
             .foregroundStyle(.secondary)
         }
     }
-}
-
-// MARK: - Preview
-
-#Preview("URL") {
-    PinDetailView(item: PinPreviewItem.samples[1])
-}
-
-#Preview("テキスト") {
-    PinDetailView(item: PinPreviewItem.samples[2])
-}
-
-#Preview("画像") {
-    PinDetailView(item: PinPreviewItem.samples[0])
 }

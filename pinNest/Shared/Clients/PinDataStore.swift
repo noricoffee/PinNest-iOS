@@ -17,7 +17,17 @@ actor PinDataStore {
 
     // MARK: - Create
 
-    func create(_ pin: Pin) throws {
+    /// Pin の生成を @ModelActor 内で行うことで、
+    /// actor 境界を越えた @Model 渡しによるクラッシュを防ぐ。
+    func create(_ newPin: NewPin) throws {
+        let pin = Pin(
+            contentType: newPin.contentType,
+            title: newPin.title,
+            memo: newPin.memo,
+            urlString: newPin.urlString,
+            filePath: newPin.filePath,
+            bodyText: newPin.bodyText
+        )
         modelContext.insert(pin)
         try modelContext.save()
     }
