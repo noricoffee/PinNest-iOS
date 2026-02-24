@@ -43,6 +43,7 @@ fastlane/test_output
 # Crashlytics
 #
 Crashlytics.framework
+**/GoogleService-Info.plist
 
 # Others
 #

@@ -7,8 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		ABEB28FF2F46097600A1FF9E /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = ABEB28FE2F46097600A1FF9E /* ComposableArchitecture */; };
 		AB0A000000000000000000A1 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = AB0B000000000000000000A1 /* ComposableArchitecture */; };
+		ABEB28FF2F46097600A1FF9E /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = ABEB28FE2F46097600A1FF9E /* ComposableArchitecture */; };
+		ABEB2B9E2F4DF20100A1FF9E /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = ABEB2B9D2F4DF20100A1FF9E /* FirebaseAnalytics */; };
+		ABEB2BA02F4DF20100A1FF9E /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = ABEB2B9F2F4DF20100A1FF9E /* FirebaseCrashlytics */; };
+		ABEB2BAB2F4DF4CF00A1FF9E /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = ABEB2BAA2F4DF4CF00A1FF9E /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -22,12 +25,13 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		ABEB28D82F4600A300A1FF9E /* pinNest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = pinNest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB05000000000000000000A1 /* pinNestTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = pinNestTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		ABEB28D82F4600A300A1FF9E /* pinNest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = pinNest.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		ABEB2BAA2F4DF4CF00A1FF9E /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		AB0E000000000000000000A1 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		AB0E000000000000000000A1 /* Exceptions for "pinNest" folder in "pinNestTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				pinNestApp.swift,
@@ -37,10 +41,15 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		AB09000000000000000000A1 /* pinNestTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = pinNestTests;
+			sourceTree = "<group>";
+		};
 		ABEB28DA2F4600A300A1FF9E /* pinNest */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				AB0E000000000000000000A1 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+				AB0E000000000000000000A1 /* Exceptions for "pinNest" folder in "pinNestTests" target */,
 			);
 			path = pinNest;
 			sourceTree = "<group>";
@@ -50,27 +59,24 @@
 			path = docs;
 			sourceTree = "<group>";
 		};
-		AB09000000000000000000A1 /* pinNestTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = pinNestTests;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		ABEB28D52F4600A300A1FF9E /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				ABEB28FF2F46097600A1FF9E /* ComposableArchitecture in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		AB03000000000000000000A1 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				AB0A000000000000000000A1 /* ComposableArchitecture in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ABEB28D52F4600A300A1FF9E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ABEB2BA02F4DF20100A1FF9E /* FirebaseCrashlytics in Frameworks */,
+				ABEB2B9E2F4DF20100A1FF9E /* FirebaseAnalytics in Frameworks */,
+				ABEB28FF2F46097600A1FF9E /* ComposableArchitecture in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -80,6 +86,7 @@
 		ABEB28CF2F4600A300A1FF9E = {
 			isa = PBXGroup;
 			children = (
+				ABEB2BAA2F4DF4CF00A1FF9E /* GoogleService-Info.plist */,
 				ABEB28ED2F46046F00A1FF9E /* docs */,
 				ABEB28DA2F4600A300A1FF9E /* pinNest */,
 				AB09000000000000000000A1 /* pinNestTests */,
@@ -99,30 +106,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		ABEB28D72F4600A300A1FF9E /* pinNest */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = ABEB28E32F4600A400A1FF9E /* Build configuration list for PBXNativeTarget "pinNest" */;
-			buildPhases = (
-				ABEB28D42F4600A300A1FF9E /* Sources */,
-				ABEB28D52F4600A300A1FF9E /* Frameworks */,
-				ABEB28D62F4600A300A1FF9E /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				ABEB28DA2F4600A300A1FF9E /* pinNest */,
-				ABEB28ED2F46046F00A1FF9E /* docs */,
-			);
-			name = pinNest;
-			packageProductDependencies = (
-				ABEB28FE2F46097600A1FF9E /* ComposableArchitecture */,
-			);
-			productName = pinNest;
-			productReference = ABEB28D82F4600A300A1FF9E /* pinNest.app */;
-			productType = "com.apple.product-type.application";
-		};
 		AB01000000000000000000A1 /* pinNestTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = AB06000000000000000000A1 /* Build configuration list for PBXNativeTarget "pinNestTests" */;
@@ -148,6 +131,33 @@
 			productReference = AB05000000000000000000A1 /* pinNestTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		ABEB28D72F4600A300A1FF9E /* pinNest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = ABEB28E32F4600A400A1FF9E /* Build configuration list for PBXNativeTarget "pinNest" */;
+			buildPhases = (
+				ABEB28D42F4600A300A1FF9E /* Sources */,
+				ABEB28D52F4600A300A1FF9E /* Frameworks */,
+				ABEB28D62F4600A300A1FF9E /* Resources */,
+				ABEB2BAC2F4DF57200A1FF9E /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				ABEB28DA2F4600A300A1FF9E /* pinNest */,
+				ABEB28ED2F46046F00A1FF9E /* docs */,
+			);
+			name = pinNest;
+			packageProductDependencies = (
+				ABEB28FE2F46097600A1FF9E /* ComposableArchitecture */,
+				ABEB2B9D2F4DF20100A1FF9E /* FirebaseAnalytics */,
+				ABEB2B9F2F4DF20100A1FF9E /* FirebaseCrashlytics */,
+			);
+			productName = pinNest;
+			productReference = ABEB28D82F4600A300A1FF9E /* pinNest.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -158,10 +168,10 @@
 				LastSwiftUpdateCheck = 2610;
 				LastUpgradeCheck = 2610;
 				TargetAttributes = {
-					ABEB28D72F4600A300A1FF9E = {
+					AB01000000000000000000A1 = {
 						CreatedOnToolsVersion = 26.1.1;
 					};
-					AB01000000000000000000A1 = {
+					ABEB28D72F4600A300A1FF9E = {
 						CreatedOnToolsVersion = 26.1.1;
 					};
 				};
@@ -177,6 +187,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				ABEB28FD2F46097600A1FF9E /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
+				ABEB2B9C2F4DF20100A1FF9E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = ABEB28D92F4600A300A1FF9E /* Products */;
@@ -190,13 +201,6 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		ABEB28D62F4600A300A1FF9E /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		AB04000000000000000000A1 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -204,17 +208,51 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		ABEB28D62F4600A300A1FF9E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ABEB2BAB2F4DF4CF00A1FF9E /* GoogleService-Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		ABEB2BAC2F4DF57200A1FF9E /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist",
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
+				"$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n${BUILD_DIR%Build/*}SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
-		ABEB28D42F4600A300A1FF9E /* Sources */ = {
+		AB02000000000000000000A1 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		AB02000000000000000000A1 /* Sources */ = {
+		ABEB28D42F4600A300A1FF9E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -232,6 +270,40 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		AB07000000000000000000A1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.norico-ffee.pinNestTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AB08000000000000000000A1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.norico-ffee.pinNestTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		ABEB28E12F4600A400A1FF9E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -411,43 +483,18 @@
 			};
 			name = Release;
 		};
-		AB07000000000000000000A1 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.norico-ffee.pinNestTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SWIFT_STRICT_CONCURRENCY = complete;
-				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		AB08000000000000000000A1 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.norico-ffee.pinNestTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SWIFT_STRICT_CONCURRENCY = complete;
-				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		AB06000000000000000000A1 /* Build configuration list for PBXNativeTarget "pinNestTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AB07000000000000000000A1 /* Debug */,
+				AB08000000000000000000A1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		ABEB28D32F4600A300A1FF9E /* Build configuration list for PBXProject "pinNest" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -466,15 +513,6 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		AB06000000000000000000A1 /* Build configuration list for PBXNativeTarget "pinNestTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				AB07000000000000000000A1 /* Debug */,
-				AB08000000000000000000A1 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -486,18 +524,36 @@
 				minimumVersion = 1.23.1;
 			};
 		};
+		ABEB2B9C2F4DF20100A1FF9E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.9.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		AB0B000000000000000000A1 /* ComposableArchitecture */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ABEB28FD2F46097600A1FF9E /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
+			productName = ComposableArchitecture;
+		};
 		ABEB28FE2F46097600A1FF9E /* ComposableArchitecture */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = ABEB28FD2F46097600A1FF9E /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
 			productName = ComposableArchitecture;
 		};
-		AB0B000000000000000000A1 /* ComposableArchitecture */ = {
+		ABEB2B9D2F4DF20100A1FF9E /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = ABEB28FD2F46097600A1FF9E /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
-			productName = ComposableArchitecture;
+			package = ABEB2B9C2F4DF20100A1FF9E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		ABEB2B9F2F4DF20100A1FF9E /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ABEB2B9C2F4DF20100A1FF9E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

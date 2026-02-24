@@ -6,10 +6,13 @@
 //
 
 import ComposableArchitecture
+import FirebaseCore
 import SwiftUI
 
 @main
 struct pinNestApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+
     var body: some Scene {
         WindowGroup {
             AppView(store: Store(initialState: AppReducer.State()) {

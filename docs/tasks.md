@@ -61,6 +61,11 @@
 - ✅ 🔴 AppReducer / ルート NavigationStack の実装
 - ✅ 🔴 ディレクトリ構成の整備（App / Features / Shared）
 - ✅ 🔴 Dependency プロトコルの定義（PinClient / MetadataClient など）
+- ✅ 🟡 Firebase 導入（Crashlytics / Analytics）
+  - ✅ 🟡 Firebase iOS SDK を SPM で追加（FirebaseCrashlytics / FirebaseAnalytics）
+  - ✅ 🟡 GoogleService-Info.plist 配置
+  - ✅ 🟡 AppDelegate + UIApplicationDelegateAdaptor で FirebaseApp.configure() 初期化
+  - ✅ 🟡 Crashlytics dSYM アップロード Run Script Build Phase 設定（Xcode 手動）
 
 ---
 
@@ -225,3 +230,4 @@
 | 2026-02-24 | フェーズ 7 完了。TagItem / PinSortOrder 値型追加。PinDataStore にタグ CRUD・検索メソッド追加。SearchReducer / SearchView（キーワード検索・タグフィルター・ソート・マソンリー結果）実装。TagPickerReducer / TagPickerView（タグ選択・新規作成シート）新規作成。PinDetailReducer を body パターンに移行しタグ管理アクション追加。PinDetailView にタグセクション追加。AppReducer / AppView に search state 統合 |
 | 2026-02-24 | フェーズ 8 完了（🔴🟡）。ColorSchemePreference enum 追加。SettingsReducer / SettingsView 新規作成（テーマ切り替え・バージョン表示・ライセンス）。AppReducer に colorSchemePreference state・settings @Presents 追加。AppView に設定ボタン（glassEffect circle）・settings sheet・preferredColorScheme 適用 |
 | 2026-02-24 | フェーズ 9 完了（🔴🟡）。pinNestTests ターゲットを xcodeproj に追加（スタンドアローン方式：BUNDLE_LOADER なし、pinNest/ ソースを直接コンパイル）。PinListReducerTests / PinCreateReducerTests / MetadataClientTests / SearchReducerTests / SettingsReducerTests を @Suite + @Test + TestStore で実装。合計 55 テスト全パス |
+| 2026-02-25 | Firebase 導入（Crashlytics / Analytics）。FirebaseCrashlytics / FirebaseAnalytics を SPM で追加。AppDelegate クラスを作成し UIApplicationDelegateAdaptor 経由で FirebaseApp.configure() を didFinishLaunchingWithOptions で呼び出すよう実装。dSYM アップロード Build Phase のみ Xcode 手動設定が残り |
