@@ -61,8 +61,8 @@
 - ✅ 🔴 AppReducer / ルート NavigationStack の実装
 - ✅ 🔴 ディレクトリ構成の整備（App / Features / Shared）
 - ✅ 🔴 Dependency プロトコルの定義（PinClient / MetadataClient など）
-- ✅ 🟡 Firebase 導入（Crashlytics / Analytics）
-  - ✅ 🟡 Firebase iOS SDK を SPM で追加（FirebaseCrashlytics / FirebaseAnalytics）
+- ✅ 🟡 Firebase 導入（Crashlytics / Analytics / Performance）
+  - ✅ 🟡 Firebase iOS SDK を SPM で追加（FirebaseCrashlytics / FirebaseAnalytics / FirebasePerformance）
   - ✅ 🟡 GoogleService-Info.plist 配置
   - ✅ 🟡 AppDelegate + UIApplicationDelegateAdaptor で FirebaseApp.configure() 初期化
   - ✅ 🟡 Crashlytics dSYM アップロード Run Script Build Phase 設定（Xcode 手動）
