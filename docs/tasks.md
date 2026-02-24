@@ -186,11 +186,11 @@
 
 ## フェーズ 9: テスト・品質
 
-- ⬜ 🔴 PinListReducer のユニットテスト
-- ⬜ 🔴 PinCreateReducer のユニットテスト
-- ⬜ 🔴 MetadataClient のユニットテスト（モック使用）
-- ⬜ 🟡 SearchReducer のユニットテスト
-- ⬜ 🟡 SettingsReducer のユニットテスト
+- ✅ 🔴 PinListReducer のユニットテスト
+- ✅ 🔴 PinCreateReducer のユニットテスト
+- ✅ 🔴 MetadataClient のユニットテスト（モック使用）
+- ✅ 🟡 SearchReducer のユニットテスト
+- ✅ 🟡 SettingsReducer のユニットテスト
 - ⬜ 🟡 アクセシビリティ検証（VoiceOver / Dynamic Type）
 - ⬜ 🟢 UI テスト
 
@@ -226,3 +226,4 @@
 | 2026-02-24 | フェーズ 5 コード実装。AppGroupContainer（共有コンテナ管理）新規作成。PinClient / ThumbnailCache を App Group 対応に修正。ShareReducer / ShareView / ShareViewController を pinNestShareExtension/ に作成。Info.plist（NSExtensionActivationRule）・entitlements（App Group）生成。Xcode でのターゲット追加・App Group 設定は手動対応が必要 |
 | 2026-02-24 | フェーズ 7 完了。TagItem / PinSortOrder 値型追加。PinDataStore にタグ CRUD・検索メソッド追加。SearchReducer / SearchView（キーワード検索・タグフィルター・ソート・マソンリー結果）実装。TagPickerReducer / TagPickerView（タグ選択・新規作成シート）新規作成。PinDetailReducer を body パターンに移行しタグ管理アクション追加。PinDetailView にタグセクション追加。AppReducer / AppView に search state 統合 |
 | 2026-02-24 | フェーズ 8 完了（🔴🟡）。ColorSchemePreference enum 追加。SettingsReducer / SettingsView 新規作成（テーマ切り替え・バージョン表示・ライセンス）。AppReducer に colorSchemePreference state・settings @Presents 追加。AppView に設定ボタン（glassEffect circle）・settings sheet・preferredColorScheme 適用 |
+| 2026-02-24 | フェーズ 9 完了（🔴🟡）。pinNestTests ターゲットを xcodeproj に追加（スタンドアローン方式：BUNDLE_LOADER なし、pinNest/ ソースを直接コンパイル）。PinListReducerTests / PinCreateReducerTests / MetadataClientTests / SearchReducerTests / SettingsReducerTests を @Suite + @Test + TestStore で実装。合計 55 テスト全パス |
