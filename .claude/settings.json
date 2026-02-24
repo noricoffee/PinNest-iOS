@@ -6,7 +6,8 @@
       "Bash(python3:*)",
       "Read(//Users/yoshidanoriyuki/Library/Developer/Xcode/DerivedData/**)",
       "Read(//Users/yoshidanoriyuki/Library/Caches/org.swift.swiftpm/**)",
-      "Read(//Users/yoshidanoriyuki/Library/Caches/org.swift.swiftpm/repositories/**)"
+      "Read(//Users/yoshidanoriyuki/Library/Caches/org.swift.swiftpm/repositories/**)",
+      "Bash(git check-ignore:*)"
     ]
   }
 }
