@@ -17,13 +17,41 @@ struct NewPin: Sendable {
     var bodyText: String? = nil
 }
 
+// MARK: - TagItem (value type for tag)
+
+/// @Model の Tag をアクター境界を越えて渡せないため、
+/// value type で必要なフィールドのみを保持する。
+struct TagItem: Identifiable, Equatable, Hashable, Sendable {
+    let id: UUID
+    let name: String
+}
+
+// MARK: - PinSortOrder
+
+enum PinSortOrder: String, CaseIterable, Equatable, Sendable {
+    case newestFirst = "新しい順"
+    case oldestFirst = "古い順"
+}
+
 // MARK: - PinClient
 
 struct PinClient: Sendable {
+    // Existing
     var fetchAll: @Sendable () async throws -> [Pin]
     var create: @Sendable (NewPin) async throws -> Void
     var update: @Sendable (UUID, String, String, Bool, String?, String?, String?) async throws -> Void
     var delete: @Sendable (UUID) async throws -> Void
+
+    // Search
+    var search: @Sendable (String, Set<UUID>, PinSortOrder) async throws -> [Pin]
+
+    // Tags
+    var fetchAllTags: @Sendable () async throws -> [TagItem]
+    var createTag: @Sendable (String) async throws -> TagItem
+    var deleteTag: @Sendable (UUID) async throws -> Void
+    var addTagToPin: @Sendable (UUID, UUID) async throws -> Void       // tagId, pinId
+    var removeTagFromPin: @Sendable (UUID, UUID) async throws -> Void  // tagId, pinId
+    var fetchTagsForPin: @Sendable (UUID) async throws -> [TagItem]
 }
 
 // MARK: - Live Implementation
@@ -66,6 +94,27 @@ extension PinClient: DependencyKey {
             },
             delete: { id in
                 try await store.delete(id: id)
+            },
+            search: { keyword, tagIds, sortOrder in
+                try await store.search(keyword: keyword, tagIds: tagIds, sortOrder: sortOrder)
+            },
+            fetchAllTags: {
+                try await store.fetchAllTags()
+            },
+            createTag: { name in
+                try await store.createTag(name: name)
+            },
+            deleteTag: { id in
+                try await store.deleteTag(id: id)
+            },
+            addTagToPin: { tagId, pinId in
+                try await store.addTag(tagId: tagId, toPinId: pinId)
+            },
+            removeTagFromPin: { tagId, pinId in
+                try await store.removeTag(tagId: tagId, fromPinId: pinId)
+            },
+            fetchTagsForPin: { pinId in
+                try await store.fetchTagsForPin(pinId: pinId)
             }
         )
     }()
@@ -74,7 +123,14 @@ extension PinClient: DependencyKey {
         fetchAll: unimplemented("\(Self.self).fetchAll", placeholder: []),
         create: unimplemented("\(Self.self).create"),
         update: unimplemented("\(Self.self).update"),
-        delete: unimplemented("\(Self.self).delete")
+        delete: unimplemented("\(Self.self).delete"),
+        search: unimplemented("\(Self.self).search", placeholder: []),
+        fetchAllTags: unimplemented("\(Self.self).fetchAllTags", placeholder: []),
+        createTag: unimplemented("\(Self.self).createTag", placeholder: TagItem(id: UUID(), name: "")),
+        deleteTag: unimplemented("\(Self.self).deleteTag"),
+        addTagToPin: unimplemented("\(Self.self).addTagToPin"),
+        removeTagFromPin: unimplemented("\(Self.self).removeTagFromPin"),
+        fetchTagsForPin: unimplemented("\(Self.self).fetchTagsForPin", placeholder: [])
     )
 }
 

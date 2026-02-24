@@ -10,6 +10,7 @@ struct AppReducer {
         var selectedTab: Tab = .home
         var isFABExpanded: Bool = false
         var pinList: PinListReducer.State = .init()
+        var search: SearchReducer.State = .init()
         @Presents var pinCreate: PinCreateReducer.State? = nil
     }
 
@@ -27,6 +28,7 @@ struct AppReducer {
         case fabMenuItemTapped(ContentType)
         case overlayTapped
         case pinList(PinListReducer.Action)
+        case search(SearchReducer.Action)
         case create(PresentationAction<PinCreateReducer.Action>)
     }
 
@@ -62,6 +64,15 @@ struct AppReducer {
                 }
                 return .none
 
+            case let .search(searchAction):
+                // 検索画面の詳細から「編集」ボタン → PinCreate シートを開く
+                if case .detail(.presented(.editButtonTapped)) = searchAction,
+                   let pin = state.search.detail?.pin {
+                    state.search.detail = nil
+                    state.pinCreate = PinCreateReducer.State(mode: .edit(pin), contentType: pin.contentType)
+                }
+                return .none
+
             case .create(.presented(.saveResponse(.success))):
                 state.pinCreate = nil
                 return .send(.pinList(.refresh))
@@ -80,6 +91,10 @@ struct AppReducer {
 
         Scope(state: \.pinList, action: \.pinList) {
             PinListReducer()
+        }
+
+        Scope(state: \.search, action: \.search) {
+            SearchReducer()
         }
     }
 }

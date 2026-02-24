@@ -15,11 +15,20 @@ struct PinDetailView: View {
                     contentView
                         .padding(.horizontal, 20)
                         .padding(.top, 20)
+                    tagSection
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
                         .padding(.bottom, 32)
                 }
             }
             .scrollIndicators(.hidden)
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                store.send(.tagSectionAppeared)
+            }
+            .sheet(item: $store.scope(state: \.tagPicker, action: \.tagPicker)) { pickerStore in
+                TagPickerView(store: pickerStore)
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -299,6 +308,65 @@ struct PinDetailView: View {
                     .font(.caption2)
             }
             .foregroundStyle(.secondary)
+        }
+    }
+
+    // MARK: - Tag Section
+
+    private var tagSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Divider()
+
+            HStack {
+                Text("タグ")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button {
+                    store.send(.addTagButtonTapped)
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "plus")
+                            .font(.caption.weight(.bold))
+                        Text("追加")
+                            .font(.caption.weight(.medium))
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Color.accentColor.opacity(0.12))
+                    .foregroundStyle(Color.accentColor)
+                    .clipShape(Capsule())
+                }
+                .accessibilityLabel("タグを追加")
+            }
+
+            if store.pinTags.isEmpty {
+                Text("タグなし")
+                    .font(.subheadline)
+                    .foregroundStyle(.tertiary)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(store.pinTags) { tag in
+                            HStack(spacing: 4) {
+                                Text("#\(tag.name)")
+                                    .font(.subheadline)
+                                Button {
+                                    store.send(.tagRemoveTapped(tag))
+                                } label: {
+                                    Image(systemName: "xmark")
+                                        .font(.caption2.weight(.bold))
+                                        .foregroundStyle(.secondary)
+                                }
+                                .accessibilityLabel("\(tag.name) タグを削除")
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color(.secondarySystemBackground), in: Capsule())
+                        }
+                    }
+                }
+            }
         }
     }
 }

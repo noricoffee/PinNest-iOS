@@ -17,7 +17,7 @@ struct AppView: View {
                     .toolbar(.hidden, for: .tabBar)
             }
             Tab(value: AppReducer.Tab.search) {
-                SearchView()
+                SearchView(store: store.scope(state: \.search, action: \.search))
                     .toolbar(.hidden, for: .tabBar)
             }
         }
