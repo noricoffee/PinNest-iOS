@@ -8,8 +8,14 @@ struct PinCreateView: View {
 
     // 非 Sendable のため View の @State で管理
     @State private var selectedPhotoItem: PhotosPickerItem?
-    @State private var selectedImage: Image?
     @State private var isFileImporterPresented = false
+
+    /// store.imageData から画像プレビューを生成（UIKit 依存のため View 側で変換）
+    private var previewImage: Image? {
+        guard let data = store.imageData,
+              let uiImage = UIImage(data: data) else { return nil }
+        return Image(uiImage: uiImage)
+    }
 
     // MARK: - Body
 
@@ -54,12 +60,12 @@ struct PinCreateView: View {
             .task(id: selectedPhotoItem) {
                 guard let item = selectedPhotoItem else { return }
                 if store.contentType == .image {
-                    selectedImage = try? await item.loadTransferable(type: Image.self)
+                    let data = try? await item.loadTransferable(type: Data.self)
+                    store.send(.imageDataLoaded(data))
                 }
             }
             .onChange(of: store.contentType) {
                 selectedPhotoItem = nil
-                selectedImage = nil
             }
         }
     }
@@ -165,7 +171,7 @@ struct PinCreateView: View {
                     PickerPlaceholderView(icon: ContentType.image.iconName, label: "画像を選択")
                 }
                 .accessibilityLabel("フォトライブラリから画像を選択")
-                if let image = selectedImage {
+                if let image = previewImage {
                     image
                         .resizable()
                         .scaledToFill()

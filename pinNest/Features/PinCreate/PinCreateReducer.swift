@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import Foundation
+import UIKit
 
 @Reducer
 struct PinCreateReducer {
@@ -31,9 +32,24 @@ struct PinCreateReducer {
         var urlText: String = ""
         var bodyText: String = ""
         var selectedFileName: String? = nil
+        var imageData: Data? = nil
 
         var isSaving: Bool = false
         var saveError: String? = nil
+
+        static func == (lhs: State, rhs: State) -> Bool {
+            lhs.mode == rhs.mode &&
+            lhs.contentType == rhs.contentType &&
+            lhs.title == rhs.title &&
+            lhs.memo == rhs.memo &&
+            lhs.urlText == rhs.urlText &&
+            lhs.bodyText == rhs.bodyText &&
+            lhs.selectedFileName == rhs.selectedFileName &&
+            lhs.isSaving == rhs.isSaving &&
+            lhs.saveError == rhs.saveError &&
+            // Data は大きいため内容比較をせず存在チェックのみ
+            (lhs.imageData == nil) == (rhs.imageData == nil)
+        }
 
         /// 保存時に使用される実効タイトル
         var effectiveTitle: String {
@@ -89,6 +105,7 @@ struct PinCreateReducer {
         case urlTextChanged(String)
         case bodyTextChanged(String)
         case fileNameSelected(String?)
+        case imageDataLoaded(Data?)
         case saveButtonTapped
         case saveResponse(Result<Void, Error>)
         case cancelButtonTapped
@@ -106,6 +123,7 @@ struct PinCreateReducer {
         case let .contentTypeChanged(type):
             state.contentType = type
             state.selectedFileName = nil
+            state.imageData = nil
             return .none
 
         case let .titleChanged(text):
@@ -126,6 +144,10 @@ struct PinCreateReducer {
 
         case let .fileNameSelected(name):
             state.selectedFileName = name
+            return .none
+
+        case let .imageDataLoaded(data):
+            state.imageData = data
             return .none
 
         case .saveButtonTapped:
@@ -175,7 +197,26 @@ struct PinCreateReducer {
                     }
                 }
 
-                // URL 以外（または URL が空/不正）は直接 create
+                // 画像: ディスクに保存してから create
+                if contentType == .image {
+                    let pinID = UUID()
+                    let imageDataToSave = state.imageData
+                    return .run { send in
+                        let filePath = imageDataToSave.flatMap { Self.saveImageFile(data: $0, pinID: pinID) }
+                        let newPin = NewPin(
+                            id: pinID,
+                            contentType: contentType,
+                            title: titleInput,
+                            memo: memo,
+                            filePath: filePath
+                        )
+                        await send(.saveResponse(Result {
+                            try await pinClient.create(newPin)
+                        }))
+                    }
+                }
+
+                // URL 以外・画像以外（動画 / PDF / テキスト）は直接 create
                 let newPin = NewPin(
                     contentType: contentType,
                     title: titleInput,
@@ -225,6 +266,35 @@ struct PinCreateReducer {
         case .cancelButtonTapped:
             // 親 (AppReducer) がシートを閉じる
             return .none
+        }
+    }
+
+    // MARK: - Private Helpers
+
+    /// 画像データをアプリコンテナ（App Group 優先）に JPEG で保存し、絶対パスを返す
+    private static func saveImageFile(data: Data, pinID: UUID) -> String? {
+        let dir: URL
+        if let filesDir = AppGroupContainer.filesURL {
+            dir = filesDir
+        } else {
+            guard let base = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return nil }
+            let d = base.appendingPathComponent("PinFiles", isDirectory: true)
+            try? FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)
+            dir = d
+        }
+        let fileURL = dir.appendingPathComponent("\(pinID.uuidString).jpg")
+        let jpegData: Data
+        if let uiImage = UIImage(data: data),
+           let compressed = uiImage.jpegData(compressionQuality: 0.85) {
+            jpegData = compressed
+        } else {
+            jpegData = data
+        }
+        do {
+            try jpegData.write(to: fileURL, options: .atomic)
+            return fileURL.path
+        } catch {
+            return nil
         }
     }
 }

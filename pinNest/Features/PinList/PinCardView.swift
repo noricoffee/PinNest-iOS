@@ -72,16 +72,31 @@ struct PinCardView: View {
         }
     }
 
+    @ViewBuilder
     private var imageThumbnail: some View {
-        pin.contentType.displayColor
-            .aspectRatio(pin.contentType.defaultAspectRatio, contentMode: .fit)
-            .overlay(alignment: .topTrailing) {
-                Image(systemName: "photo.fill")
-                    .font(.caption2)
-                    .foregroundStyle(.white.opacity(0.9))
-                    .padding(6)
-            }
-            .clipShape(topRoundedShape)
+        if let filePath = pin.filePath,
+           let uiImage = UIImage(contentsOfFile: filePath) {
+            Color.clear
+                .aspectRatio(pin.contentType.defaultAspectRatio, contentMode: .fit)
+                .overlay {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                }
+                .clipped()
+                .clipShape(topRoundedShape)
+                .accessibilityLabel("画像サムネイル")
+        } else {
+            pin.contentType.displayColor
+                .aspectRatio(pin.contentType.defaultAspectRatio, contentMode: .fit)
+                .overlay(alignment: .topTrailing) {
+                    Image(systemName: "photo.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.9))
+                        .padding(6)
+                }
+                .clipShape(topRoundedShape)
+        }
     }
 
     private var videoThumbnail: some View {
