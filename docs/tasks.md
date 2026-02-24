@@ -176,9 +176,9 @@
 
 ## フェーズ 8: 設定
 
-- ⬜ 🔴 設定画面（SettingsView / SettingsReducer）
-- ⬜ 🔴 アプリバージョン・ライセンス表示
-- ⬜ 🟡 表示テーマ切り替え（ライト / ダーク / システム）
+- ✅ 🔴 設定画面（SettingsView / SettingsReducer）
+- ✅ 🔴 アプリバージョン・ライセンス表示
+- ✅ 🟡 表示テーマ切り替え（ライト / ダーク / システム）
 - ⬜ 🟢 通知設定
 - ⬜ 🟢 データのエクスポート
 
@@ -225,3 +225,4 @@
 | 2026-02-23 | フェーズ 4 完了。MetadataClient を LPMetadataProvider で実装（og:title / og:image / favicon 取得）。ThumbnailCache を新規作成（cachesDirectory/thumbnails/ に JPEG 保存）。NewPin に id フィールドを追加。PinCreateReducer の URL 保存フローにメタデータ取得を組み込み。PinCardView / PinDetailView でサムネイル表示。PinDetailReducer / PinDetailView に手動再取得ボタンを追加 |
 | 2026-02-24 | フェーズ 5 コード実装。AppGroupContainer（共有コンテナ管理）新規作成。PinClient / ThumbnailCache を App Group 対応に修正。ShareReducer / ShareView / ShareViewController を pinNestShareExtension/ に作成。Info.plist（NSExtensionActivationRule）・entitlements（App Group）生成。Xcode でのターゲット追加・App Group 設定は手動対応が必要 |
 | 2026-02-24 | フェーズ 7 完了。TagItem / PinSortOrder 値型追加。PinDataStore にタグ CRUD・検索メソッド追加。SearchReducer / SearchView（キーワード検索・タグフィルター・ソート・マソンリー結果）実装。TagPickerReducer / TagPickerView（タグ選択・新規作成シート）新規作成。PinDetailReducer を body パターンに移行しタグ管理アクション追加。PinDetailView にタグセクション追加。AppReducer / AppView に search state 統合 |
+| 2026-02-24 | フェーズ 8 完了（🔴🟡）。ColorSchemePreference enum 追加。SettingsReducer / SettingsView 新規作成（テーマ切り替え・バージョン表示・ライセンス）。AppReducer に colorSchemePreference state・settings @Presents 追加。AppView に設定ボタン（glassEffect circle）・settings sheet・preferredColorScheme 適用 |

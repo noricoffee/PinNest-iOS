@@ -45,8 +45,12 @@ struct AppView: View {
             }
         }
         .animation(.spring(duration: 0.3), value: store.isFABExpanded)
+        .preferredColorScheme(store.colorSchemePreference.colorScheme)
         .sheet(item: $store.scope(state: \.pinCreate, action: \.create)) { createStore in
             PinCreateView(store: createStore)
+        }
+        .sheet(item: $store.scope(state: \.settings, action: \.settings)) { settingsStore in
+            SettingsView(store: settingsStore)
         }
     }
 

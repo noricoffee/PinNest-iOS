@@ -35,6 +35,7 @@ struct PinListReducer {
         case pinsResponse(Result<[Pin], Error>)
         case filterSelected(ContentType?)
         case pinTapped(Pin)
+        case settingsButtonTapped
         case detail(PresentationAction<PinDetailReducer.Action>)
     }
 
@@ -77,6 +78,9 @@ struct PinListReducer {
 
             case let .pinTapped(pin):
                 state.detail = PinDetailReducer.State(pin: pin)
+                return .none
+
+            case .settingsButtonTapped:
                 return .none
 
             case .detail(.presented(.deleteResponse(.success))):

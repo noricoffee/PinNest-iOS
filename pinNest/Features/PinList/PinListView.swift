@@ -11,6 +11,16 @@ struct PinListView: View {
             scrollContent
                 .navigationTitle("pinNest")
                 .navigationBarTitleDisplayMode(.large)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            store.send(.settingsButtonTapped)
+                        } label: {
+                            Image(systemName: "gearshape")
+                                .accessibilityLabel("設定")
+                        }
+                    }
+                }
                 .onAppear {
                     store.send(.onAppear)
                 }

@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import Foundation
 
 @Reducer
 struct AppReducer {
@@ -9,9 +10,14 @@ struct AppReducer {
     struct State: Equatable {
         var selectedTab: Tab = .home
         var isFABExpanded: Bool = false
+        var colorSchemePreference: ColorSchemePreference = {
+            let raw = UserDefaults.standard.string(forKey: "colorSchemePreference") ?? "system"
+            return ColorSchemePreference(rawValue: raw) ?? .system
+        }()
         var pinList: PinListReducer.State = .init()
         var search: SearchReducer.State = .init()
         @Presents var pinCreate: PinCreateReducer.State? = nil
+        @Presents var settings: SettingsReducer.State? = nil
     }
 
     // MARK: - Tab
@@ -30,6 +36,7 @@ struct AppReducer {
         case pinList(PinListReducer.Action)
         case search(SearchReducer.Action)
         case create(PresentationAction<PinCreateReducer.Action>)
+        case settings(PresentationAction<SettingsReducer.Action>)
     }
 
     // MARK: - Body
@@ -56,6 +63,9 @@ struct AppReducer {
                 return .none
 
             case let .pinList(listAction):
+                if case .settingsButtonTapped = listAction {
+                    state.settings = SettingsReducer.State(colorScheme: state.colorSchemePreference)
+                }
                 // 詳細画面の「編集」ボタン → PinCreate シートを開く
                 if case .detail(.presented(.editButtonTapped)) = listAction,
                    let pin = state.pinList.detail?.pin {
@@ -83,10 +93,24 @@ struct AppReducer {
 
             case .create:
                 return .none
+
+            case let .settings(.presented(.colorSchemeChanged(preference))):
+                state.colorSchemePreference = preference
+                return .none
+
+            case .settings(.presented(.doneButtonTapped)):
+                state.settings = nil
+                return .none
+
+            case .settings:
+                return .none
             }
         }
         .ifLet(\.$pinCreate, action: \.create) {
             PinCreateReducer()
+        }
+        .ifLet(\.$settings, action: \.settings) {
+            SettingsReducer()
         }
 
         Scope(state: \.pinList, action: \.pinList) {
