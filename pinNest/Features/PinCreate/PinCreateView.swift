@@ -9,6 +9,9 @@ struct PinCreateView: View {
     // 非 Sendable のため View の @State で管理
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var isFileImporterPresented = false
+    @FocusState private var focusedField: FocusedField?
+
+    private enum FocusedField { case url, body }
 
     /// store.imageData から画像プレビューを生成（UIKit 依存のため View 側で変換）
     private var previewImage: Image? {
@@ -64,9 +67,21 @@ struct PinCreateView: View {
                     store.send(.imageDataLoaded(data))
                 }
             }
-            .onChange(of: store.contentType) {
+            .onChange(of: store.contentType) { _, newType in
                 selectedPhotoItem = nil
+                focusedField = Self.focusedField(for: newType)
             }
+            .onAppear {
+                focusedField = Self.focusedField(for: store.contentType)
+            }
+        }
+    }
+
+    private static func focusedField(for type: ContentType) -> FocusedField? {
+        switch type {
+        case .url:  return .url
+        case .text: return .body
+        default:    return nil
         }
     }
 
@@ -133,6 +148,7 @@ struct PinCreateView: View {
                 .keyboardType(.URL)
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
+                .focused($focusedField, equals: .url)
                 if !store.urlText.isEmpty {
                     Button {
                         store.send(.urlTextChanged(""))
@@ -155,6 +171,7 @@ struct PinCreateView: View {
                 get: { store.bodyText },
                 set: { store.send(.bodyTextChanged($0)) }
             ))
+            .focused($focusedField, equals: .body)
             .frame(minHeight: 120)
             .padding(10)
             .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
