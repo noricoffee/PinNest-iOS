@@ -61,6 +61,8 @@ struct PinDetailReducer {
             @Dependency(\.metadataClient) var metadataClient
             @Dependency(\.openURL) var openURL
             @Dependency(\.dismiss) var dismiss
+            @Dependency(\.analyticsClient) var analyticsClient
+            @Dependency(\.crashlyticsClient) var crashlyticsClient
             switch action {
 
             case .closeButtonTapped:
@@ -84,11 +86,13 @@ struct PinDetailReducer {
 
             case .favoriteResponse(.success):
                 state.isFavoriteLoading = false
+                analyticsClient.logEvent(.pinFavoriteToggled(isFavorite: state.pin.isFavorite))
                 return .none
 
-            case .favoriteResponse(.failure):
+            case let .favoriteResponse(.failure(error)):
                 state.isFavoriteLoading = false
                 state.pin.isFavorite.toggle()
+                crashlyticsClient.recordError(error, "PinClient.update.favorite")
                 return .none
 
             case .deleteButtonTapped:
@@ -107,7 +111,12 @@ struct PinDetailReducer {
                     }))
                 }
 
-            case .deleteResponse:
+            case .deleteResponse(.success):
+                analyticsClient.logEvent(.pinDeleted)
+                return .none
+
+            case let .deleteResponse(.failure(error)):
+                crashlyticsClient.recordError(error, "PinClient.delete")
                 return .none
 
             case .editButtonTapped:
@@ -116,11 +125,13 @@ struct PinDetailReducer {
             case .safariOpenTapped:
                 guard let urlString = state.pin.urlString,
                       let url = URL(string: urlString) else { return .none }
+                analyticsClient.logEvent(.urlOpened)
                 return .run { _ in
                     await openURL(url)
                 }
 
             case .refreshMetadataTapped:
+                analyticsClient.logEvent(.metadataRefreshed)
                 guard !state.isRefreshingMetadata,
                       state.pin.contentType == .url,
                       let urlString = state.pin.urlString,
@@ -155,13 +166,15 @@ struct PinDetailReducer {
                     try? await pinClient.update(id, title, memo, isFavorite, urlString, newPath, bodyText)
                 }
 
-            case .metadataRefreshResponse(.failure):
+            case let .metadataRefreshResponse(.failure(error)):
                 state.isRefreshingMetadata = false
+                crashlyticsClient.recordError(error, "MetadataClient.fetch")
                 return .none
 
             // MARK: - Tag actions
 
             case .tagSectionAppeared:
+                analyticsClient.logEvent(.pinViewed(contentType: state.pin.contentType.rawValue))
                 let pinId = state.pin.id
                 return .run { send in
                     await send(.tagsLoaded(Result {
@@ -216,9 +229,11 @@ struct PinDetailReducer {
 
             case let .tagRemoveResponse(.success(updatedPinTags)):
                 state.pinTags = updatedPinTags
+                analyticsClient.logEvent(.tagRemoved)
                 return .none
 
-            case .tagRemoveResponse(.failure):
+            case let .tagRemoveResponse(.failure(error)):
+                crashlyticsClient.recordError(error, "PinClient.removeTagFromPin")
                 return .none
             }
         }

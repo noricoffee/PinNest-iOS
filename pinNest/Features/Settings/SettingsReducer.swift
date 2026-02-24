@@ -55,6 +55,7 @@ struct SettingsReducer {
 
     var body: some ReducerOf<Self> {
         Reduce { state, action in
+            @Dependency(\.analyticsClient) var analyticsClient
             switch action {
 
             case .onAppear:
@@ -64,6 +65,7 @@ struct SettingsReducer {
 
             case let .colorSchemeChanged(preference):
                 state.colorScheme = preference
+                analyticsClient.logEvent(.themeChanged(preference: preference.rawValue))
                 return .run { _ in
                     UserDefaults.standard.set(preference.rawValue, forKey: "colorSchemePreference")
                 }

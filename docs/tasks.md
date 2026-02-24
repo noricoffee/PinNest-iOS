@@ -66,6 +66,8 @@
   - ✅ 🟡 GoogleService-Info.plist 配置
   - ✅ 🟡 AppDelegate + UIApplicationDelegateAdaptor で FirebaseApp.configure() 初期化
   - ✅ 🟡 Crashlytics dSYM アップロード Run Script Build Phase 設定（Xcode 手動）
+  - ✅ 🟡 AnalyticsClient / CrashlyticsClient を TCA Dependency として実装
+  - ✅ 🟡 主要 Reducer にイベント送信・non-fatal エラー記録を追加（15 イベント）
 
 ---
 

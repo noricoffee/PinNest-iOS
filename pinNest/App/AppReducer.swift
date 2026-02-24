@@ -43,10 +43,18 @@ struct AppReducer {
 
     var body: some ReducerOf<Self> {
         Reduce { state, action in
+            @Dependency(\.analyticsClient) var analyticsClient
             switch action {
 
             case let .tabSelected(tab):
                 state.selectedTab = tab
+                let tabName: String
+                switch tab {
+                case .home:    tabName = "home"
+                case .history: tabName = "history"
+                case .search:  tabName = "search"
+                }
+                analyticsClient.logEvent(.tabSwitched(tab: tabName))
                 return .none
 
             case .fabButtonTapped:
@@ -56,6 +64,7 @@ struct AppReducer {
             case let .fabMenuItemTapped(type):
                 state.isFABExpanded = false
                 state.pinCreate = PinCreateReducer.State(contentType: type)
+                analyticsClient.logEvent(.fabMenuItemTapped(contentType: type.rawValue))
                 return .none
 
             case .overlayTapped:

@@ -99,6 +99,8 @@ struct PinCreateReducer {
     func reduce(into state: inout State, action: Action) -> Effect<Action> {
         @Dependency(\.pinClient) var pinClient
         @Dependency(\.metadataClient) var metadataClient
+        @Dependency(\.analyticsClient) var analyticsClient
+        @Dependency(\.crashlyticsClient) var crashlyticsClient
         switch action {
 
         case let .contentTypeChanged(type):
@@ -200,12 +202,24 @@ struct PinCreateReducer {
 
         case .saveResponse(.success):
             state.isSaving = false
+            switch state.mode {
+            case .create:
+                analyticsClient.logEvent(.pinCreated(contentType: state.contentType.rawValue))
+            case .edit:
+                analyticsClient.logEvent(.pinEdited(contentType: state.contentType.rawValue))
+            }
             // 親 (AppReducer) がシートを閉じてリストを更新する
             return .none
 
         case let .saveResponse(.failure(error)):
             state.isSaving = false
             state.saveError = error.localizedDescription
+            let context: String
+            switch state.mode {
+            case .create: context = "PinClient.create"
+            case .edit:   context = "PinClient.update"
+            }
+            crashlyticsClient.recordError(error, context)
             return .none
 
         case .cancelButtonTapped:

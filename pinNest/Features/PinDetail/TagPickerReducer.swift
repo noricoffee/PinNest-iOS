@@ -33,6 +33,7 @@ struct TagPickerReducer {
     func reduce(into state: inout State, action: Action) -> Effect<Action> {
         @Dependency(\.pinClient) var pinClient
         @Dependency(\.dismiss) var dismiss
+        @Dependency(\.analyticsClient) var analyticsClient
         switch action {
 
         case let .newTagNameChanged(name):
@@ -52,6 +53,7 @@ struct TagPickerReducer {
         case let .createTagResponse(.success(newTag)):
             state.isCreating = false
             state.newTagName = ""
+            analyticsClient.logEvent(.tagCreated)
             let pinId = state.pinId
             return .run { send in
                 await send(.tagAddResponse(Result {
@@ -77,6 +79,7 @@ struct TagPickerReducer {
             // 付与済みになったタグを availableTags から除外する
             let pinTagIds = Set(updatedPinTags.map(\.id))
             state.availableTags = state.availableTags.filter { !pinTagIds.contains($0.id) }
+            analyticsClient.logEvent(.tagAssigned)
             return .none
 
         case .tagAddResponse(.failure):

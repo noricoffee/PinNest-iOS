@@ -51,6 +51,8 @@ struct SearchReducer {
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             @Dependency(\.pinClient) var pinClient
+            @Dependency(\.analyticsClient) var analyticsClient
+            @Dependency(\.crashlyticsClient) var crashlyticsClient
             switch action {
 
             case .onAppear:
@@ -117,10 +119,16 @@ struct SearchReducer {
             case let .searchResponse(.success(pins)):
                 state.isLoading = false
                 state.results = pins
+                analyticsClient.logEvent(.searchPerformed(
+                    hasKeyword: !state.searchText.isEmpty,
+                    hasTagFilter: !state.selectedTagIds.isEmpty,
+                    sortOrder: state.sortOrder.rawValue
+                ))
                 return .none
 
-            case .searchResponse(.failure):
+            case let .searchResponse(.failure(error)):
                 state.isLoading = false
+                crashlyticsClient.recordError(error, "PinClient.search")
                 return .none
 
             case let .tagsResponse(.success(tags)):

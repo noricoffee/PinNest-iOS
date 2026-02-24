@@ -44,6 +44,7 @@ struct PinListReducer {
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             @Dependency(\.pinClient) var pinClient
+            @Dependency(\.analyticsClient) var analyticsClient
             switch action {
 
             case .onAppear:
@@ -74,6 +75,7 @@ struct PinListReducer {
 
             case let .filterSelected(filter):
                 state.selectedFilter = filter
+                analyticsClient.logEvent(.filterApplied(contentType: filter?.rawValue))
                 return .none
 
             case let .pinTapped(pin):
