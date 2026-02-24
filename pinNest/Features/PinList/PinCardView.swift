@@ -43,7 +43,7 @@ struct PinCardView: View {
     @ViewBuilder
     private var urlThumbnail: some View {
         if let filePath = pin.filePath,
-           let uiImage = UIImage(contentsOfFile: filePath) {
+           let uiImage = UIImage(contentsOfFile: ThumbnailCache.resolveAbsolutePath(filePath)) {
             // Color.clear でアスペクト比フレームを確立し、Image を overlay で乗せる
             // （scaledToFill + frame(maxWidth:.infinity) + aspectRatio の組み合わせは
             //   SwiftUI レイアウトを混乱させるためこのパターンを使用）
@@ -75,7 +75,7 @@ struct PinCardView: View {
     @ViewBuilder
     private var imageThumbnail: some View {
         if let filePath = pin.filePath,
-           let uiImage = UIImage(contentsOfFile: filePath) {
+           let uiImage = UIImage(contentsOfFile: ThumbnailCache.resolveAbsolutePath(filePath)) {
             Color.clear
                 .aspectRatio(pin.contentType.defaultAspectRatio, contentMode: .fit)
                 .overlay {

@@ -292,7 +292,8 @@ struct PinCreateReducer {
         }
         do {
             try jpegData.write(to: fileURL, options: .atomic)
-            return fileURL.path
+            // ビルド・再インストール時にコンテナ UUID が変わっても読み込めるよう相対パスで保存
+            return ThumbnailCache.toRelativePath(fileURL.path)
         } catch {
             return nil
         }

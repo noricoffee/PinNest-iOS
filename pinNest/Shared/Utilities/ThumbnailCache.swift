@@ -6,11 +6,11 @@ enum ThumbnailCache {
 
     // MARK: - Save
 
-    /// 画像データを JPEG として保存し、ファイルパス（絶対パス）を返す
+    /// 画像データを JPEG として保存し、ホームディレクトリからの相対パスを返す
     /// - Parameters:
     ///   - data: 画像データ（JPEG / PNG 等）
     ///   - pinID: 保存先ファイル名に使う Pin の ID
-    /// - Returns: 保存したファイルの絶対パス
+    /// - Returns: NSHomeDirectory() からの相対パス（例: "Library/Caches/thumbnails/xxx.jpg"）
     static func save(data: Data, for pinID: UUID) throws -> String {
         let dir = try cacheDirectory()
         let fileURL = dir.appendingPathComponent("\(pinID.uuidString).jpg")
@@ -22,21 +22,39 @@ enum ThumbnailCache {
             try data.write(to: fileURL, options: .atomic)
         }
 
-        return fileURL.path
+        return toRelativePath(fileURL.path)
     }
 
     // MARK: - Load
 
-    /// ファイルパスから UIImage をロードする
+    /// ファイルパスから UIImage をロードする（相対パス・絶対パス両対応）
     static func loadImage(path: String) -> UIImage? {
-        UIImage(contentsOfFile: path)
+        UIImage(contentsOfFile: resolveAbsolutePath(path))
     }
 
     // MARK: - Remove
 
     /// キャッシュファイルを削除する（エラーは無視）
     static func remove(path: String) {
-        try? FileManager.default.removeItem(atPath: path)
+        try? FileManager.default.removeItem(atPath: resolveAbsolutePath(path))
+    }
+
+    // MARK: - Path Conversion
+
+    /// 保存済みパス（相対パスまたはレガシー絶対パス）を現在の絶対パスに解決する
+    /// ビルド・再インストール時にコンテナ UUID が変わっても正しく解決できる
+    static func resolveAbsolutePath(_ storedPath: String) -> String {
+        // "/" で始まる場合はレガシーの絶対パス — そのまま返す（後方互換）
+        guard !storedPath.hasPrefix("/") else { return storedPath }
+        return "\(NSHomeDirectory())/\(storedPath)"
+    }
+
+    /// 絶対パスをホームディレクトリからの相対パスに変換する
+    static func toRelativePath(_ absolutePath: String) -> String {
+        let home = NSHomeDirectory()
+        let prefix = home + "/"
+        guard absolutePath.hasPrefix(prefix) else { return absolutePath }
+        return String(absolutePath.dropFirst(prefix.count))
     }
 
     // MARK: - Private

@@ -107,7 +107,7 @@ struct PinDetailView: View {
     @ViewBuilder
     private var urlHeader: some View {
         if let filePath = store.pin.filePath,
-           let uiImage = UIImage(contentsOfFile: filePath) {
+           let uiImage = UIImage(contentsOfFile: ThumbnailCache.resolveAbsolutePath(filePath)) {
             // Color.clear でアスペクト比フレームを確立し、Image を overlay で乗せる
             Color.clear
                 .aspectRatio(store.pin.contentType.defaultAspectRatio, contentMode: .fit)
@@ -134,16 +134,31 @@ struct PinDetailView: View {
         }
     }
 
+    @ViewBuilder
     private var imageHeader: some View {
-        store.pin.contentType.displayColor
-            .aspectRatio(store.pin.contentType.defaultAspectRatio, contentMode: .fit)
-            .frame(maxWidth: .infinity)
-            .overlay(alignment: .topTrailing) {
-                Image(systemName: "photo.fill")
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.9))
-                    .padding(10)
-            }
+        if let filePath = store.pin.filePath,
+           let uiImage = UIImage(contentsOfFile: ThumbnailCache.resolveAbsolutePath(filePath)) {
+            Color.clear
+                .aspectRatio(store.pin.contentType.defaultAspectRatio, contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                .overlay {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                }
+                .clipped()
+                .accessibilityLabel("画像")
+        } else {
+            store.pin.contentType.displayColor
+                .aspectRatio(store.pin.contentType.defaultAspectRatio, contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                .overlay(alignment: .topTrailing) {
+                    Image(systemName: "photo.fill")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.9))
+                        .padding(10)
+                }
+        }
     }
 
     private var videoHeader: some View {

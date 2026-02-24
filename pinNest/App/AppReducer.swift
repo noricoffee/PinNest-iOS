@@ -78,10 +78,12 @@ struct AppReducer {
                     state.settings = SettingsReducer.State(colorScheme: state.colorSchemePreference)
                 }
                 // 詳細画面の「編集」ボタン → PinCreate シートを開く
+                // state.pinList.detail を直接 nil にせず .dismiss を送ることで
+                // ifLet の「presented action when state absent」警告を回避する
                 if case .detail(.presented(.editButtonTapped)) = listAction,
                    let pin = state.pinList.detail?.pin {
-                    state.pinList.detail = nil
                     state.pinCreate = PinCreateReducer.State(mode: .edit(pin), contentType: pin.contentType)
+                    return .send(.pinList(.detail(.dismiss)))
                 }
                 return .none
 
@@ -89,8 +91,8 @@ struct AppReducer {
                 // 履歴画面の詳細から「編集」ボタン → PinCreate シートを開く
                 if case .detail(.presented(.editButtonTapped)) = historyAction,
                    let pin = state.history.detail?.pin {
-                    state.history.detail = nil
                     state.pinCreate = PinCreateReducer.State(mode: .edit(pin), contentType: pin.contentType)
+                    return .send(.history(.detail(.dismiss)))
                 }
                 return .none
 
@@ -98,21 +100,22 @@ struct AppReducer {
                 // 検索画面の詳細から「編集」ボタン → PinCreate シートを開く
                 if case .detail(.presented(.editButtonTapped)) = searchAction,
                    let pin = state.search.detail?.pin {
-                    state.search.detail = nil
                     state.pinCreate = PinCreateReducer.State(mode: .edit(pin), contentType: pin.contentType)
+                    return .send(.search(.detail(.dismiss)))
                 }
                 return .none
 
             case .create(.presented(.saveResponse(.success))):
-                state.pinCreate = nil
+                // state.pinCreate を直接 nil にせず .dismiss を送ることで
+                // ifLet の警告を回避する
                 return .merge(
+                    .send(.create(.dismiss)),
                     .send(.pinList(.refresh)),
                     .send(.history(.refresh))
                 )
 
             case .create(.presented(.cancelButtonTapped)):
-                state.pinCreate = nil
-                return .none
+                return .send(.create(.dismiss))
 
             case .create:
                 return .none
@@ -122,8 +125,7 @@ struct AppReducer {
                 return .none
 
             case .settings(.presented(.doneButtonTapped)):
-                state.settings = nil
-                return .none
+                return .send(.settings(.dismiss))
 
             case .settings:
                 return .none
