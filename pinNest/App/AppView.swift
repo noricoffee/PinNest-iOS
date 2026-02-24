@@ -13,7 +13,7 @@ struct AppView: View {
                     .toolbar(.hidden, for: .tabBar)
             }
             Tab(value: AppReducer.Tab.history) {
-                HistoryView()
+                HistoryView(store: store.scope(state: \.history, action: \.history))
                     .toolbar(.hidden, for: .tabBar)
             }
             Tab(value: AppReducer.Tab.search) {

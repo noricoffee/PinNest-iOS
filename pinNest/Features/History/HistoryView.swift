@@ -1,63 +1,31 @@
+import ComposableArchitecture
 import SwiftUI
-
-// MARK: - HistoryEntry（プロトタイプ用）
-
-struct HistoryEntry: Identifiable {
-    let id = UUID()
-    let item: PinPreviewItem
-    let addedAt: Date
-
-    var timeString: String {
-        let f = DateFormatter()
-        f.dateFormat = "HH:mm"
-        return f.string(from: addedAt)
-    }
-
-    var sectionDateString: String {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "ja_JP")
-        f.dateFormat = "M月d日"
-        return f.string(from: addedAt)
-    }
-}
-
-extension HistoryEntry {
-    static let samples: [HistoryEntry] = {
-        let cal = Calendar.current
-        let base = cal.startOfDay(for: Date())
-
-        func dt(_ daysAgo: Int, _ h: Int, _ m: Int) -> Date {
-            let day = cal.date(byAdding: .day, value: -daysAgo, to: base)!
-            return cal.date(bySettingHour: h, minute: m, second: 0, of: day)!
-        }
-
-        return [
-            HistoryEntry(item: PinPreviewItem.samples[9], addedAt: dt(2, 20, 0)),
-            HistoryEntry(item: PinPreviewItem.samples[3], addedAt: dt(1, 14, 20)),
-            HistoryEntry(item: PinPreviewItem.samples[6], addedAt: dt(1, 18, 5)),
-            HistoryEntry(item: PinPreviewItem.samples[2], addedAt: dt(1, 22, 30)),
-            HistoryEntry(item: PinPreviewItem.samples[0], addedAt: dt(0, 9, 11)),
-            HistoryEntry(item: PinPreviewItem.samples[1], addedAt: dt(0, 10, 24)),
-        ]
-    }()
-}
 
 // MARK: - HistoryView
 
 struct HistoryView: View {
+    @Bindable var store: StoreOf<HistoryReducer>
+
     private let timelineColumnWidth: CGFloat = 20
     private let rowHalfHeight: CGFloat = 32
 
-    private var groupedEntries: [(dateLabel: String, date: Date, entries: [HistoryEntry])] {
-        let sorted = HistoryEntry.samples.sorted { $0.addedAt < $1.addedAt }
+    private var groupedPins: [(dateLabel: String, date: Date, pins: [Pin])] {
         let cal = Calendar.current
-        var groups: [(dateLabel: String, date: Date, entries: [HistoryEntry])] = []
-        for entry in sorted {
-            let day = cal.startOfDay(for: entry.addedAt)
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ja_JP")
+        formatter.dateFormat = "M月d日"
+
+        var groups: [(dateLabel: String, date: Date, pins: [Pin])] = []
+        for pin in store.pins {
+            let day = cal.startOfDay(for: pin.createdAt)
             if let idx = groups.firstIndex(where: { cal.isDate($0.date, inSameDayAs: day) }) {
-                groups[idx].entries.append(entry)
+                groups[idx].pins.append(pin)
             } else {
-                groups.append((dateLabel: entry.sectionDateString, date: day, entries: [entry]))
+                groups.append((
+                    dateLabel: formatter.string(from: pin.createdAt),
+                    date: day,
+                    pins: [pin]
+                ))
             }
         }
         return groups
@@ -67,7 +35,14 @@ struct HistoryView: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
-                    timelineContent
+                    if store.isLoading {
+                        ProgressView()
+                            .frame(maxWidth: .infinity, minHeight: 120)
+                    } else if store.pins.isEmpty {
+                        emptyState
+                    } else {
+                        timelineContent
+                    }
                 }
                 .padding(.bottom, 104)
             }
@@ -75,11 +50,19 @@ struct HistoryView: View {
             .navigationTitle("履歴")
             .navigationBarTitleDisplayMode(.large)
         }
+        .onAppear {
+            store.send(.onAppear)
+        }
+        .sheet(item: $store.scope(state: \.detail, action: \.detail)) { detailStore in
+            PinDetailView(store: detailStore)
+        }
     }
+
+    // MARK: - Timeline Content
 
     @ViewBuilder
     private var timelineContent: some View {
-        let groups = groupedEntries
+        let groups = groupedPins
         ForEach(Array(groups.enumerated()), id: \.element.date) { gi, group in
             let isLastGroup = gi == groups.count - 1
             DateSectionHeader(
@@ -87,16 +70,40 @@ struct HistoryView: View {
                 showTopLine: gi > 0,
                 timelineColumnWidth: timelineColumnWidth
             )
-            ForEach(Array(group.entries.enumerated()), id: \.element.id) { ei, entry in
-                let isLastItem = isLastGroup && ei == group.entries.count - 1
-                HistoryRowView(
-                    entry: entry,
-                    showBottomLine: !isLastItem,
-                    rowHalfHeight: rowHalfHeight,
-                    timelineColumnWidth: timelineColumnWidth
-                )
+            ForEach(Array(group.pins.enumerated()), id: \.element.id) { ei, pin in
+                let isLastItem = isLastGroup && ei == group.pins.count - 1
+                Button {
+                    store.send(.pinTapped(pin))
+                } label: {
+                    HistoryRowView(
+                        pin: pin,
+                        showBottomLine: !isLastItem,
+                        rowHalfHeight: rowHalfHeight,
+                        timelineColumnWidth: timelineColumnWidth
+                    )
+                }
+                .buttonStyle(.plain)
             }
         }
+    }
+
+    // MARK: - Empty State
+
+    private var emptyState: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "clock")
+                .font(.system(size: 48))
+                .foregroundStyle(.secondary)
+            Text("まだピンがありません")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+            Text("ピンを追加すると、ここに履歴が表示されます")
+                .font(.subheadline)
+                .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, minHeight: 240)
+        .padding(.horizontal, 32)
     }
 }
 
@@ -140,25 +147,31 @@ private struct DateSectionHeader: View {
 // MARK: - HistoryRowView
 
 private struct HistoryRowView: View {
-    let entry: HistoryEntry
+    let pin: Pin
     let showBottomLine: Bool
     let rowHalfHeight: CGFloat
     let timelineColumnWidth: CGFloat
 
+    private var timeString: String {
+        let f = DateFormatter()
+        f.dateFormat = "HH:mm"
+        return f.string(from: pin.createdAt)
+    }
+
     var body: some View {
         HStack(alignment: .center, spacing: 0) {
             HStack(spacing: 8) {
-                Text(entry.item.title)
+                Text(pin.title)
                     .font(.subheadline)
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, alignment: .trailing)
 
-                Image(systemName: entry.item.contentType.iconName)
+                Image(systemName: pin.contentType.iconName)
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .frame(width: 20)
 
-                Text(entry.timeString)
+                Text(timeString)
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
                     .frame(width: 40, alignment: .trailing)
@@ -186,12 +199,16 @@ private struct HistoryRowView: View {
             .frame(width: timelineColumnWidth)
         }
         .padding(.horizontal, 16)
-        .accessibilityLabel("\(entry.item.title)、\(entry.timeString)に追加")
+        .accessibilityLabel("\(pin.title)、\(timeString)に追加")
     }
 }
 
 // MARK: - Preview
 
 #Preview {
-    HistoryView()
+    HistoryView(store: Store(initialState: HistoryReducer.State()) {
+        HistoryReducer()
+    } withDependencies: {
+        $0.pinClient.fetchAll = { [] }
+    })
 }
