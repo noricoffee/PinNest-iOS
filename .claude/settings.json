@@ -4,9 +4,9 @@
       "Bash(xcodebuild:*)",
       "Bash(xcrun simctl:*)",
       "Bash(python3:*)",
-      "Read(//Users/yoshidanoriyuki/Library/Developer/Xcode/DerivedData/**)",
-      "Read(//Users/yoshidanoriyuki/Library/Caches/org.swift.swiftpm/**)",
-      "Read(//Users/yoshidanoriyuki/Library/Caches/org.swift.swiftpm/repositories/**)",
+      "Read(~/Library/Developer/Xcode/DerivedData/**)",
+      "Read(~/Library/Caches/org.swift.swiftpm/**)",
+      "Read(~/Library/Caches/org.swift.swiftpm/repositories/**)",
       "Bash(git check-ignore:*)"
     ]
   }
