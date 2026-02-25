@@ -8,14 +8,18 @@ struct PinCreateView: View {
 
     // 非 Sendable のため View の @State で管理
     @State private var selectedPhotoItem: PhotosPickerItem?
+    // imageData は PhotosPickerItem 同様に View で保持する
+    // .task からの store.send を避けることで "ifLet received a presentation action
+    // when destination state was absent" 警告を防ぐ（Save 時のみ Reducer に渡す）
+    @State private var loadedImageData: Data?
     @State private var isFileImporterPresented = false
     @FocusState private var focusedField: FocusedField?
 
     private enum FocusedField { case url, body }
 
-    /// store.imageData から画像プレビューを生成（UIKit 依存のため View 側で変換）
+    /// loadedImageData から画像プレビューを生成（UIKit 依存のため View 側で変換）
     private var previewImage: Image? {
-        guard let data = store.imageData,
+        guard let data = loadedImageData,
               let uiImage = UIImage(data: data) else { return nil }
         return Image(uiImage: uiImage)
     }
@@ -46,7 +50,7 @@ struct PinCreateView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(store.isSaving ? "保存中..." : "保存") {
-                        store.send(.saveButtonTapped)
+                        store.send(.saveButtonTapped(imageData: loadedImageData))
                     }
                     .fontWeight(.semibold)
                     .disabled(store.isSaving)
@@ -61,14 +65,19 @@ struct PinCreateView: View {
                 }
             }
             .task(id: selectedPhotoItem) {
-                guard let item = selectedPhotoItem else { return }
+                guard let item = selectedPhotoItem else {
+                    loadedImageData = nil
+                    return
+                }
                 if store.contentType == .image {
-                    let data = try? await item.loadTransferable(type: Data.self)
-                    store.send(.imageDataLoaded(data))
+                    // store.send は行わず View の @State に格納するだけ
+                    // → pinCreate が nil になった後に dispatch する競合状態を回避
+                    loadedImageData = try? await item.loadTransferable(type: Data.self)
                 }
             }
             .onChange(of: store.contentType) { _, newType in
                 selectedPhotoItem = nil
+                loadedImageData = nil
                 focusedField = Self.focusedField(for: newType)
             }
             .onAppear {

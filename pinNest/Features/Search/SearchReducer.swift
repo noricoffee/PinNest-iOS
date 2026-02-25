@@ -143,16 +143,20 @@ struct SearchReducer {
                 return .none
 
             case .detail(.presented(.deleteResponse(.success))):
-                state.detail = nil
-                guard state.hasSearched else { return .none }
+                guard state.hasSearched else {
+                    return .send(.detail(.dismiss))
+                }
                 let text = state.searchText
                 let tagIds = state.selectedTagIds
                 let sortOrder = state.sortOrder
-                return .run { send in
-                    await send(.searchResponse(Result {
-                        try await pinClient.search(text, tagIds, sortOrder)
-                    }))
-                }
+                return .merge(
+                    .send(.detail(.dismiss)),
+                    .run { send in
+                        await send(.searchResponse(Result {
+                            try await pinClient.search(text, tagIds, sortOrder)
+                        }))
+                    }
+                )
 
             case .detail(.presented(.favoriteResponse(.success))):
                 if let updatedPin = state.detail?.pin,

@@ -32,24 +32,9 @@ struct PinCreateReducer {
         var urlText: String = ""
         var bodyText: String = ""
         var selectedFileName: String? = nil
-        var imageData: Data? = nil
 
         var isSaving: Bool = false
         var saveError: String? = nil
-
-        static func == (lhs: State, rhs: State) -> Bool {
-            lhs.mode == rhs.mode &&
-            lhs.contentType == rhs.contentType &&
-            lhs.title == rhs.title &&
-            lhs.memo == rhs.memo &&
-            lhs.urlText == rhs.urlText &&
-            lhs.bodyText == rhs.bodyText &&
-            lhs.selectedFileName == rhs.selectedFileName &&
-            lhs.isSaving == rhs.isSaving &&
-            lhs.saveError == rhs.saveError &&
-            // Data は大きいため内容比較をせず存在チェックのみ
-            (lhs.imageData == nil) == (rhs.imageData == nil)
-        }
 
         /// 保存時に使用される実効タイトル
         var effectiveTitle: String {
@@ -105,8 +90,9 @@ struct PinCreateReducer {
         case urlTextChanged(String)
         case bodyTextChanged(String)
         case fileNameSelected(String?)
-        case imageDataLoaded(Data?)
-        case saveButtonTapped
+        /// View で非同期ロードされた画像データを Save 時に受け取る
+        /// （PhotosPickerItem は非 Sendable のため View の @State で管理し、Save 時のみ渡す）
+        case saveButtonTapped(imageData: Data?)
         case saveResponse(Result<Void, Error>)
         case cancelButtonTapped
     }
@@ -123,7 +109,6 @@ struct PinCreateReducer {
         case let .contentTypeChanged(type):
             state.contentType = type
             state.selectedFileName = nil
-            state.imageData = nil
             return .none
 
         case let .titleChanged(text):
@@ -146,11 +131,7 @@ struct PinCreateReducer {
             state.selectedFileName = name
             return .none
 
-        case let .imageDataLoaded(data):
-            state.imageData = data
-            return .none
-
-        case .saveButtonTapped:
+        case let .saveButtonTapped(imageData: imageData):
             guard !state.isSaving else { return .none }
             state.isSaving = true
             state.saveError = nil
@@ -200,9 +181,8 @@ struct PinCreateReducer {
                 // 画像: ディスクに保存してから create
                 if contentType == .image {
                     let pinID = UUID()
-                    let imageDataToSave = state.imageData
                     return .run { send in
-                        let filePath = imageDataToSave.flatMap { Self.saveImageFile(data: $0, pinID: pinID) }
+                        let filePath = imageData.flatMap { Self.saveImageFile(data: $0, pinID: pinID) }
                         let newPin = NewPin(
                             id: pinID,
                             contentType: contentType,

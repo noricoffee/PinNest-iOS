@@ -68,8 +68,10 @@ struct HistoryReducer {
                 return .none
 
             case .detail(.presented(.deleteResponse(.success))):
-                state.detail = nil
-                return .send(.refresh)
+                return .merge(
+                    .send(.detail(.dismiss)),
+                    .send(.refresh)
+                )
 
             case .detail(.presented(.favoriteResponse(.success))):
                 if let updatedPin = state.detail?.pin,

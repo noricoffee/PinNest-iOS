@@ -144,7 +144,7 @@ struct PinCreateReducerTests {
             $0.pinClient.create = { pin in captured.pin = pin }
         }
 
-        await store.send(.saveButtonTapped) { state in
+        await store.send(.saveButtonTapped(imageData: nil)) { state in
             state.isSaving = true
             state.saveError = nil
         }
@@ -179,7 +179,7 @@ struct PinCreateReducerTests {
             $0.pinClient.create = { pin in captured.pin = pin }
         }
 
-        await store.send(.saveButtonTapped) { state in
+        await store.send(.saveButtonTapped(imageData: nil)) { state in
             state.isSaving = true
             state.saveError = nil
         }
@@ -206,7 +206,7 @@ struct PinCreateReducerTests {
             $0.pinClient.create = { _ in }
         }
 
-        await store.send(.saveButtonTapped) { state in
+        await store.send(.saveButtonTapped(imageData: nil)) { state in
             state.isSaving = true
             state.saveError = nil
         }
@@ -246,7 +246,7 @@ struct PinCreateReducerTests {
             }
         }
 
-        await store.send(.saveButtonTapped) { state in
+        await store.send(.saveButtonTapped(imageData: nil)) { state in
             state.isSaving = true
             state.saveError = nil
         }
@@ -305,6 +305,6 @@ struct PinCreateReducerTests {
             PinCreateReducer()
         }
 
-        await store.send(.saveButtonTapped)
+        await store.send(.saveButtonTapped(imageData: nil))
     }
 }
