@@ -48,7 +48,7 @@ struct PinCreateReducer {
                 let body = bodyText.trimmingCharacters(in: .whitespaces)
                 return body.isEmpty ? currentDateTimeString : String(body.prefix(100))
             case .image, .video, .pdf:
-                return currentDateTimeString
+                return selectedFileName ?? currentDateTimeString
             }
         }
 
@@ -57,7 +57,7 @@ struct PinCreateReducer {
             switch contentType {
             case .url:   "任意（空欄時は OG タイトルまたは URL を使用）"
             case .text:  "任意（空欄時は本文をタイトルとして使用）"
-            case .image, .video, .pdf: "任意（空欄時は日時を設定）"
+            case .image, .video, .pdf: "任意（空欄時はファイル名を使用）"
             }
         }
 

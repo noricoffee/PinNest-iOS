@@ -69,10 +69,21 @@ struct PinCreateView: View {
                     loadedImageData = nil
                     return
                 }
-                if store.contentType == .image {
+                // FileRepresentation でファイル名を取得（Photos 権限不要）
+                switch store.contentType {
+                case .image:
+                    if let f = try? await item.loadTransferable(type: ImageFileTransferable.self) {
+                        store.send(.fileNameSelected(f.filename))
+                    }
                     // store.send は行わず View の @State に格納するだけ
                     // → pinCreate が nil になった後に dispatch する競合状態を回避
                     loadedImageData = try? await item.loadTransferable(type: Data.self)
+                case .video:
+                    if let f = try? await item.loadTransferable(type: VideoFileTransferable.self) {
+                        store.send(.fileNameSelected(f.filename))
+                    }
+                default:
+                    break
                 }
             }
             .onChange(of: store.contentType) { _, newType in
@@ -212,7 +223,7 @@ struct PinCreateView: View {
                 }
                 .accessibilityLabel("フォトライブラリから動画を選択")
                 if selectedPhotoItem != nil {
-                    selectedItemRow(icon: "checkmark.circle.fill", name: "動画が選択されました")
+                    selectedItemRow(icon: "checkmark.circle.fill", name: store.selectedFileName ?? "動画が選択されました")
                 }
             case .pdf:
                 Button { isFileImporterPresented = true } label: {
@@ -283,6 +294,28 @@ struct PinCreateView: View {
         Text(text)
             .font(.footnote.weight(.semibold))
             .foregroundStyle(.secondary)
+    }
+}
+
+// MARK: - FileTransferable helpers
+// PhotosPickerItem から FileRepresentation 経由でファイル名を取得する。
+// PHAsset / Photos 権限が不要なため権限ダイアログも出ない。
+
+private struct ImageFileTransferable: Transferable {
+    let filename: String
+    static var transferRepresentation: some TransferRepresentation {
+        FileRepresentation(importedContentType: .image) { received in
+            ImageFileTransferable(filename: received.file.lastPathComponent)
+        }
+    }
+}
+
+private struct VideoFileTransferable: Transferable {
+    let filename: String
+    static var transferRepresentation: some TransferRepresentation {
+        FileRepresentation(importedContentType: .movie) { received in
+            VideoFileTransferable(filename: received.file.lastPathComponent)
+        }
     }
 }
 

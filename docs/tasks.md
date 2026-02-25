@@ -35,7 +35,7 @@
   - ✅ 🟡 PDF インポート（`.fileImporter` / `.pdf`）・ファイル名表示
   - ✅ 🔴 タイトル入力（TextField）
   - ✅ 🔴 メモ入力（TextEditor、任意）
-  - ✅ 🔴 タイトル自動補完（URL/テキストは本文から・空欄時は日時 `yyyy-MM-dd'T'HH:mm:ss`）
+  - ✅ 🔴 タイトル自動補完（URL/テキストは本文から・画像/動画/PDFはファイル名・空欄時は日時 `yyyy-MM-dd'T'HH:mm:ss`）
 - ✅ 🔴 履歴画面 UI（HistoryView）
 - ✅ 🔴 ピン詳細画面 UI（PinDetailView）
   - ✅ 🔴 タイプ別詳細表示（URL / 画像 / 動画 / PDF / テキスト）
@@ -96,7 +96,7 @@
   - ✅ 🟡 動画ピッカー（PhotosUI）
   - ✅ 🟡 PDF インポート（FileImporter）
   - ✅ 🔴 テキスト入力 + 保存
-  - ✅ 🔴 タイトル自動補完（URL/テキスト→本文、その他→日時）
+  - ✅ 🔴 タイトル自動補完（URL/テキスト→本文、画像/動画/PDF→ファイル名、その他→日時）
   - ✅ 🔴 作成 / 編集モード切り替え（Mode: .create / .edit）
 - ✅ 🔴 ピン詳細画面（PinDetailView / PinDetailReducer）
   - ✅ 🔴 種別ごとの詳細 UI（URL / 画像 / 動画 / PDF / テキスト）
@@ -234,3 +234,4 @@
 | 2026-02-24 | フェーズ 9 完了（🔴🟡）。pinNestTests ターゲットを xcodeproj に追加（スタンドアローン方式：BUNDLE_LOADER なし、pinNest/ ソースを直接コンパイル）。PinListReducerTests / PinCreateReducerTests / MetadataClientTests / SearchReducerTests / SettingsReducerTests を @Suite + @Test + TestStore で実装。合計 55 テスト全パス |
 | 2026-02-25 | Firebase 導入（Crashlytics / Analytics）。FirebaseCrashlytics / FirebaseAnalytics を SPM で追加。AppDelegate クラスを作成し UIApplicationDelegateAdaptor 経由で FirebaseApp.configure() を didFinishLaunchingWithOptions で呼び出すよう実装。dSYM アップロード Build Phase のみ Xcode 手動設定が残り |
 | 2026-02-25 | 履歴画面をリアルデータ対応に移行。HistoryReducer（onAppear/refresh/pinTapped/detail）新規作成。HistoryView をダミーデータ（HistoryEntry.samples）から TCA Store ベースに更新。AppReducer に history state・action・Scope を追加。ピン保存後に history.refresh も発火。履歴からの詳細表示・編集ボタン対応 |
+| 2026-02-25 | 画像・動画のタイトル自動補完をファイル名ベースに変更。`FileRepresentation(importedContentType:)` 経由で元ファイル名を取得（Photos 権限不要）。`ImageFileTransferable` / `VideoFileTransferable` を PinCreateView 内に追加。`effectiveTitle` / `titlePlaceholder` を image/video/pdf でファイル名優先に更新 |
