@@ -24,24 +24,26 @@ struct AppView: View {
         .safeAreaInset(edge: .bottom) {
             floatingBar
         }
-        // 暗転オーバーレイ（タップで閉じる）
+        // 暗転＋ラジアルメニューを同一 overlay に統合
+        // （別 overlay に分離するとラジアルアイテムが zero-size frame の外に描画され、
+        //   ヒットテストが暗転 onTapGesture に先取りされて二重発火の遅延が生じる）
         .overlay {
-            if store.isFABExpanded {
-                Color.black.opacity(0.35)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        store.send(.overlayTapped, animation: .spring(duration: 0.3))
-                    }
-                    .transition(.opacity)
+            ZStack {
+                if store.isFABExpanded {
+                    Color.black.opacity(0.35)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            store.send(.overlayTapped, animation: .spring(duration: 0.3))
+                        }
+                        .transition(.opacity.animation(.easeOut(duration: 0.15)))
+                }
+                // ラジアルメニュー（ZStack 内で後に描画 = Z 上位 = ヒットテスト優先）
+                GeometryReader { geo in
+                    fabRadialMenu(in: geo)
+                }
+                .allowsHitTesting(store.isFABExpanded)
             }
         }
-        // タイプ選択メニュー（FAB 中心から放射状に展開）
-        .overlay(alignment: .bottomTrailing) {
-            fabRadialMenu
-                .padding(.trailing, 48)  // 20 (bar trailing padding) + 28 (half FAB)
-                .padding(.bottom, 80)    // floating bar height ≈ FAB center from overlay bottom
-        }
-        .animation(.spring(duration: 0.3), value: store.isFABExpanded)
         .preferredColorScheme(store.colorSchemePreference.colorScheme)
         .sheet(item: $store.scope(state: \.pinCreate, action: \.create)) { createStore in
             PinCreateView(store: createStore)
@@ -128,16 +130,24 @@ struct AppView: View {
                 )
         }
         .accessibilityLabel(store.isFABExpanded ? "閉じる" : "ピンを追加")
+        // sheet presentation に影響させないよう body 全体ではなく FAB のみにアニメーションを適用
+        .animation(.spring(duration: 0.3), value: store.isFABExpanded)
     }
 
     // MARK: - FAB Radial Menu
 
-    private var fabRadialMenu: some View {
+    /// GeometryReader 内で .position() を使い絶対座標配置することで
+    /// ヒットテストが zero-size frame の外に出ず、暗転との競合が起きない
+    private func fabRadialMenu(in geo: GeometryProxy) -> some View {
         let types = ContentType.allCases
         let count = types.count
         let startAngle: Double = 90.0   // 真上 (12時方向)
-        let endAngle: Double = 180.0   // 真左 (9時方向)
-        let radius: CGFloat = 170      // 64pt アイテムが重ならない半径 (間隔≈67pt)
+        let endAngle: Double = 180.0    // 真左 (9時方向)
+        let radius: CGFloat = 170       // 64pt アイテムが重ならない半径 (間隔≈67pt)
+        // overlay は safeAreaInset を含む全域をカバーするため
+        // geo.size = フルスクリーンサイズ。FAB 中心 ≈ (width-48, height-80)
+        let fabX = geo.size.width - 48
+        let fabY = geo.size.height - 80
 
         return ZStack {
             ForEach(Array(types.enumerated()), id: \.element) { index, type in
@@ -149,21 +159,21 @@ struct AppView: View {
                 let dy = -CGFloat(sin(angleRad)) * radius
 
                 fabRadialItem(type: type)
-                    .offset(
-                        x: store.isFABExpanded ? dx : 0,
-                        y: store.isFABExpanded ? dy : 0
+                    .position(
+                        x: fabX + (store.isFABExpanded ? dx : 0),
+                        y: fabY + (store.isFABExpanded ? dy : 0)
                     )
                     .scaleEffect(store.isFABExpanded ? 1.0 : 0.1)
                     .opacity(store.isFABExpanded ? 1.0 : 0.0)
                     .animation(
-                        .spring(response: 0.45, dampingFraction: 0.70)
-                            .delay(store.isFABExpanded ? Double(index) * 0.05 : 0),
+                        store.isFABExpanded
+                            ? .spring(response: 0.35, dampingFraction: 0.6)
+                                .delay(Double(index) * 0.03)
+                            : .spring(response: 0.2, dampingFraction: 0.9),
                         value: store.isFABExpanded
                     )
             }
         }
-        .frame(width: 0, height: 0)  // ゼロサイズアンカー（FAB 中心に対応）
-        .allowsHitTesting(store.isFABExpanded)
     }
 
     private func fabRadialItem(type: ContentType) -> some View {
