@@ -86,10 +86,8 @@ struct PinListReducer {
                 return .none
 
             case .detail(.presented(.deleteResponse(.success))):
-                return .merge(
-                    .send(.detail(.dismiss)),
-                    .send(.refresh)
-                )
+                // dismiss は PinDetailReducer 側で即座に処理される
+                return .send(.refresh)
 
             case .detail(.presented(.favoriteResponse(.success))):
                 // リスト内の該当ピンも更新

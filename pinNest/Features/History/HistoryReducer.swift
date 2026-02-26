@@ -68,10 +68,8 @@ struct HistoryReducer {
                 return .none
 
             case .detail(.presented(.deleteResponse(.success))):
-                return .merge(
-                    .send(.detail(.dismiss)),
-                    .send(.refresh)
-                )
+                // dismiss は PinDetailReducer 側で即座に処理される
+                return .send(.refresh)
 
             case .detail(.presented(.favoriteResponse(.success))):
                 if let updatedPin = state.detail?.pin,

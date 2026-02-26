@@ -113,7 +113,9 @@ struct PinDetailReducer {
 
             case .deleteResponse(.success):
                 analyticsClient.logEvent(.pinDeleted)
-                return .none
+                // SwiftData が Pin を detach する前に即座に dismiss する。
+                // dismiss を遅らせると View が再描画時に pin.contentType 等にアクセスしクラッシュする。
+                return .run { _ in await dismiss() }
 
             case let .deleteResponse(.failure(error)):
                 crashlyticsClient.recordError(error, "PinClient.delete")
