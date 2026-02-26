@@ -96,6 +96,12 @@ private struct LicenseView: View {
                 url: "https://github.com/pointfreeco/swift-composable-architecture",
                 license: "MIT License"
             )
+            licenseRow(
+                name: "Firebase iOS SDK",
+                author: "Google LLC",
+                url: "https://github.com/firebase/firebase-ios-sdk",
+                license: "Apache License 2.0"
+            )
         }
         .navigationTitle("ライセンス")
         .navigationBarTitleDisplayMode(.inline)
