@@ -13,6 +13,7 @@
 		ABEB2BA02F4DF20100A1FF9E /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = ABEB2B9F2F4DF20100A1FF9E /* FirebaseCrashlytics */; };
 		ABEB2BAB2F4DF4CF00A1FF9E /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = ABEB2BAA2F4DF4CF00A1FF9E /* GoogleService-Info.plist */; };
 		ABEB2BAE2F4DF8A400A1FF9E /* FirebasePerformance in Frameworks */ = {isa = PBXBuildFile; productRef = ABEB2BAD2F4DF8A400A1FF9E /* FirebasePerformance */; };
+		ABEB2E622F50737A00A1FF9E /* shareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = ABEB2E582F50737900A1FF9E /* shareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -23,12 +24,34 @@
 			remoteGlobalIDString = ABEB28D72F4600A300A1FF9E;
 			remoteInfo = pinNest;
 		};
+		ABEB2E602F50737A00A1FF9E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = ABEB28D02F4600A300A1FF9E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = ABEB2E572F50737900A1FF9E;
+			remoteInfo = shareExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		ABEB2E672F50737A00A1FF9E /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				ABEB2E622F50737A00A1FF9E /* shareExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		AB05000000000000000000A1 /* pinNestTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = pinNestTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		ABEB28D82F4600A300A1FF9E /* pinNest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = pinNest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		ABEB2BAA2F4DF4CF00A1FF9E /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		ABEB2E582F50737900A1FF9E /* shareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = shareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -38,6 +61,31 @@
 				pinNestApp.swift,
 			);
 			target = AB01000000000000000000A1 /* pinNestTests */;
+		};
+		ABEB2E662F50737A00A1FF9E /* Exceptions for "shareExtension" folder in "shareExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = ABEB2E572F50737900A1FF9E /* shareExtension */;
+		};
+		ABEB2E7A2F507EE500A1FF9E /* Exceptions for "pinNest" folder in "shareExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Shared/Clients/AnalyticsClient.swift,
+				Shared/Clients/CrashlyticsClient.swift,
+				Shared/Clients/MetadataClient.swift,
+				Shared/Clients/PinClient.swift,
+				Shared/Clients/PinDataStore.swift,
+				Shared/Models/ContentType.swift,
+				Shared/Models/Pin.swift,
+				Shared/Models/PinContentType.swift,
+				Shared/Models/PinPreviewItem.swift,
+				Shared/Models/Tag.swift,
+				Shared/Utilities/AppGroupContainer.swift,
+				Shared/Utilities/ThumbnailCache.swift,
+			);
+			target = ABEB2E572F50737900A1FF9E /* shareExtension */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -51,6 +99,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				AB0E000000000000000000A1 /* Exceptions for "pinNest" folder in "pinNestTests" target */,
+				ABEB2E7A2F507EE500A1FF9E /* Exceptions for "pinNest" folder in "shareExtension" target */,
 			);
 			path = pinNest;
 			sourceTree = "<group>";
@@ -58,6 +107,14 @@
 		ABEB28ED2F46046F00A1FF9E /* docs */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = docs;
+			sourceTree = "<group>";
+		};
+		ABEB2E592F50737900A1FF9E /* shareExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				ABEB2E662F50737A00A1FF9E /* Exceptions for "shareExtension" folder in "shareExtension" target */,
+			);
+			path = shareExtension;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -82,6 +139,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		ABEB2E552F50737900A1FF9E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -92,6 +156,7 @@
 				ABEB28ED2F46046F00A1FF9E /* docs */,
 				ABEB28DA2F4600A300A1FF9E /* pinNest */,
 				AB09000000000000000000A1 /* pinNestTests */,
+				ABEB2E592F50737900A1FF9E /* shareExtension */,
 				ABEB28D92F4600A300A1FF9E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -101,6 +166,7 @@
 			children = (
 				ABEB28D82F4600A300A1FF9E /* pinNest.app */,
 				AB05000000000000000000A1 /* pinNestTests.xctest */,
+				ABEB2E582F50737900A1FF9E /* shareExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -141,10 +207,12 @@
 				ABEB28D52F4600A300A1FF9E /* Frameworks */,
 				ABEB28D62F4600A300A1FF9E /* Resources */,
 				ABEB2BAC2F4DF57200A1FF9E /* ShellScript */,
+				ABEB2E672F50737A00A1FF9E /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				ABEB2E612F50737A00A1FF9E /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				ABEB28DA2F4600A300A1FF9E /* pinNest */,
@@ -161,6 +229,28 @@
 			productReference = ABEB28D82F4600A300A1FF9E /* pinNest.app */;
 			productType = "com.apple.product-type.application";
 		};
+		ABEB2E572F50737900A1FF9E /* shareExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = ABEB2E632F50737A00A1FF9E /* Build configuration list for PBXNativeTarget "shareExtension" */;
+			buildPhases = (
+				ABEB2E542F50737900A1FF9E /* Sources */,
+				ABEB2E552F50737900A1FF9E /* Frameworks */,
+				ABEB2E562F50737900A1FF9E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				ABEB2E592F50737900A1FF9E /* shareExtension */,
+			);
+			name = shareExtension;
+			packageProductDependencies = (
+			);
+			productName = shareExtension;
+			productReference = ABEB2E582F50737900A1FF9E /* shareExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -175,6 +265,9 @@
 						CreatedOnToolsVersion = 26.1.1;
 					};
 					ABEB28D72F4600A300A1FF9E = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
+					ABEB2E572F50737900A1FF9E = {
 						CreatedOnToolsVersion = 26.1.1;
 					};
 				};
@@ -199,6 +292,7 @@
 			targets = (
 				ABEB28D72F4600A300A1FF9E /* pinNest */,
 				AB01000000000000000000A1 /* pinNestTests */,
+				ABEB2E572F50737900A1FF9E /* shareExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -216,6 +310,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				ABEB2BAB2F4DF4CF00A1FF9E /* GoogleService-Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ABEB2E562F50737900A1FF9E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -262,6 +363,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		ABEB2E542F50737900A1FF9E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -269,6 +377,11 @@
 			isa = PBXTargetDependency;
 			target = ABEB28D72F4600A300A1FF9E /* pinNest */;
 			targetProxy = AB0D000000000000000000A1 /* PBXContainerItemProxy */;
+		};
+		ABEB2E612F50737A00A1FF9E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = ABEB2E572F50737900A1FF9E /* shareExtension */;
+			targetProxy = ABEB2E602F50737A00A1FF9E /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -431,8 +544,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = pinNest/pinNest.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = HL5AQP4983;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -462,8 +577,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = pinNest/pinNest.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = HL5AQP4983;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -484,6 +601,64 @@
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		ABEB2E642F50737A00A1FF9E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = shareExtension/shareExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = HL5AQP4983;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = shareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = shareExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.noricoffee.pinNest.shareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		ABEB2E652F50737A00A1FF9E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = shareExtension/shareExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = HL5AQP4983;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = shareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = shareExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.noricoffee.pinNest.shareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -514,6 +689,15 @@
 			buildConfigurations = (
 				ABEB28E42F4600A400A1FF9E /* Debug */,
 				ABEB28E52F4600A400A1FF9E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		ABEB2E632F50737A00A1FF9E /* Build configuration list for PBXNativeTarget "shareExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ABEB2E642F50737A00A1FF9E /* Debug */,
+				ABEB2E652F50737A00A1FF9E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
