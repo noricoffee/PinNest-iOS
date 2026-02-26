@@ -43,7 +43,6 @@
   - ✅ 🔴 URL タイプ: サムネイル・ドメイン・「Safari で開く」ボタン
   - ✅ 🔴 テキストタイプ: 全文表示
   - ✅ 🔴 PinListView / SearchView のカードタップ → モーダル表示
-- ⬜ 🟡 コレクション詳細画面 UI（CollectionDetailView）
 - ✅ 🟡 検索画面 UI（SearchView）
   - ✅ 🟡 標準検索バー（`.searchable`）
   - ✅ 🟡 空状態 / 結果なし状態（ContentUnavailableView）
@@ -157,18 +156,7 @@
 
 ---
 
-## フェーズ 6: コレクション管理
-
-> ⛔ スコープ外。シンプルさを優先し、ピン単体管理のみとする。PinCollection モデルは削除済み。
-
-- ~~⬜ 🔴 コレクション一覧画面~~
-- ~~⬜ 🔴 コレクション作成・編集・削除~~
-- ~~⬜ 🔴 コレクションへのピン追加・移動~~
-- ~~⬜ 🟢 コレクションの共有~~
-
----
-
-## フェーズ 7: 検索・タグ
+## フェーズ 6: 検索・タグ
 
 - ✅ 🟡 検索画面（SearchView / SearchReducer）
 - ✅ 🟡 キーワード検索（タイトル・メモ・本文・URL 部分一致、300ms デバウンス）
@@ -180,7 +168,7 @@
 
 ---
 
-## フェーズ 8: 設定
+## フェーズ 7: 設定
 
 - ✅ 🔴 設定画面（SettingsView / SettingsReducer）
 - ✅ 🔴 アプリバージョン・ライセンス表示
@@ -189,7 +177,7 @@
 
 ---
 
-## フェーズ 9: テスト・品質
+## フェーズ 8: テスト・品質
 
 - ✅ 🔴 PinListReducer のユニットテスト
 - ✅ 🔴 PinCreateReducer のユニットテスト
@@ -201,7 +189,7 @@
 
 ---
 
-## フェーズ 10: リリース準備
+## フェーズ 9: リリース準備
 
 - ✅ 🔴 App Icon / スプラッシュ画面
 - ⬜ 🔴 App Store Connect 登録
@@ -229,9 +217,10 @@
 | 2026-02-23 | クラッシュ修正。`store.scope(state: \.pinCreate!, …)` の force-unwrap に起因する ScopedCore.state.getter クラッシュを修正。AppReducer / PinListReducer を `@Presents` + `body:` + `ifLet` パターンに変更し、View の sheet を `sheet(item: $store.scope(state:action:))` に差し替え |
 | 2026-02-23 | フェーズ 4 完了。MetadataClient を LPMetadataProvider で実装（og:title / og:image / favicon 取得）。ThumbnailCache を新規作成（cachesDirectory/thumbnails/ に JPEG 保存）。NewPin に id フィールドを追加。PinCreateReducer の URL 保存フローにメタデータ取得を組み込み。PinCardView / PinDetailView でサムネイル表示。PinDetailReducer / PinDetailView に手動再取得ボタンを追加 |
 | 2026-02-24 | フェーズ 5 コード実装。AppGroupContainer（共有コンテナ管理）新規作成。PinClient / ThumbnailCache を App Group 対応に修正。ShareReducer / ShareView / ShareViewController を pinNestShareExtension/ に作成。Info.plist（NSExtensionActivationRule）・entitlements（App Group）生成。Xcode でのターゲット追加・App Group 設定は手動対応が必要 |
-| 2026-02-24 | フェーズ 7 完了。TagItem / PinSortOrder 値型追加。PinDataStore にタグ CRUD・検索メソッド追加。SearchReducer / SearchView（キーワード検索・タグフィルター・ソート・マソンリー結果）実装。TagPickerReducer / TagPickerView（タグ選択・新規作成シート）新規作成。PinDetailReducer を body パターンに移行しタグ管理アクション追加。PinDetailView にタグセクション追加。AppReducer / AppView に search state 統合 |
-| 2026-02-24 | フェーズ 8 完了（🔴🟡）。ColorSchemePreference enum 追加。SettingsReducer / SettingsView 新規作成（テーマ切り替え・バージョン表示・ライセンス）。AppReducer に colorSchemePreference state・settings @Presents 追加。AppView に設定ボタン（glassEffect circle）・settings sheet・preferredColorScheme 適用 |
-| 2026-02-24 | フェーズ 9 完了（🔴🟡）。pinNestTests ターゲットを xcodeproj に追加（スタンドアローン方式：BUNDLE_LOADER なし、pinNest/ ソースを直接コンパイル）。PinListReducerTests / PinCreateReducerTests / MetadataClientTests / SearchReducerTests / SettingsReducerTests を @Suite + @Test + TestStore で実装。合計 55 テスト全パス |
+| 2026-02-24 | フェーズ 6 完了。TagItem / PinSortOrder 値型追加。PinDataStore にタグ CRUD・検索メソッド追加。SearchReducer / SearchView（キーワード検索・タグフィルター・ソート・マソンリー結果）実装。TagPickerReducer / TagPickerView（タグ選択・新規作成シート）新規作成。PinDetailReducer を body パターンに移行しタグ管理アクション追加。PinDetailView にタグセクション追加。AppReducer / AppView に search state 統合 |
+| 2026-02-24 | フェーズ 7 完了（🔴🟡）。ColorSchemePreference enum 追加。SettingsReducer / SettingsView 新規作成（テーマ切り替え・バージョン表示・ライセンス）。AppReducer に colorSchemePreference state・settings @Presents 追加。AppView に設定ボタン（glassEffect circle）・settings sheet・preferredColorScheme 適用 |
+| 2026-02-24 | フェーズ 8 完了（🔴🟡）。pinNestTests ターゲットを xcodeproj に追加（スタンドアローン方式：BUNDLE_LOADER なし、pinNest/ ソースを直接コンパイル）。PinListReducerTests / PinCreateReducerTests / MetadataClientTests / SearchReducerTests / SettingsReducerTests を @Suite + @Test + TestStore で実装。合計 55 テスト全パス |
+| 2026-02-26 | コレクション機能を削除（フェーズ 6 をスコープ外に）。フェーズ番号を 7→6, 8→7, 9→8, 10→9 に繰り上げ |
 | 2026-02-25 | Firebase 導入（Crashlytics / Analytics）。FirebaseCrashlytics / FirebaseAnalytics を SPM で追加。AppDelegate クラスを作成し UIApplicationDelegateAdaptor 経由で FirebaseApp.configure() を didFinishLaunchingWithOptions で呼び出すよう実装。dSYM アップロード Build Phase のみ Xcode 手動設定が残り |
 | 2026-02-25 | 履歴画面をリアルデータ対応に移行。HistoryReducer（onAppear/refresh/pinTapped/detail）新規作成。HistoryView をダミーデータ（HistoryEntry.samples）から TCA Store ベースに更新。AppReducer に history state・action・Scope を追加。ピン保存後に history.refresh も発火。履歴からの詳細表示・編集ボタン対応 |
 | 2026-02-25 | 画像・動画のタイトル自動補完をファイル名ベースに変更。`FileRepresentation(importedContentType:)` 経由で元ファイル名を取得（Photos 権限不要）。`ImageFileTransferable` / `VideoFileTransferable` を PinCreateView 内に追加。`effectiveTitle` / `titlePlaceholder` を image/video/pdf でファイル名優先に更新 |
