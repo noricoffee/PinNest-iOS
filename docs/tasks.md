@@ -198,12 +198,17 @@
   - ✅ NSPrivacyCollectedDataTypes: CrashData / PerformanceData / ProductInteraction（Firebase 経由）
 - ✅ 🔴 輸出コンプライアンス（`ITSAppUsesNonExemptEncryption = NO`）
   - ✅ Debug / Release ビルド設定に `INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO` を追加
-- ⬜ 🔴 App Store Connect 登録
+- 🔄 🔴 App Store Connect 登録（手順: `docs/app-store-connect-guide.md` / メタデータ: `docs/app-store-metadata.md`）
+  - ✅ App Store Connect でアプリ新規登録（Bundle ID: `com.noricoffee.pinNest`、カテゴリ: ユーティリティ）
+  - ⬜ バージョン 1.0 の説明文・キーワード入力（`docs/app-store-metadata.md` を参照）
+  - ⬜ プライバシー情報申告（Firebase: クラッシュ・パフォーマンス・使用状況）
+  - ⬜ スクリーンショット撮影・アップロード（6.9インチ / 1320×2868px 必須）
+  - ⬜ App Store Connect にプライバシーポリシー URL を登録（`https://noricoffee.github.io/PinNest-iOS/privacy-policy`）
 - ✅ 🔴 プライバシーポリシー
   - ✅ 日英バイリンガルで `docs/privacy-policy.md` に作成
   - ✅ GitHub Pages 用 `docs/_config.yml` を追加
   - ✅ GitHub Pages を有効化（Settings > Pages > main / /docs）
-  - ⬜ App Store Connect にプライバシーポリシー URL を登録（`https://noricoffee.github.io/PinNest-iOS/privacy-policy`）
+  - ⬜ App Store Connect にプライバシーポリシー URL を入力（`https://noricoffee.github.io/PinNest-iOS/privacy-policy`）
 - ⬜ 🔴 TestFlight 配布
 - ⬜ 🔴 App Store 審査申請
 
@@ -238,3 +243,5 @@
 | 2026-02-26 | Privacy Manifest 追加（`pinNest/PrivacyInfo.xcprivacy`）。NSPrivacyTracking: false、UserDefaults（CA92.1）、Firebase 経由の CrashData / PerformanceData / ProductInteraction を宣言 |
 | 2026-02-26 | 輸出コンプライアンス設定。`INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO` を Debug / Release ビルド設定に追加（カスタム暗号化なし・標準 TLS のみ） |
 | 2026-02-26 | プライバシーポリシー作成。日英バイリンガルで `docs/privacy-policy.md` を追加。GitHub Pages 用 `_config.yml` も設定 |
+| 2026-02-26 | App Store Connect 登録準備。`docs/app-store-metadata.md`（説明文・キーワード・スクリーンショットサイズ等）と `docs/app-store-connect-guide.md`（登録手順チェックリスト）を作成。App Store Connect 登録タスクをサブタスク化 |
+| 2026-02-26 | App Store Connect でアプリ新規登録完了（Bundle ID: com.noricoffee.pinNest / カテゴリ: ユーティリティ）。説明文・スクリーンショット等は後日入力予定 |
