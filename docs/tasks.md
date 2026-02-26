@@ -139,20 +139,19 @@
 
 > フェーズ 5 で生成したコードを実際に動かすために必要な Xcode・Apple Developer 側の設定。後回し可。
 
-- ⬜ 🔴 Apple Developer Portal で App Group `group.com.yoshidanoriyuki.pinnest` を作成・登録
-- ⬜ 🔴 Xcode で Share Extension ターゲットを追加
-  - File > New > Target > Share Extension、Product Name: `pinNestShareExtension`
-- ⬜ 🔴 Extension ターゲットのソースファイル設定
-  - `pinNestShareExtension/` 配下の Swift 3 ファイルを Extension ターゲットに追加
-  - `pinNest/Shared/` 配下の共有コード（PinClient, PinDataStore, MetadataClient, ThumbnailCache, AppGroupContainer, Pin, ContentType, PinCollection, Tag）を Extension ターゲットのメンバーに追加
-- ⬜ 🔴 両ターゲットに App Groups 設定
+- ✅ 🔴 Apple Developer Portal で App Group `group.com.yoshidanoriyuki.pinnest` を作成・登録
+- ✅ 🔴 Xcode で Share Extension ターゲットを追加（`shareExtension` として作成）
+- ✅ 🔴 Extension ターゲットのソースファイル設定
+  - `shareExtension/` 配下に Swift ファイルを配置（fileSystemSynchronizedGroups で自動認識）
+  - `pinNest/Shared/` 配下の共有コードを Extension ターゲットのメンバーに追加
+- ✅ 🔴 両ターゲットに App Groups 設定
   - Signing & Capabilities > App Groups > `group.com.yoshidanoriyuki.pinnest`（pinNest・Extension 両方）
-- ⬜ 🔴 Code Signing Entitlements の設定
+- ✅ 🔴 Code Signing Entitlements の設定
   - pinNest: `pinNest/pinNest.entitlements`
-  - pinNestShareExtension: `pinNestShareExtension/pinNestShareExtension.entitlements`
-- ⬜ 🔴 ComposableArchitecture を Extension ターゲットにリンク（Frameworks and Libraries）
-- ⬜ 🔴 Extension の Info.plist ファイルを Build Settings で指定（`pinNestShareExtension/Info.plist`）
-- ⬜ 🟡 実機 / Simulator で動作確認（Safari URL 共有・写真共有・PDF 共有）
+  - shareExtension: `shareExtension/shareExtension.entitlements`
+- ✅ 🔴 ComposableArchitecture を Extension ターゲットにリンク（Frameworks and Libraries）
+- ✅ 🔴 Extension の Info.plist ファイルを Build Settings で指定（`shareExtension/Info.plist`）
+- ✅ 🟡 ビルド成功確認
 
 ---
 
