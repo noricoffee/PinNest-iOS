@@ -3,6 +3,11 @@ import SwiftUI
 
 struct AppView: View {
     @Bindable var store: StoreOf<AppReducer>
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+
+    private var shouldReduceMotion: Bool {
+        systemReduceMotion || store.reduceMotion
+    }
 
     // MARK: - Body
 
@@ -33,9 +38,9 @@ struct AppView: View {
                     Color.black.opacity(0.35)
                         .ignoresSafeArea()
                         .onTapGesture {
-                            store.send(.overlayTapped, animation: .spring(duration: 0.3))
+                            store.send(.overlayTapped, animation: shouldReduceMotion ? nil : .spring(duration: 0.3))
                         }
-                        .transition(.opacity.animation(.easeOut(duration: 0.15)))
+                        .transition(shouldReduceMotion ? .identity : .opacity.animation(.easeOut(duration: 0.15)))
                 }
                 // ラジアルメニュー（ZStack 内で後に描画 = Z 上位 = ヒットテスト優先）
                 GeometryReader { geo in
@@ -109,12 +114,12 @@ struct AppView: View {
             )
         }
         .accessibilityLabel(label)
-        .animation(.easeInOut(duration: 0.2), value: store.selectedTab)
+        .animation(shouldReduceMotion ? nil : .easeInOut(duration: 0.2), value: store.selectedTab)
     }
 
     private var fabButton: some View {
         Button {
-            store.send(.fabButtonTapped, animation: .spring(duration: 0.3))
+            store.send(.fabButtonTapped, animation: shouldReduceMotion ? nil : .spring(duration: 0.3))
         } label: {
             Image(systemName: store.isFABExpanded ? "xmark" : "plus")
                 .font(.title2.weight(.bold))
@@ -131,7 +136,7 @@ struct AppView: View {
         }
         .accessibilityLabel(store.isFABExpanded ? "閉じる" : "ピンを追加")
         // sheet presentation に影響させないよう body 全体ではなく FAB のみにアニメーションを適用
-        .animation(.spring(duration: 0.3), value: store.isFABExpanded)
+        .animation(shouldReduceMotion ? nil : .spring(duration: 0.3), value: store.isFABExpanded)
     }
 
     // MARK: - FAB Radial Menu
@@ -166,10 +171,11 @@ struct AppView: View {
                     .scaleEffect(store.isFABExpanded ? 1.0 : 0.1)
                     .opacity(store.isFABExpanded ? 1.0 : 0.0)
                     .animation(
-                        store.isFABExpanded
-                            ? .spring(response: 0.35, dampingFraction: 0.6)
-                                .delay(Double(index) * 0.03)
-                            : .spring(response: 0.2, dampingFraction: 0.9),
+                        shouldReduceMotion ? nil :
+                            store.isFABExpanded
+                                ? .spring(response: 0.35, dampingFraction: 0.6)
+                                    .delay(Double(index) * 0.03)
+                                : .spring(response: 0.2, dampingFraction: 0.9),
                         value: store.isFABExpanded
                     )
             }

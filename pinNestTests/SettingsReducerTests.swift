@@ -100,6 +100,86 @@ struct SettingsReducerTests {
         UserDefaults.standard.removeObject(forKey: "colorSchemePreference")
     }
 
+    // MARK: - reduceMotionChanged
+
+    @Test("reduceMotionChanged でモーション設定が更新される（true）")
+    func reduceMotionChanged_enablesReduceMotion() async {
+        let store = TestStore(
+            initialState: SettingsReducer.State(reduceMotion: false)
+        ) {
+            SettingsReducer()
+        }
+
+        await store.send(.reduceMotionChanged(true)) { state in
+            state.reduceMotion = true
+        }
+
+        await store.finish()
+
+        let saved = UserDefaults.standard.bool(forKey: "reduceMotion")
+        #expect(saved == true)
+        UserDefaults.standard.removeObject(forKey: "reduceMotion")
+    }
+
+    @Test("reduceMotionChanged でモーション設定が更新される（false）")
+    func reduceMotionChanged_disablesReduceMotion() async {
+        let store = TestStore(
+            initialState: SettingsReducer.State(reduceMotion: true)
+        ) {
+            SettingsReducer()
+        }
+
+        await store.send(.reduceMotionChanged(false)) { state in
+            state.reduceMotion = false
+        }
+
+        await store.finish()
+
+        let saved = UserDefaults.standard.bool(forKey: "reduceMotion")
+        #expect(saved == false)
+        UserDefaults.standard.removeObject(forKey: "reduceMotion")
+    }
+
+    // MARK: - hapticFeedbackChanged
+
+    @Test("hapticFeedbackChanged でハプティクス設定が更新される（false）")
+    func hapticFeedbackChanged_disablesHaptic() async {
+        let store = TestStore(
+            initialState: SettingsReducer.State(hapticFeedbackEnabled: true)
+        ) {
+            SettingsReducer()
+        }
+
+        await store.send(.hapticFeedbackChanged(false)) { state in
+            state.hapticFeedbackEnabled = false
+        }
+
+        await store.finish()
+
+        let saved = UserDefaults.standard.bool(forKey: "hapticFeedbackEnabled")
+        #expect(saved == false)
+        UserDefaults.standard.removeObject(forKey: "hapticFeedbackEnabled")
+    }
+
+    @Test("hapticFeedbackChanged でハプティクス設定が更新される（true）")
+    func hapticFeedbackChanged_enablesHaptic() async {
+        let store = TestStore(
+            initialState: SettingsReducer.State(hapticFeedbackEnabled: false)
+        ) {
+            SettingsReducer()
+        }
+
+        await store.send(.hapticFeedbackChanged(true)) { state in
+            state.hapticFeedbackEnabled = true
+        }
+
+        await store.finish()
+
+        let saved = UserDefaults.standard.bool(forKey: "hapticFeedbackEnabled")
+        #expect(saved == true)
+        UserDefaults.standard.removeObject(forKey: "hapticFeedbackEnabled")
+    }
+
     // MARK: - doneButtonTapped
 
     @Test("doneButtonTapped は状態を変更しない")

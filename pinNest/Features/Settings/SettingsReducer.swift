@@ -35,11 +35,19 @@ struct SettingsReducer {
     @ObservableState
     struct State: Equatable {
         var colorScheme: ColorSchemePreference
+        var reduceMotion: Bool
+        var hapticFeedbackEnabled: Bool
         var appVersion: String = ""
         var buildNumber: String = ""
 
-        init(colorScheme: ColorSchemePreference = .system) {
+        init(
+            colorScheme: ColorSchemePreference = .system,
+            reduceMotion: Bool = false,
+            hapticFeedbackEnabled: Bool = true
+        ) {
             self.colorScheme = colorScheme
+            self.reduceMotion = reduceMotion
+            self.hapticFeedbackEnabled = hapticFeedbackEnabled
         }
     }
 
@@ -48,6 +56,8 @@ struct SettingsReducer {
     enum Action {
         case onAppear
         case colorSchemeChanged(ColorSchemePreference)
+        case reduceMotionChanged(Bool)
+        case hapticFeedbackChanged(Bool)
         case doneButtonTapped
     }
 
@@ -68,6 +78,20 @@ struct SettingsReducer {
                 analyticsClient.logEvent(.themeChanged(preference: preference.rawValue))
                 return .run { _ in
                     UserDefaults.standard.set(preference.rawValue, forKey: "colorSchemePreference")
+                }
+
+            case let .reduceMotionChanged(value):
+                state.reduceMotion = value
+                analyticsClient.logEvent(.accessibilityChanged(setting: "reduce_motion", enabled: value))
+                return .run { _ in
+                    UserDefaults.standard.set(value, forKey: "reduceMotion")
+                }
+
+            case let .hapticFeedbackChanged(value):
+                state.hapticFeedbackEnabled = value
+                analyticsClient.logEvent(.accessibilityChanged(setting: "haptic_feedback", enabled: value))
+                return .run { _ in
+                    UserDefaults.standard.set(value, forKey: "hapticFeedbackEnabled")
                 }
 
             case .doneButtonTapped:

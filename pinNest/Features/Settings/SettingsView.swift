@@ -10,6 +10,7 @@ struct SettingsView: View {
         NavigationStack {
             List {
                 displaySection
+                accessibilitySection
                 appInfoSection
             }
             .navigationTitle("設定")
@@ -47,6 +48,24 @@ struct SettingsView: View {
                 .accessibilityLabel("テーマ切り替え")
             }
             .padding(.vertical, 4)
+        }
+    }
+
+    // MARK: - アクセシビリティセクション
+
+    private var accessibilitySection: some View {
+        Section("アクセシビリティ") {
+            Toggle(isOn: $store.reduceMotion.sending(\.reduceMotionChanged)) {
+                Label("モーションを減らす", systemImage: "figure.walk.motion")
+            }
+            .accessibilityLabel("モーションを減らす")
+            .accessibilityHint("オンにするとアプリ内のアニメーションが無効になります")
+
+            Toggle(isOn: $store.hapticFeedbackEnabled.sending(\.hapticFeedbackChanged)) {
+                Label("ハプティクス", systemImage: "hand.tap")
+            }
+            .accessibilityLabel("ハプティクスフィードバック")
+            .accessibilityHint("オンにすると操作時に振動フィードバックが有効になります")
         }
     }
 

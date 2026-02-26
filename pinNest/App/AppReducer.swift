@@ -14,6 +14,11 @@ struct AppReducer {
             let raw = UserDefaults.standard.string(forKey: "colorSchemePreference") ?? "system"
             return ColorSchemePreference(rawValue: raw) ?? .system
         }()
+        var reduceMotion: Bool = UserDefaults.standard.bool(forKey: "reduceMotion")
+        var hapticFeedbackEnabled: Bool = {
+            guard UserDefaults.standard.object(forKey: "hapticFeedbackEnabled") != nil else { return true }
+            return UserDefaults.standard.bool(forKey: "hapticFeedbackEnabled")
+        }()
         var pinList: PinListReducer.State = .init()
         var history: HistoryReducer.State = .init()
         var search: SearchReducer.State = .init()
@@ -75,7 +80,11 @@ struct AppReducer {
 
             case let .pinList(listAction):
                 if case .settingsButtonTapped = listAction {
-                    state.settings = SettingsReducer.State(colorScheme: state.colorSchemePreference)
+                    state.settings = SettingsReducer.State(
+                        colorScheme: state.colorSchemePreference,
+                        reduceMotion: state.reduceMotion,
+                        hapticFeedbackEnabled: state.hapticFeedbackEnabled
+                    )
                 }
                 // 詳細画面の「編集」ボタン → PinCreate シートを開く
                 // state.pinList.detail を直接 nil にせず .dismiss を送ることで
@@ -122,6 +131,14 @@ struct AppReducer {
 
             case let .settings(.presented(.colorSchemeChanged(preference))):
                 state.colorSchemePreference = preference
+                return .none
+
+            case let .settings(.presented(.reduceMotionChanged(value))):
+                state.reduceMotion = value
+                return .none
+
+            case let .settings(.presented(.hapticFeedbackChanged(value))):
+                state.hapticFeedbackEnabled = value
                 return .none
 
             case .settings(.presented(.doneButtonTapped)):

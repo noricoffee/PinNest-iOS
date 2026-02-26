@@ -20,6 +20,7 @@ enum AnalyticsEvent: Sendable {
     case themeChanged(preference: String)
     case fabMenuItemTapped(contentType: String)
     case metadataRefreshed
+    case accessibilityChanged(setting: String, enabled: Bool)
 
     var eventName: String {
         switch self {
@@ -37,7 +38,8 @@ enum AnalyticsEvent: Sendable {
         case .tabSwitched:       "tab_switched"
         case .themeChanged:      "theme_changed"
         case .fabMenuItemTapped: "fab_menu_item_tapped"
-        case .metadataRefreshed: "metadata_refreshed"
+        case .metadataRefreshed:     "metadata_refreshed"
+        case .accessibilityChanged:  "accessibility_changed"
         }
     }
 
@@ -77,6 +79,8 @@ enum AnalyticsEvent: Sendable {
             ["content_type": contentType]
         case .metadataRefreshed:
             [:]
+        case let .accessibilityChanged(setting, enabled):
+            ["setting": setting, "enabled": enabled ? "true" : "false"]
         }
     }
 }

@@ -173,6 +173,7 @@
 - ✅ 🔴 設定画面（SettingsView / SettingsReducer）
 - ✅ 🔴 アプリバージョン・ライセンス表示
 - ✅ 🟡 表示テーマ切り替え（ライト / ダーク / システム）
+- ✅ 🟡 アクセシビリティ設定（モーションを減らす・ハプティクス）
 - ⬜ 🟢 データのエクスポート
 
 ---
@@ -184,7 +185,7 @@
 - ✅ 🔴 MetadataClient のユニットテスト（モック使用）
 - ✅ 🟡 SearchReducer のユニットテスト
 - ✅ 🟡 SettingsReducer のユニットテスト
-- ⬜ 🟡 アクセシビリティ検証（VoiceOver / Dynamic Type）
+- ✅ 🟡 アクセシビリティ検証（VoiceOver / Dynamic Type）
 - ⬜ 🟢 UI テスト
 
 ---
@@ -221,6 +222,7 @@
 | 2026-02-24 | フェーズ 7 完了（🔴🟡）。ColorSchemePreference enum 追加。SettingsReducer / SettingsView 新規作成（テーマ切り替え・バージョン表示・ライセンス）。AppReducer に colorSchemePreference state・settings @Presents 追加。AppView に設定ボタン（glassEffect circle）・settings sheet・preferredColorScheme 適用 |
 | 2026-02-24 | フェーズ 8 完了（🔴🟡）。pinNestTests ターゲットを xcodeproj に追加（スタンドアローン方式：BUNDLE_LOADER なし、pinNest/ ソースを直接コンパイル）。PinListReducerTests / PinCreateReducerTests / MetadataClientTests / SearchReducerTests / SettingsReducerTests を @Suite + @Test + TestStore で実装。合計 55 テスト全パス |
 | 2026-02-26 | コレクション機能を削除（フェーズ 6 をスコープ外に）。フェーズ番号を 7→6, 8→7, 9→8, 10→9 に繰り上げ |
+| 2026-02-26 | アクセシビリティ設定を実装。SettingsView に「モーションを減らす」「ハプティクス」トグルを追加。AppView で systemReduceMotion || store.reduceMotion を shouldReduceMotion として全アニメーションに適用。AnalyticsEvent.accessibilityChanged 追加。SettingsReducerTests に 4 テスト追加 |
 | 2026-02-25 | Firebase 導入（Crashlytics / Analytics）。FirebaseCrashlytics / FirebaseAnalytics を SPM で追加。AppDelegate クラスを作成し UIApplicationDelegateAdaptor 経由で FirebaseApp.configure() を didFinishLaunchingWithOptions で呼び出すよう実装。dSYM アップロード Build Phase のみ Xcode 手動設定が残り |
 | 2026-02-25 | 履歴画面をリアルデータ対応に移行。HistoryReducer（onAppear/refresh/pinTapped/detail）新規作成。HistoryView をダミーデータ（HistoryEntry.samples）から TCA Store ベースに更新。AppReducer に history state・action・Scope を追加。ピン保存後に history.refresh も発火。履歴からの詳細表示・編集ボタン対応 |
 | 2026-02-25 | 画像・動画のタイトル自動補完をファイル名ベースに変更。`FileRepresentation(importedContentType:)` 経由で元ファイル名を取得（Photos 権限不要）。`ImageFileTransferable` / `VideoFileTransferable` を PinCreateView 内に追加。`effectiveTitle` / `titlePlaceholder` を image/video/pdf でファイル名優先に更新 |
