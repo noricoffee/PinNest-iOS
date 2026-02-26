@@ -14,6 +14,7 @@
 		ABEB2BAB2F4DF4CF00A1FF9E /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = ABEB2BAA2F4DF4CF00A1FF9E /* GoogleService-Info.plist */; };
 		ABEB2BAE2F4DF8A400A1FF9E /* FirebasePerformance in Frameworks */ = {isa = PBXBuildFile; productRef = ABEB2BAD2F4DF8A400A1FF9E /* FirebasePerformance */; };
 		ABEB2E622F50737A00A1FF9E /* shareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = ABEB2E582F50737900A1FF9E /* shareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		ABEB2E882F50801800A1FF9E /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = ABEB2E872F50801800A1FF9E /* ComposableArchitecture */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -72,8 +73,6 @@
 		ABEB2E7A2F507EE500A1FF9E /* Exceptions for "pinNest" folder in "shareExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Shared/Clients/AnalyticsClient.swift,
-				Shared/Clients/CrashlyticsClient.swift,
 				Shared/Clients/MetadataClient.swift,
 				Shared/Clients/PinClient.swift,
 				Shared/Clients/PinDataStore.swift,
@@ -143,6 +142,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ABEB2E882F50801800A1FF9E /* ComposableArchitecture in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -157,6 +157,7 @@
 				ABEB28DA2F4600A300A1FF9E /* pinNest */,
 				AB09000000000000000000A1 /* pinNestTests */,
 				ABEB2E592F50737900A1FF9E /* shareExtension */,
+				ABEB2E862F50801800A1FF9E /* Frameworks */,
 				ABEB28D92F4600A300A1FF9E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -169,6 +170,13 @@
 				ABEB2E582F50737900A1FF9E /* shareExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		ABEB2E862F50801800A1FF9E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -246,6 +254,7 @@
 			);
 			name = shareExtension;
 			packageProductDependencies = (
+				ABEB2E872F50801800A1FF9E /* ComposableArchitecture */,
 			);
 			productName = shareExtension;
 			productReference = ABEB2E582F50737900A1FF9E /* shareExtension.appex */;
@@ -748,6 +757,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = ABEB2B9C2F4DF20100A1FF9E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebasePerformance;
+		};
+		ABEB2E872F50801800A1FF9E /* ComposableArchitecture */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ABEB28FD2F46097600A1FF9E /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
+			productName = ComposableArchitecture;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
