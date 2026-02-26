@@ -245,3 +245,4 @@
 | 2026-02-26 | プライバシーポリシー作成。日英バイリンガルで `docs/privacy-policy.md` を追加。GitHub Pages 用 `_config.yml` も設定 |
 | 2026-02-26 | App Store Connect 登録準備。`docs/app-store-metadata.md`（説明文・キーワード・スクリーンショットサイズ等）と `docs/app-store-connect-guide.md`（登録手順チェックリスト）を作成。App Store Connect 登録タスクをサブタスク化 |
 | 2026-02-26 | App Store Connect でアプリ新規登録完了（Bundle ID: com.noricoffee.pinNest / カテゴリ: ユーティリティ）。説明文・スクリーンショット等は後日入力予定 |
+| 2026-02-26 | 画像・動画のアプリ内表示機能を追加。動画ピン作成時に VideoFileSaved Transferable で動画ファイルを App Group へコピー保存し filePath を記録。PinDetailView で画像タップ → フルスクリーン表示（ImageViewerView）、動画タップ → AVPlayerViewController フルスクリーン再生に対応 |

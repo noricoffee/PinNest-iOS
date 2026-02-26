@@ -1,3 +1,4 @@
+import AVKit
 import ComposableArchitecture
 import SwiftUI
 import UIKit
@@ -5,6 +6,8 @@ import UIKit
 struct PinDetailView: View {
     @Bindable var store: StoreOf<PinDetailReducer>
     @Environment(\.colorSchemePreference) private var colorSchemePreference
+    @State private var isVideoPlayerPresented = false
+    @State private var isImageViewerPresented = false
 
     // MARK: - Body
 
@@ -140,16 +143,23 @@ struct PinDetailView: View {
     private var imageHeader: some View {
         if let filePath = store.pin.filePath,
            let uiImage = UIImage(contentsOfFile: ThumbnailCache.resolveAbsolutePath(filePath)) {
-            Color.clear
-                .aspectRatio(store.pin.contentType.defaultAspectRatio, contentMode: .fit)
-                .frame(maxWidth: .infinity)
-                .overlay {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFill()
-                }
-                .clipped()
-                .accessibilityLabel("画像")
+            Button {
+                isImageViewerPresented = true
+            } label: {
+                Color.clear
+                    .aspectRatio(store.pin.contentType.defaultAspectRatio, contentMode: .fit)
+                    .frame(maxWidth: .infinity)
+                    .overlay {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                    }
+                    .clipped()
+            }
+            .accessibilityLabel("画像を拡大表示")
+            .fullScreenCover(isPresented: $isImageViewerPresented) {
+                ImageViewerView(uiImage: uiImage)
+            }
         } else {
             store.pin.contentType.displayColor
                 .aspectRatio(store.pin.contentType.defaultAspectRatio, contentMode: .fit)
@@ -163,16 +173,40 @@ struct PinDetailView: View {
         }
     }
 
+    @ViewBuilder
     private var videoHeader: some View {
-        store.pin.contentType.displayColor
-            .aspectRatio(store.pin.contentType.defaultAspectRatio, contentMode: .fit)
-            .frame(maxWidth: .infinity)
-            .overlay {
-                Image(systemName: "play.circle.fill")
-                    .font(.system(size: 56))
-                    .foregroundStyle(.white)
-                    .shadow(color: .black.opacity(0.3), radius: 8)
+        if let filePath = store.pin.filePath {
+            let absolutePath = ThumbnailCache.resolveAbsolutePath(filePath)
+            let videoURL = URL(fileURLWithPath: absolutePath)
+            Button {
+                isVideoPlayerPresented = true
+            } label: {
+                store.pin.contentType.displayColor
+                    .aspectRatio(store.pin.contentType.defaultAspectRatio, contentMode: .fit)
+                    .frame(maxWidth: .infinity)
+                    .overlay {
+                        Image(systemName: "play.circle.fill")
+                            .font(.system(size: 56))
+                            .foregroundStyle(.white)
+                            .shadow(color: .black.opacity(0.3), radius: 8)
+                    }
             }
+            .accessibilityLabel("動画を再生")
+            .fullScreenCover(isPresented: $isVideoPlayerPresented) {
+                AVPlayerViewControllerRepresentable(url: videoURL)
+                    .ignoresSafeArea()
+            }
+        } else {
+            store.pin.contentType.displayColor
+                .aspectRatio(store.pin.contentType.defaultAspectRatio, contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                .overlay {
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 56))
+                        .foregroundStyle(.white)
+                        .shadow(color: .black.opacity(0.3), radius: 8)
+                }
+        }
     }
 
     private var pdfHeader: some View {
@@ -386,4 +420,45 @@ struct PinDetailView: View {
             }
         }
     }
+}
+
+// MARK: - ImageViewerView
+
+private struct ImageViewerView: View {
+    let uiImage: UIImage
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            Color.black.ignoresSafeArea()
+            Image(uiImage: uiImage)
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 28))
+                    .foregroundStyle(.white, .white.opacity(0.3))
+                    .padding(16)
+            }
+            .accessibilityLabel("閉じる")
+        }
+    }
+}
+
+// MARK: - AVPlayerViewControllerRepresentable
+
+private struct AVPlayerViewControllerRepresentable: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context: Context) -> AVPlayerViewController {
+        let controller = AVPlayerViewController()
+        controller.player = AVPlayer(url: url)
+        controller.player?.play()
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: AVPlayerViewController, context: Context) {}
 }

@@ -90,9 +90,9 @@ struct PinCreateReducer {
         case urlTextChanged(String)
         case bodyTextChanged(String)
         case fileNameSelected(String?)
-        /// View で非同期ロードされた画像データを Save 時に受け取る
+        /// View で非同期ロードされた画像データ・動画パスを Save 時に受け取る
         /// （PhotosPickerItem は非 Sendable のため View の @State で管理し、Save 時のみ渡す）
-        case saveButtonTapped(imageData: Data?)
+        case saveButtonTapped(imageData: Data?, videoPath: String?)
         case saveResponse(Result<Void, Error>)
         case cancelButtonTapped
     }
@@ -131,7 +131,7 @@ struct PinCreateReducer {
             state.selectedFileName = name
             return .none
 
-        case let .saveButtonTapped(imageData: imageData):
+        case let .saveButtonTapped(imageData: imageData, videoPath: videoPath):
             guard !state.isSaving else { return .none }
             state.isSaving = true
             state.saveError = nil
@@ -196,7 +196,22 @@ struct PinCreateReducer {
                     }
                 }
 
-                // URL 以外・画像以外（動画 / PDF / テキスト）は直接 create
+                // 動画: View 側でコピー済みの相対パスを filePath として記録
+                if contentType == .video {
+                    let newPin = NewPin(
+                        contentType: .video,
+                        title: titleInput,
+                        memo: memo,
+                        filePath: videoPath
+                    )
+                    return .run { send in
+                        await send(.saveResponse(Result {
+                            try await pinClient.create(newPin)
+                        }))
+                    }
+                }
+
+                // PDF / テキストは直接 create
                 let newPin = NewPin(
                     contentType: contentType,
                     title: titleInput,

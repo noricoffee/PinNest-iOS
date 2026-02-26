@@ -12,6 +12,8 @@ struct PinCreateView: View {
     // .task からの store.send を避けることで "ifLet received a presentation action
     // when destination state was absent" 警告を防ぐ（Save 時のみ Reducer に渡す）
     @State private var loadedImageData: Data?
+    // 動画: App Group へコピー済みの相対パス（Save 時に Reducer へ渡す）
+    @State private var savedVideoPath: String?
     @State private var isFileImporterPresented = false
     @FocusState private var focusedField: FocusedField?
 
@@ -50,7 +52,7 @@ struct PinCreateView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(store.isSaving ? "保存中..." : "保存") {
-                        store.send(.saveButtonTapped(imageData: loadedImageData))
+                        store.send(.saveButtonTapped(imageData: loadedImageData, videoPath: savedVideoPath))
                     }
                     .fontWeight(.semibold)
                     .disabled(store.isSaving)
@@ -79,8 +81,9 @@ struct PinCreateView: View {
                     // → pinCreate が nil になった後に dispatch する競合状態を回避
                     loadedImageData = try? await item.loadTransferable(type: Data.self)
                 case .video:
-                    if let f = try? await item.loadTransferable(type: VideoFileTransferable.self) {
-                        store.send(.fileNameSelected(f.filename))
+                    if let saved = try? await item.loadTransferable(type: VideoFileSaved.self) {
+                        store.send(.fileNameSelected(saved.filename))
+                        savedVideoPath = saved.relativePath
                     }
                 default:
                     break
@@ -89,6 +92,7 @@ struct PinCreateView: View {
             .onChange(of: store.contentType) { _, newType in
                 selectedPhotoItem = nil
                 loadedImageData = nil
+                savedVideoPath = nil
                 focusedField = Self.focusedField(for: newType)
             }
             .onAppear {
@@ -310,11 +314,29 @@ private struct ImageFileTransferable: Transferable {
     }
 }
 
-private struct VideoFileTransferable: Transferable {
+private struct VideoFileSaved: Transferable {
     let filename: String
+    let relativePath: String?
+
     static var transferRepresentation: some TransferRepresentation {
         FileRepresentation(importedContentType: .movie) { received in
-            VideoFileTransferable(filename: received.file.lastPathComponent)
+            let ext = received.file.pathExtension
+            let fileUUID = UUID()
+            let dir: URL
+            if let appGroupDir = AppGroupContainer.filesURL {
+                dir = appGroupDir
+            } else {
+                let base = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                dir = base.appendingPathComponent("PinFiles", isDirectory: true)
+                try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            }
+            let destURL = dir.appendingPathComponent("\(fileUUID.uuidString).\(ext)")
+            try FileManager.default.copyItem(at: received.file, to: destURL)
+            let relativePath = ThumbnailCache.toRelativePath(destURL.path)
+            return VideoFileSaved(
+                filename: received.file.lastPathComponent,
+                relativePath: relativePath
+            )
         }
     }
 }
