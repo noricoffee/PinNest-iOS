@@ -1,5 +1,7 @@
+import AVFoundation
 import ComposableArchitecture
 import Foundation
+import PDFKit
 import UIKit
 
 @Reducer
@@ -90,9 +92,9 @@ struct PinCreateReducer {
         case urlTextChanged(String)
         case bodyTextChanged(String)
         case fileNameSelected(String?)
-        /// View で非同期ロードされた画像データ・動画パスを Save 時に受け取る
+        /// View で非同期ロードされた画像データ・動画パス・PDF データを Save 時に受け取る
         /// （PhotosPickerItem は非 Sendable のため View の @State で管理し、Save 時のみ渡す）
-        case saveButtonTapped(imageData: Data?, videoPath: String?)
+        case saveButtonTapped(imageData: Data?, videoPath: String?, pdfData: Data?)
         case saveResponse(Result<Void, Error>)
         case cancelButtonTapped
     }
@@ -131,7 +133,7 @@ struct PinCreateReducer {
             state.selectedFileName = name
             return .none
 
-        case let .saveButtonTapped(imageData: imageData, videoPath: videoPath):
+        case let .saveButtonTapped(imageData: imageData, videoPath: videoPath, pdfData: pdfData):
             guard !state.isSaving else { return .none }
             state.isSaving = true
             state.saveError = nil
@@ -196,22 +198,54 @@ struct PinCreateReducer {
                     }
                 }
 
-                // 動画: View 側でコピー済みの相対パスを filePath として記録
+                // 動画: サムネイル生成 → filePath として記録
                 if contentType == .video {
-                    let newPin = NewPin(
-                        contentType: .video,
-                        title: titleInput,
-                        memo: memo,
-                        filePath: videoPath
-                    )
+                    let pinID = UUID()
                     return .run { send in
+                        // 動画の最初のフレームをサムネイルとして保存
+                        if let videoPath, !videoPath.isEmpty {
+                            let absolutePath = ThumbnailCache.resolveAbsolutePath(videoPath)
+                            let videoURL = URL(fileURLWithPath: absolutePath)
+                            if let thumbData = await Self.generateVideoThumbnailData(videoURL: videoURL) {
+                                _ = try? ThumbnailCache.save(data: thumbData, for: pinID)
+                            }
+                        }
+                        let newPin = NewPin(
+                            id: pinID,
+                            contentType: .video,
+                            title: titleInput,
+                            memo: memo,
+                            filePath: videoPath
+                        )
                         await send(.saveResponse(Result {
                             try await pinClient.create(newPin)
                         }))
                     }
                 }
 
-                // PDF / テキストは直接 create
+                // PDF: ファイル保存 + サムネイル生成
+                if contentType == .pdf {
+                    let pinID = UUID()
+                    return .run { send in
+                        let savedFilePath = pdfData.flatMap { Self.savePDFFile(data: $0, pinID: pinID) }
+                        if let data = pdfData,
+                           let thumbData = Self.generatePDFThumbnailData(pdfData: data) {
+                            _ = try? ThumbnailCache.save(data: thumbData, for: pinID)
+                        }
+                        let newPin = NewPin(
+                            id: pinID,
+                            contentType: .pdf,
+                            title: titleInput,
+                            memo: memo,
+                            filePath: savedFilePath
+                        )
+                        await send(.saveResponse(Result {
+                            try await pinClient.create(newPin)
+                        }))
+                    }
+                }
+
+                // テキストは直接 create
                 let newPin = NewPin(
                     contentType: contentType,
                     title: titleInput,
@@ -265,6 +299,45 @@ struct PinCreateReducer {
     }
 
     // MARK: - Private Helpers
+
+    /// 動画の最初のフレームを JPEG データとして生成する
+    private static func generateVideoThumbnailData(videoURL: URL) async -> Data? {
+        let asset = AVURLAsset(url: videoURL)
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+        generator.maximumSize = CGSize(width: 800, height: 800)
+        guard let cgImage = try? await generator.image(at: .zero).image else { return nil }
+        return UIImage(cgImage: cgImage).jpegData(compressionQuality: 0.85)
+    }
+
+    /// PDF の最初のページを JPEG データとして生成する
+    private static func generatePDFThumbnailData(pdfData: Data) -> Data? {
+        guard let document = PDFDocument(data: pdfData),
+              let firstPage = document.page(at: 0) else { return nil }
+        let thumbSize = CGSize(width: 600, height: 800)
+        let thumbnail = firstPage.thumbnail(of: thumbSize, for: .mediaBox)
+        return thumbnail.jpegData(compressionQuality: 0.85)
+    }
+
+    /// PDF データをアプリコンテナ（App Group 優先）に保存し、相対パスを返す
+    private static func savePDFFile(data: Data, pinID: UUID) -> String? {
+        let dir: URL
+        if let filesDir = AppGroupContainer.filesURL {
+            dir = filesDir
+        } else {
+            guard let base = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return nil }
+            let d = base.appendingPathComponent("PinFiles", isDirectory: true)
+            try? FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)
+            dir = d
+        }
+        let fileURL = dir.appendingPathComponent("\(pinID.uuidString).pdf")
+        do {
+            try data.write(to: fileURL, options: .atomic)
+            return ThumbnailCache.toRelativePath(fileURL.path)
+        } catch {
+            return nil
+        }
+    }
 
     /// 画像データをアプリコンテナ（App Group 優先）に JPEG で保存し、絶対パスを返す
     private static func saveImageFile(data: Data, pinID: UUID) -> String? {

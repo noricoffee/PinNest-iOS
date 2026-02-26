@@ -99,29 +99,71 @@ struct PinCardView: View {
         }
     }
 
+    @ViewBuilder
     private var videoThumbnail: some View {
-        pin.contentType.displayColor
-            .aspectRatio(pin.contentType.defaultAspectRatio, contentMode: .fit)
-            .overlay {
-                Image(systemName: "play.circle.fill")
-                    .font(.system(size: 36))
-                    .foregroundStyle(.white)
-                    .shadow(color: .black.opacity(0.3), radius: 6)
-            }
-            .clipShape(topRoundedShape)
+        if let thumbnail = ThumbnailCache.loadThumbnail(for: pin.id) {
+            Color.clear
+                .aspectRatio(pin.contentType.defaultAspectRatio, contentMode: .fit)
+                .overlay {
+                    Image(uiImage: thumbnail)
+                        .resizable()
+                        .scaledToFill()
+                }
+                .overlay {
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 32))
+                        .foregroundStyle(.white)
+                        .shadow(color: .black.opacity(0.4), radius: 6)
+                }
+                .clipped()
+                .clipShape(topRoundedShape)
+                .accessibilityLabel("動画サムネイル")
+        } else {
+            pin.contentType.displayColor
+                .aspectRatio(pin.contentType.defaultAspectRatio, contentMode: .fit)
+                .overlay {
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 36))
+                        .foregroundStyle(.white)
+                        .shadow(color: .black.opacity(0.3), radius: 6)
+                }
+                .clipShape(topRoundedShape)
+        }
     }
 
+    @ViewBuilder
     private var pdfThumbnail: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "doc.richtext.fill")
-                .font(.system(size: 38))
-                .foregroundStyle(.red)
-            Spacer()
+        if let thumbnail = ThumbnailCache.loadThumbnail(for: pin.id) {
+            Color.clear
+                .aspectRatio(pin.contentType.defaultAspectRatio, contentMode: .fit)
+                .overlay {
+                    Image(uiImage: thumbnail)
+                        .resizable()
+                        .scaledToFit()
+                }
+                .overlay(alignment: .topTrailing) {
+                    Image(systemName: "doc.richtext.fill")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.red)
+                        .padding(5)
+                        .background(.ultraThinMaterial, in: Circle())
+                        .padding(8)
+                }
+                .clipped()
+                .clipShape(topRoundedShape)
+                .accessibilityLabel("PDF サムネイル")
+        } else {
+            HStack(spacing: 10) {
+                Image(systemName: "doc.richtext.fill")
+                    .font(.system(size: 38))
+                    .foregroundStyle(.red)
+                Spacer()
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 16)
+            .background(Color(.tertiarySystemBackground))
+            .clipShape(topRoundedShape)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 16)
-        .background(Color(.tertiarySystemBackground))
-        .clipShape(topRoundedShape)
     }
 
     private var textPreview: some View {

@@ -32,6 +32,13 @@ enum ThumbnailCache {
         UIImage(contentsOfFile: resolveAbsolutePath(path))
     }
 
+    /// Pin ID からサムネイル画像をロードする（動画・PDF のサムネイル表示に使用）
+    static func loadThumbnail(for pinID: UUID) -> UIImage? {
+        guard let dir = try? cacheDirectory() else { return nil }
+        let path = dir.appendingPathComponent("\(pinID.uuidString).jpg").path
+        return UIImage(contentsOfFile: path)
+    }
+
     // MARK: - Remove
 
     /// キャッシュファイルを削除する（エラーは無視）

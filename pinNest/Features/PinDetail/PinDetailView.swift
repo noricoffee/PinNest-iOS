@@ -178,18 +178,33 @@ struct PinDetailView: View {
         if let filePath = store.pin.filePath {
             let absolutePath = ThumbnailCache.resolveAbsolutePath(filePath)
             let videoURL = URL(fileURLWithPath: absolutePath)
+            let thumbnail = ThumbnailCache.loadThumbnail(for: store.pin.id)
             Button {
                 isVideoPlayerPresented = true
             } label: {
-                store.pin.contentType.displayColor
-                    .aspectRatio(store.pin.contentType.defaultAspectRatio, contentMode: .fit)
-                    .frame(maxWidth: .infinity)
-                    .overlay {
-                        Image(systemName: "play.circle.fill")
-                            .font(.system(size: 56))
-                            .foregroundStyle(.white)
-                            .shadow(color: .black.opacity(0.3), radius: 8)
+                Group {
+                    if let thumbnail {
+                        Color.clear
+                            .aspectRatio(store.pin.contentType.defaultAspectRatio, contentMode: .fit)
+                            .frame(maxWidth: .infinity)
+                            .overlay {
+                                Image(uiImage: thumbnail)
+                                    .resizable()
+                                    .scaledToFill()
+                            }
+                            .clipped()
+                    } else {
+                        store.pin.contentType.displayColor
+                            .aspectRatio(store.pin.contentType.defaultAspectRatio, contentMode: .fit)
+                            .frame(maxWidth: .infinity)
                     }
+                }
+                .overlay {
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 56))
+                        .foregroundStyle(.white)
+                        .shadow(color: .black.opacity(0.3), radius: 8)
+                }
             }
             .accessibilityLabel("動画を再生")
             .sheet(isPresented: $isVideoPlayerPresented) {
@@ -211,16 +226,40 @@ struct PinDetailView: View {
         }
     }
 
+    @ViewBuilder
     private var pdfHeader: some View {
-        HStack(spacing: 16) {
-            Image(systemName: "doc.richtext.fill")
-                .font(.system(size: 56))
-                .foregroundStyle(.red)
-            Spacer()
+        let thumbnail = ThumbnailCache.loadThumbnail(for: store.pin.id)
+        if let thumbnail {
+            Color.clear
+                .aspectRatio(3 / 4, contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                .overlay {
+                    Image(uiImage: thumbnail)
+                        .resizable()
+                        .scaledToFit()
+                }
+                .clipped()
+                .background(Color(.tertiarySystemBackground))
+                .overlay(alignment: .topTrailing) {
+                    Image(systemName: "doc.richtext.fill")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.red)
+                        .padding(6)
+                        .background(.ultraThinMaterial, in: Circle())
+                        .padding(12)
+                }
+                .accessibilityLabel("PDF サムネイル")
+        } else {
+            HStack(spacing: 16) {
+                Image(systemName: "doc.richtext.fill")
+                    .font(.system(size: 56))
+                    .foregroundStyle(.red)
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 24)
+            .background(Color(.tertiarySystemBackground))
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 24)
-        .background(Color(.tertiarySystemBackground))
     }
 
     // MARK: - Content

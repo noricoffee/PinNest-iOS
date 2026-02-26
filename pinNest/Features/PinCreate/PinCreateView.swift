@@ -14,6 +14,8 @@ struct PinCreateView: View {
     @State private var loadedImageData: Data?
     // 動画: App Group へコピー済みの相対パス（Save 時に Reducer へ渡す）
     @State private var savedVideoPath: String?
+    // PDF: fileImporter で読み込んだデータ（Save 時に Reducer へ渡す）
+    @State private var loadedPDFData: Data?
     @State private var isFileImporterPresented = false
     @FocusState private var focusedField: FocusedField?
 
@@ -52,7 +54,7 @@ struct PinCreateView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(store.isSaving ? "保存中..." : "保存") {
-                        store.send(.saveButtonTapped(imageData: loadedImageData, videoPath: savedVideoPath))
+                        store.send(.saveButtonTapped(imageData: loadedImageData, videoPath: savedVideoPath, pdfData: loadedPDFData))
                     }
                     .fontWeight(.semibold)
                     .disabled(store.isSaving)
@@ -64,6 +66,10 @@ struct PinCreateView: View {
             ) { result in
                 if case .success(let url) = result {
                     store.send(.fileNameSelected(url.lastPathComponent))
+                    // PDF データをロード（サムネイル生成とファイル保存のため Reducer へ渡す）
+                    _ = url.startAccessingSecurityScopedResource()
+                    loadedPDFData = try? Data(contentsOf: url)
+                    url.stopAccessingSecurityScopedResource()
                 }
             }
             .task(id: selectedPhotoItem) {
@@ -93,6 +99,7 @@ struct PinCreateView: View {
                 selectedPhotoItem = nil
                 loadedImageData = nil
                 savedVideoPath = nil
+                loadedPDFData = nil
                 focusedField = Self.focusedField(for: newType)
             }
             .onAppear {
