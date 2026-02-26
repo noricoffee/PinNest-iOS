@@ -35,14 +35,11 @@ struct AppView: View {
                     .transition(.opacity)
             }
         }
-        // タイプ選択メニュー（FAB の上に展開）
+        // タイプ選択メニュー（FAB 中心から放射状に展開）
         .overlay(alignment: .bottomTrailing) {
-            if store.isFABExpanded {
-                fabTypeMenu
-                    .padding(.trailing, 20)
-                    .padding(.bottom, 80)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
+            fabRadialMenu
+                .padding(.trailing, 48)  // 20 (bar trailing padding) + 28 (half FAB)
+                .padding(.bottom, 80)    // floating bar height ≈ FAB center from overlay bottom
         }
         .animation(.spring(duration: 0.3), value: store.isFABExpanded)
         .preferredColorScheme(store.colorSchemePreference.colorScheme)
@@ -133,34 +130,59 @@ struct AppView: View {
         .accessibilityLabel(store.isFABExpanded ? "閉じる" : "ピンを追加")
     }
 
-    // MARK: - FAB Type Menu
+    // MARK: - FAB Radial Menu
 
-    private var fabTypeMenu: some View {
-        VStack(alignment: .trailing, spacing: 8) {
-            ForEach(Array(ContentType.allCases.reversed()), id: \.self) { type in
-                fabTypeMenuItem(type: type)
+    private var fabRadialMenu: some View {
+        let types = ContentType.allCases
+        let count = types.count
+        let startAngle: Double = 90.0   // 真上 (12時方向)
+        let endAngle: Double = 180.0   // 真左 (9時方向)
+        let radius: CGFloat = 170      // 64pt アイテムが重ならない半径 (間隔≈67pt)
+
+        return ZStack {
+            ForEach(Array(types.enumerated()), id: \.element) { index, type in
+                let fraction = count > 1 ? Double(index) / Double(count - 1) : 0.0
+                let angleDeg = startAngle + fraction * (endAngle - startAngle)
+                let angleRad = angleDeg * .pi / 180.0
+                // SwiftUI は y 軸が下向きのため dy は反転
+                let dx = CGFloat(cos(angleRad)) * radius
+                let dy = -CGFloat(sin(angleRad)) * radius
+
+                fabRadialItem(type: type)
+                    .offset(
+                        x: store.isFABExpanded ? dx : 0,
+                        y: store.isFABExpanded ? dy : 0
+                    )
+                    .scaleEffect(store.isFABExpanded ? 1.0 : 0.1)
+                    .opacity(store.isFABExpanded ? 1.0 : 0.0)
+                    .animation(
+                        .spring(response: 0.45, dampingFraction: 0.70)
+                            .delay(store.isFABExpanded ? Double(index) * 0.05 : 0),
+                        value: store.isFABExpanded
+                    )
             }
         }
+        .frame(width: 0, height: 0)  // ゼロサイズアンカー（FAB 中心に対応）
+        .allowsHitTesting(store.isFABExpanded)
     }
 
-    private func fabTypeMenuItem(type: ContentType) -> some View {
+    private func fabRadialItem(type: ContentType) -> some View {
         Button {
-            store.send(.fabMenuItemTapped(type), animation: .spring(duration: 0.3))
+            store.send(.fabMenuItemTapped(type))
         } label: {
-            HStack(spacing: 12) {
-                Text(type.label)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.primary)
-                Image(systemName: type.iconName)
-                    .font(.body)
-                    .foregroundStyle(.white)
-                    .frame(width: 44, height: 44)
-                    .background(Color.accentColor, in: Circle())
+            ZStack {
+                Circle()
+                    .fill(Color.accentColor)
+                    .frame(width: 64, height: 64)
+                    .shadow(color: Color.accentColor.opacity(0.4), radius: 8, y: 4)
+                VStack(spacing: 2) {
+                    Image(systemName: type.iconName)
+                        .font(.body.weight(.semibold))
+                    Text(type.label)
+                        .font(.caption2.weight(.bold))
+                }
+                .foregroundStyle(.white)
             }
-            .padding(.leading, 16)
-            .padding(.trailing, 8)
-            .padding(.vertical, 8)
-            .glassEffect(in: Capsule())
         }
         .accessibilityLabel("\(type.label)を追加")
     }
