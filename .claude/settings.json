@@ -7,7 +7,9 @@
       "Read(~/Library/Developer/Xcode/DerivedData/**)",
       "Read(~/Library/Caches/org.swift.swiftpm/**)",
       "Read(~/Library/Caches/org.swift.swiftpm/repositories/**)",
-      "Bash(git check-ignore:*)"
+      "Bash(git check-ignore:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
