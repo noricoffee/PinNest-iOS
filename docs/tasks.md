@@ -193,6 +193,12 @@
 ## フェーズ 9: リリース準備
 
 - ✅ 🔴 App Icon / スプラッシュ画面
+- ✅ 🔴 Privacy Manifest（`PrivacyInfo.xcprivacy`）
+  - ✅ NSPrivacyTracking: false（クロスアプリ追跡なし）
+  - ✅ NSPrivacyAccessedAPITypes: UserDefaults（CA92.1）
+  - ✅ NSPrivacyCollectedDataTypes: CrashData / PerformanceData / ProductInteraction（Firebase 経由）
+- ✅ 🔴 輸出コンプライアンス（`ITSAppUsesNonExemptEncryption = NO`）
+  - ✅ Debug / Release ビルド設定に `INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO` を追加
 - ⬜ 🔴 App Store Connect 登録
 - ⬜ 🔴 プライバシーポリシー
 - ⬜ 🔴 TestFlight 配布
@@ -226,3 +232,5 @@
 | 2026-02-25 | Firebase 導入（Crashlytics / Analytics）。FirebaseCrashlytics / FirebaseAnalytics を SPM で追加。AppDelegate クラスを作成し UIApplicationDelegateAdaptor 経由で FirebaseApp.configure() を didFinishLaunchingWithOptions で呼び出すよう実装。dSYM アップロード Build Phase のみ Xcode 手動設定が残り |
 | 2026-02-25 | 履歴画面をリアルデータ対応に移行。HistoryReducer（onAppear/refresh/pinTapped/detail）新規作成。HistoryView をダミーデータ（HistoryEntry.samples）から TCA Store ベースに更新。AppReducer に history state・action・Scope を追加。ピン保存後に history.refresh も発火。履歴からの詳細表示・編集ボタン対応 |
 | 2026-02-25 | 画像・動画のタイトル自動補完をファイル名ベースに変更。`FileRepresentation(importedContentType:)` 経由で元ファイル名を取得（Photos 権限不要）。`ImageFileTransferable` / `VideoFileTransferable` を PinCreateView 内に追加。`effectiveTitle` / `titlePlaceholder` を image/video/pdf でファイル名優先に更新 |
+| 2026-02-26 | Privacy Manifest 追加（`pinNest/PrivacyInfo.xcprivacy`）。NSPrivacyTracking: false、UserDefaults（CA92.1）、Firebase 経由の CrashData / PerformanceData / ProductInteraction を宣言 |
+| 2026-02-26 | 輸出コンプライアンス設定。`INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO` を Debug / Release ビルド設定に追加（カスタム暗号化なし・標準 TLS のみ） |

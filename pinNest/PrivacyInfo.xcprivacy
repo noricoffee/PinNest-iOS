@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+
+    <!--
+        ユーザーをアプリやウェブサイトをまたいで追跡しているか
+        このアプリは広告目的のトラッキングを行わない
+    -->
+    <key>NSPrivacyTracking</key>
+    <false/>
+
+    <!--
+        トラッキングに使用するドメイン（追跡なし）
+    -->
+    <key>NSPrivacyTrackingDomains</key>
+    <array/>
+
+    <!--
+        Required Reason APIs
+        アプリが直接呼び出すプライバシーセンシティブな API とその利用理由
+    -->
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+
+        <!--
+            UserDefaults
+            用途: カラースキーム・モーション低減・ハプティクス設定の保存（SettingsReducer）
+            理由 CA92.1: 同一アプリが書き込んだ設定値を読み書きする
+        -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>CA92.1</string>
+            </array>
+        </dict>
+
+    </array>
+
+    <!--
+        収集するデータの種類
+        サードパーティの Firebase SDK 経由でサーバーに送信されるデータを宣言する
+        ユーザーが端末内に保存するコンテンツ（画像・動画・PDF・テキスト）はサーバー送信なし
+    -->
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array>
+
+        <!--
+            クラッシュデータ（Firebase Crashlytics）
+            ユーザーの識別情報とは紐付けない / トラッキング目的で使用しない
+        -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypeCrashData</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+
+        <!--
+            パフォーマンスデータ（Firebase Performance Monitoring）
+            ユーザーの識別情報とは紐付けない / トラッキング目的で使用しない
+        -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypePerformanceData</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+
+        <!--
+            製品インタラクション（Firebase Analytics）
+            機能利用状況の把握・アプリ改善のために収集
+            ユーザーの識別情報とは紐付けない / トラッキング目的で使用しない
+        -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypeProductInteraction</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+
+    </array>
+
+</dict>
+</plist>
