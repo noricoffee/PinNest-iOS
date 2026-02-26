@@ -50,11 +50,14 @@ struct AppView: View {
             }
         }
         .preferredColorScheme(store.colorSchemePreference.colorScheme)
+        .environment(\.colorSchemePreference, store.colorSchemePreference)
         .sheet(item: $store.scope(state: \.pinCreate, action: \.create)) { createStore in
             PinCreateView(store: createStore)
+                .preferredColorScheme(store.colorSchemePreference.colorScheme)
         }
         .sheet(item: $store.scope(state: \.settings, action: \.settings)) { settingsStore in
             SettingsView(store: settingsStore)
+                .preferredColorScheme(store.colorSchemePreference.colorScheme)
         }
     }
 

@@ -3,6 +3,7 @@ import SwiftUI
 
 struct PinListView: View {
     @Bindable var store: StoreOf<PinListReducer>
+    @Environment(\.colorSchemePreference) private var colorSchemePreference
 
     // MARK: - Body
 
@@ -26,6 +27,7 @@ struct PinListView: View {
                 }
                 .sheet(item: $store.scope(state: \.detail, action: \.detail)) { detailStore in
                     PinDetailView(store: detailStore)
+                        .preferredColorScheme(colorSchemePreference.colorScheme)
                 }
         }
     }

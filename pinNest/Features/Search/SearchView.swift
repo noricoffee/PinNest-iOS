@@ -3,6 +3,7 @@ import SwiftUI
 
 struct SearchView: View {
     @Bindable var store: StoreOf<SearchReducer>
+    @Environment(\.colorSchemePreference) private var colorSchemePreference
 
     // MARK: - Body
 
@@ -26,6 +27,7 @@ struct SearchView: View {
                 }
                 .sheet(item: $store.scope(state: \.detail, action: \.detail)) { detailStore in
                     PinDetailView(store: detailStore)
+                        .preferredColorScheme(colorSchemePreference.colorScheme)
                 }
         }
     }

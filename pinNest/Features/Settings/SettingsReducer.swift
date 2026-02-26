@@ -1,6 +1,12 @@
 import ComposableArchitecture
 import SwiftUI
 
+// MARK: - EnvironmentValues
+
+extension EnvironmentValues {
+    @Entry var colorSchemePreference: ColorSchemePreference = .system
+}
+
 // MARK: - ColorSchemePreference
 
 enum ColorSchemePreference: String, CaseIterable, Equatable, Sendable {

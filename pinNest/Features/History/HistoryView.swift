@@ -5,6 +5,7 @@ import SwiftUI
 
 struct HistoryView: View {
     @Bindable var store: StoreOf<HistoryReducer>
+    @Environment(\.colorSchemePreference) private var colorSchemePreference
 
     private let timelineColumnWidth: CGFloat = 20
     private let rowHalfHeight: CGFloat = 32
@@ -55,6 +56,7 @@ struct HistoryView: View {
         }
         .sheet(item: $store.scope(state: \.detail, action: \.detail)) { detailStore in
             PinDetailView(store: detailStore)
+                .preferredColorScheme(colorSchemePreference.colorScheme)
         }
     }
 

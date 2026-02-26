@@ -4,6 +4,7 @@ import UIKit
 
 struct PinDetailView: View {
     @Bindable var store: StoreOf<PinDetailReducer>
+    @Environment(\.colorSchemePreference) private var colorSchemePreference
 
     // MARK: - Body
 
@@ -28,6 +29,7 @@ struct PinDetailView: View {
             }
             .sheet(item: $store.scope(state: \.tagPicker, action: \.tagPicker)) { pickerStore in
                 TagPickerView(store: pickerStore)
+                    .preferredColorScheme(colorSchemePreference.colorScheme)
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
