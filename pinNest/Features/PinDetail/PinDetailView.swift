@@ -192,9 +192,11 @@ struct PinDetailView: View {
                     }
             }
             .accessibilityLabel("動画を再生")
-            .fullScreenCover(isPresented: $isVideoPlayerPresented) {
+            .sheet(isPresented: $isVideoPlayerPresented) {
                 AVPlayerViewControllerRepresentable(url: videoURL)
                     .ignoresSafeArea()
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
             }
         } else {
             store.pin.contentType.displayColor
@@ -427,14 +429,18 @@ struct PinDetailView: View {
 private struct ImageViewerView: View {
     let uiImage: UIImage
     @Environment(\.dismiss) private var dismiss
+    @GestureState private var dragOffset: CGFloat = 0
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            Color.black.ignoresSafeArea()
+            Color.black
+                .opacity(1 - Double(max(dragOffset, 0)) / 300)
+                .ignoresSafeArea()
             Image(uiImage: uiImage)
                 .resizable()
                 .scaledToFit()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .offset(y: max(dragOffset, 0))
             Button {
                 dismiss()
             } label: {
@@ -445,6 +451,18 @@ private struct ImageViewerView: View {
             }
             .accessibilityLabel("閉じる")
         }
+        .gesture(
+            DragGesture()
+                .updating($dragOffset) { value, state, _ in
+                    guard value.translation.height > 0 else { return }
+                    state = value.translation.height
+                }
+                .onEnded { value in
+                    if value.translation.height > 100 {
+                        dismiss()
+                    }
+                }
+        )
     }
 }
 
