@@ -215,26 +215,75 @@ struct PinCreateView: View {
             sectionLabel(store.contentType.label)
             switch store.contentType {
             case .image:
-                PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                    PickerPlaceholderView(icon: ContentType.image.iconName, label: "画像を選択")
-                }
-                .accessibilityLabel("フォトライブラリから画像を選択")
-                if let image = previewImage {
-                    image
+                if store.mode == .create {
+                    PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                        PickerPlaceholderView(icon: ContentType.image.iconName, label: "画像を選択")
+                    }
+                    .accessibilityLabel("フォトライブラリから画像を選択")
+                    if let image = previewImage {
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 180)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .accessibilityLabel("選択済みの画像プレビュー")
+                    }
+                } else if case let .edit(pin) = store.mode,
+                          let filePath = pin.filePath,
+                          let uiImage = UIImage(contentsOfFile: ThumbnailCache.resolveAbsolutePath(filePath)) {
+                    Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFill()
                         .frame(maxWidth: .infinity)
                         .frame(height: 180)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .accessibilityLabel("選択済みの画像プレビュー")
+                        .overlay(alignment: .topTrailing) {
+                            Image(systemName: "lock.fill")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.white)
+                                .padding(5)
+                                .background(.ultraThinMaterial, in: Circle())
+                                .padding(8)
+                        }
+                        .accessibilityLabel("変更不可の画像")
+                } else {
+                    lockedFileRow(icon: ContentType.image.iconName, name: "画像（変更不可）")
                 }
             case .video:
-                PhotosPicker(selection: $selectedPhotoItem, matching: .videos) {
-                    PickerPlaceholderView(icon: ContentType.video.iconName, label: "動画を選択")
-                }
-                .accessibilityLabel("フォトライブラリから動画を選択")
-                if selectedPhotoItem != nil {
-                    selectedItemRow(icon: "checkmark.circle.fill", name: store.selectedFileName ?? "動画が選択されました")
+                if store.mode == .create {
+                    PhotosPicker(selection: $selectedPhotoItem, matching: .videos) {
+                        PickerPlaceholderView(icon: ContentType.video.iconName, label: "動画を選択")
+                    }
+                    .accessibilityLabel("フォトライブラリから動画を選択")
+                    if selectedPhotoItem != nil {
+                        selectedItemRow(icon: "checkmark.circle.fill", name: store.selectedFileName ?? "動画が選択されました")
+                    }
+                } else if case let .edit(pin) = store.mode,
+                          let thumbnail = ThumbnailCache.loadThumbnail(for: pin.id) {
+                    Image(uiImage: thumbnail)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 180)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay {
+                            Image(systemName: "play.circle.fill")
+                                .font(.system(size: 40))
+                                .foregroundStyle(.white)
+                                .shadow(color: .black.opacity(0.3), radius: 6)
+                        }
+                        .overlay(alignment: .topTrailing) {
+                            Image(systemName: "lock.fill")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.white)
+                                .padding(5)
+                                .background(.ultraThinMaterial, in: Circle())
+                                .padding(8)
+                        }
+                        .accessibilityLabel("変更不可の動画")
+                } else {
+                    lockedFileRow(icon: ContentType.video.iconName, name: "動画（変更不可）")
                 }
             case .pdf:
                 Button { isFileImporterPresented = true } label: {
@@ -248,6 +297,27 @@ struct PinCreateView: View {
                 EmptyView()
             }
         }
+    }
+
+    private func lockedFileRow(icon: String, name: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            Text(name)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+            Spacer()
+            Image(systemName: "lock.fill")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
+        .padding(10)
+        .background(Color(.tertiarySystemBackground), in: RoundedRectangle(cornerRadius: 8))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("変更不可: \(name)")
     }
 
     private func selectedItemRow(icon: String, name: String) -> some View {
