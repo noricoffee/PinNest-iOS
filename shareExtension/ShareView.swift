@@ -171,7 +171,7 @@ struct ShareView: View {
             )
 
         case let .text(body):
-            TextPreviewRow(body: body, color: contentType.displayColor)
+            TextPreviewRow(text: body, color: contentType.displayColor)
         }
     }
 
@@ -268,7 +268,7 @@ private struct FilePreviewRow: View {
 // MARK: - Text Preview Row
 
 private struct TextPreviewRow: View {
-    let body: String
+    let text: String
     let color: Color
 
     var body: some View {
@@ -281,12 +281,12 @@ private struct TextPreviewRow: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            Text(body)
+            Text(text)
                 .font(.body)
                 .lineLimit(6)
                 .foregroundStyle(.primary)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("テキスト: \(body)")
+        .accessibilityLabel("テキスト: \(text)")
     }
 }
