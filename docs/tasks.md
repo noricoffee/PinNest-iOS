@@ -200,7 +200,11 @@
 - ✅ 🔴 輸出コンプライアンス（`ITSAppUsesNonExemptEncryption = NO`）
   - ✅ Debug / Release ビルド設定に `INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO` を追加
 - ⬜ 🔴 App Store Connect 登録
-- ⬜ 🔴 プライバシーポリシー
+- ✅ 🔴 プライバシーポリシー
+  - ✅ 日英バイリンガルで `docs/privacy-policy.md` に作成
+  - ✅ GitHub Pages 用 `docs/_config.yml` を追加
+  - ⬜ GitHub Pages を有効化（Settings > Pages > main / /docs）
+  - ⬜ App Store Connect にプライバシーポリシー URL を登録（`https://noricoffee.github.io/PinNest-iOS/privacy-policy`）
 - ⬜ 🔴 TestFlight 配布
 - ⬜ 🔴 App Store 審査申請
 
@@ -234,3 +238,4 @@
 | 2026-02-25 | 画像・動画のタイトル自動補完をファイル名ベースに変更。`FileRepresentation(importedContentType:)` 経由で元ファイル名を取得（Photos 権限不要）。`ImageFileTransferable` / `VideoFileTransferable` を PinCreateView 内に追加。`effectiveTitle` / `titlePlaceholder` を image/video/pdf でファイル名優先に更新 |
 | 2026-02-26 | Privacy Manifest 追加（`pinNest/PrivacyInfo.xcprivacy`）。NSPrivacyTracking: false、UserDefaults（CA92.1）、Firebase 経由の CrashData / PerformanceData / ProductInteraction を宣言 |
 | 2026-02-26 | 輸出コンプライアンス設定。`INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO` を Debug / Release ビルド設定に追加（カスタム暗号化なし・標準 TLS のみ） |
+| 2026-02-26 | プライバシーポリシー作成。日英バイリンガルで `docs/privacy-policy.md` を追加。GitHub Pages 用 `_config.yml` も設定 |
