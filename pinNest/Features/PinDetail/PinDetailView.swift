@@ -13,6 +13,10 @@ struct PinDetailView: View {
 
     var body: some View {
         NavigationStack {
+            // 削除処理中は pin プロパティにアクセスしない（SwiftData detach クラッシュ対策）
+            if store.isBeingDeleted {
+                Color.clear
+            } else {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     headerView
@@ -88,6 +92,7 @@ struct PinDetailView: View {
             } message: {
                 Text("この操作は取り消せません。")
             }
+            } // else
         }
     }
 

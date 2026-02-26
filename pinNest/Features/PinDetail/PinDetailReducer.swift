@@ -12,12 +12,18 @@ struct PinDetailReducer {
         var isDeleteAlertPresented: Bool = false
         var isFavoriteLoading: Bool = false
         var isRefreshingMetadata: Bool = false
+        /// 削除処理中フラグ。true になった後は pin プロパティにアクセスしない
+        var isBeingDeleted: Bool = false
         var pinTags: [TagItem] = []
         var allTags: [TagItem] = []
         @Presents var tagPicker: TagPickerReducer.State? = nil
 
         static func == (lhs: State, rhs: State) -> Bool {
-            lhs.pin.id == rhs.pin.id &&
+            // 削除処理中は pin プロパティへのアクセスをスキップ
+            guard !lhs.isBeingDeleted, !rhs.isBeingDeleted else {
+                return lhs.isBeingDeleted == rhs.isBeingDeleted
+            }
+            return lhs.pin.id == rhs.pin.id &&
             lhs.pin.isFavorite == rhs.pin.isFavorite &&
             lhs.pin.filePath == rhs.pin.filePath &&
             lhs.isDeleteAlertPresented == rhs.isDeleteAlertPresented &&
@@ -104,6 +110,9 @@ struct PinDetailReducer {
                 return .none
 
             case .deleteConfirmed:
+                // 同期処理でフラグを立て、View が pin プロパティにアクセスしないようにする。
+                // deleteResponse が届くまでの間に SwiftData の変更通知で View が再描画されても安全。
+                state.isBeingDeleted = true
                 let id = state.pin.id
                 return .run { send in
                     await send(.deleteResponse(Result {
