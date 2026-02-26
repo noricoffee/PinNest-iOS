@@ -203,7 +203,7 @@
 - ✅ 🔴 プライバシーポリシー
   - ✅ 日英バイリンガルで `docs/privacy-policy.md` に作成
   - ✅ GitHub Pages 用 `docs/_config.yml` を追加
-  - ⬜ GitHub Pages を有効化（Settings > Pages > main / /docs）
+  - ✅ GitHub Pages を有効化（Settings > Pages > main / /docs）
   - ⬜ App Store Connect にプライバシーポリシー URL を登録（`https://noricoffee.github.io/PinNest-iOS/privacy-policy`）
 - ⬜ 🔴 TestFlight 配布
 - ⬜ 🔴 App Store 審査申請
