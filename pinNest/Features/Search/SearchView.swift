@@ -73,7 +73,7 @@ struct SearchView: View {
                                 Image(systemName: "checkmark")
                                     .font(.caption2.weight(.bold))
                             } else if tag.id == TagItem.favoriteID {
-                                Image(systemName: "star.fill")
+                                Image(systemName: "heart.fill")
                                     .font(.caption2)
                             }
                             Text(tag.id == TagItem.favoriteID ? tag.name : "#\(tag.name)")
