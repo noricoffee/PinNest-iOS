@@ -24,6 +24,10 @@ struct NewPin: Sendable {
 struct TagItem: Identifiable, Equatable, Hashable, Sendable {
     let id: UUID
     let name: String
+
+    /// お気に入りフィルター用の仮想タグ（固定 UUID でデータベース上には存在しない）
+    static let favoriteID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+    static let favorite = TagItem(id: favoriteID, name: "お気に入り")
 }
 
 // MARK: - PinSortOrder

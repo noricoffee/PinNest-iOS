@@ -72,8 +72,11 @@ struct SearchView: View {
                             if isSelected {
                                 Image(systemName: "checkmark")
                                     .font(.caption2.weight(.bold))
+                            } else if tag.id == TagItem.favoriteID {
+                                Image(systemName: "star.fill")
+                                    .font(.caption2)
                             }
-                            Text("#\(tag.name)")
+                            Text(tag.id == TagItem.favoriteID ? tag.name : "#\(tag.name)")
                                 .font(.subheadline.weight(.medium))
                         }
                         .padding(.horizontal, 14)

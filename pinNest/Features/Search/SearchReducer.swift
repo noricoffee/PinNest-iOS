@@ -118,7 +118,7 @@ struct SearchReducer {
                 return .none
 
             case let .tagsResponse(.success(tags)):
-                state.allTags = tags
+                state.allTags = [.favorite] + tags
                 return .none
 
             case .tagsResponse(.failure):

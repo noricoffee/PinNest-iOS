@@ -25,7 +25,7 @@ struct SearchReducerTests {
         }
 
         await store.receive(\.tagsResponse) { state in
-            state.allTags = [tag]
+            state.allTags = [.favorite, tag]
         }
 
         await store.receive(\.searchResponse) { state in

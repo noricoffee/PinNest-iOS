@@ -92,8 +92,12 @@ actor PinDataStore {
         }
 
         if !tagIds.isEmpty {
+            let favoriteSelected = tagIds.contains(TagItem.favoriteID)
+            let realTagIds = tagIds.subtracting([TagItem.favoriteID])
             pins = pins.filter { pin in
-                pin.tags.contains { tagIds.contains($0.id) }
+                let matchesFavorite = favoriteSelected && pin.isFavorite
+                let matchesTag = !realTagIds.isEmpty && pin.tags.contains { realTagIds.contains($0.id) }
+                return matchesFavorite || matchesTag
             }
         }
 
