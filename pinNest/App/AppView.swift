@@ -4,6 +4,7 @@ import SwiftUI
 struct AppView: View {
     @Bindable var store: StoreOf<AppReducer>
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.scenePhase) private var scenePhase
 
     private var shouldReduceMotion: Bool {
         systemReduceMotion || store.reduceMotion
@@ -51,6 +52,11 @@ struct AppView: View {
         }
         .preferredColorScheme(store.colorSchemePreference.colorScheme)
         .environment(\.colorSchemePreference, store.colorSchemePreference)
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                store.send(.sceneDidBecomeActive)
+            }
+        }
         .sheet(item: $store.scope(state: \.pinCreate, action: \.create)) { createStore in
             PinCreateView(store: createStore)
                 .preferredColorScheme(store.colorSchemePreference.colorScheme)

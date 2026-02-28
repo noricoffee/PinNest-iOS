@@ -36,6 +36,7 @@ struct AppReducer {
 
     enum Action {
         case tabSelected(Tab)
+        case sceneDidBecomeActive
         case fabButtonTapped
         case fabMenuItemTapped(ContentType)
         case overlayTapped
@@ -56,13 +57,29 @@ struct AppReducer {
             case let .tabSelected(tab):
                 state.selectedTab = tab
                 let tabName: String
+                let refreshEffect: Effect<Action>
                 switch tab {
-                case .home:    tabName = "home"
-                case .history: tabName = "history"
-                case .search:  tabName = "search"
+                case .home:
+                    tabName = "home"
+                    refreshEffect = .send(.pinList(.refresh))
+                case .history:
+                    tabName = "history"
+                    refreshEffect = .send(.history(.refresh))
+                case .search:
+                    tabName = "search"
+                    refreshEffect = .send(.search(.refresh))
                 }
                 analyticsClient.logEvent(.tabSwitched(tab: tabName))
-                return .none
+                return refreshEffect
+
+            case .sceneDidBecomeActive:
+                // Share Extension など外部からデータが追加された可能性があるため
+                // 現在表示中のタブを最新データで更新する
+                switch state.selectedTab {
+                case .home:    return .send(.pinList(.refresh))
+                case .history: return .send(.history(.refresh))
+                case .search:  return .send(.search(.refresh))
+                }
 
             case .fabButtonTapped:
                 state.isFABExpanded.toggle()
@@ -94,6 +111,13 @@ struct AppReducer {
                     state.pinCreate = PinCreateReducer.State(mode: .edit(pin), contentType: pin.contentType)
                     return .send(.pinList(.detail(.dismiss)))
                 }
+                // 詳細画面での削除後 → 他の画面も更新
+                if case .detail(.presented(.deleteResponse(.success))) = listAction {
+                    return .merge(
+                        .send(.history(.refresh)),
+                        .send(.search(.refresh))
+                    )
+                }
                 return .none
 
             case let .history(historyAction):
@@ -102,6 +126,13 @@ struct AppReducer {
                    let pin = state.history.detail?.pin {
                     state.pinCreate = PinCreateReducer.State(mode: .edit(pin), contentType: pin.contentType)
                     return .send(.history(.detail(.dismiss)))
+                }
+                // 詳細画面での削除後 → 他の画面も更新
+                if case .detail(.presented(.deleteResponse(.success))) = historyAction {
+                    return .merge(
+                        .send(.pinList(.refresh)),
+                        .send(.search(.refresh))
+                    )
                 }
                 return .none
 
@@ -112,6 +143,13 @@ struct AppReducer {
                     state.pinCreate = PinCreateReducer.State(mode: .edit(pin), contentType: pin.contentType)
                     return .send(.search(.detail(.dismiss)))
                 }
+                // 詳細画面での削除後 → 他の画面も更新
+                if case .detail(.presented(.deleteResponse(.success))) = searchAction {
+                    return .merge(
+                        .send(.pinList(.refresh)),
+                        .send(.history(.refresh))
+                    )
+                }
                 return .none
 
             case .create(.presented(.saveResponse(.success))):
@@ -120,7 +158,8 @@ struct AppReducer {
                 return .merge(
                     .send(.create(.dismiss)),
                     .send(.pinList(.refresh)),
-                    .send(.history(.refresh))
+                    .send(.history(.refresh)),
+                    .send(.search(.refresh))
                 )
 
             case .create(.presented(.cancelButtonTapped)):

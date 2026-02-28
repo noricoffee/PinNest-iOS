@@ -32,6 +32,7 @@ struct SearchReducer {
 
     enum Action {
         case onAppear
+        case refresh
         case searchTextChanged(String)
         case tagFilterToggled(UUID)
         case sortOrderChanged(PinSortOrder)
@@ -60,6 +61,19 @@ struct SearchReducer {
                     await send(.tagsResponse(tagsResult))
                     let pinsResult = await Result<[Pin], Error> { try await pinClient.search("", [], sortOrder) }
                     await send(.searchResponse(pinsResult))
+                }
+
+            case .refresh:
+                state.isLoading = true
+                let refreshText = state.searchText
+                let refreshTagIds = state.selectedTagIds
+                let refreshSortOrder = state.sortOrder
+                return .run { send in
+                    let tagsResult = await Result<[TagItem], Error> { try await pinClient.fetchAllTags() }
+                    await send(.tagsResponse(tagsResult))
+                    await send(.searchResponse(Result {
+                        try await pinClient.search(refreshText, refreshTagIds, refreshSortOrder)
+                    }))
                 }
 
             case let .searchTextChanged(text):
