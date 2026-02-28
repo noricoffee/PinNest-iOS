@@ -51,8 +51,23 @@ extension MetadataClient: DependencyKey {
 }
 
 /// NSItemProvider から画像データを非同期に読み込む
+/// UIImage オブジェクトとして取得した後 JPEG 変換することで、
+/// "public.image" 抽象型ではなく具体型（PNG/JPEG 等）のプロバイダーにも対応する
 private func loadItemData(from provider: NSItemProvider) async -> Data? {
-    await withCheckedContinuation { continuation in
+    // UIImage としてロードできる場合はそちらを優先（最も信頼性が高い）
+    if provider.canLoadObject(ofClass: UIImage.self) {
+        return await withCheckedContinuation { continuation in
+            provider.loadObject(ofClass: UIImage.self) { object, _ in
+                if let image = object as? UIImage {
+                    continuation.resume(returning: image.jpegData(compressionQuality: 0.7))
+                } else {
+                    continuation.resume(returning: nil)
+                }
+            }
+        }
+    }
+    // フォールバック: データとして直接ロード
+    return await withCheckedContinuation { continuation in
         provider.loadDataRepresentation(forTypeIdentifier: UTType.image.identifier) { data, _ in
             continuation.resume(returning: data)
         }

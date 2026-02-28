@@ -140,6 +140,7 @@ struct PinCreateReducer {
 
             let contentType = state.contentType
             let titleInput = state.effectiveTitle
+            let userTitle = state.title.trimmingCharacters(in: .whitespaces)
             let memo = state.memo
             let urlString = contentType == .url ? state.urlText.trimmingCharacters(in: .whitespaces) : nil
             let bodyText = contentType == .text ? state.bodyText : nil
@@ -162,9 +163,9 @@ struct PinCreateReducer {
                             thumbnailPath = try? ThumbnailCache.save(data: imageData, for: pinID)
                         }
 
-                        // og:title があればユーザー入力タイトルより優先（ユーザーが入力していない場合のみ）
+                        // og:title はユーザーがタイトル未入力の場合のみ使用する
                         let ogTitle = metadata.title?.trimmingCharacters(in: .whitespaces)
-                        let finalTitle = (ogTitle?.isEmpty == false) ? ogTitle! : titleInput
+                        let finalTitle = (!userTitle.isEmpty) ? titleInput : (ogTitle?.isEmpty == false ? ogTitle! : titleInput)
 
                         let newPin = NewPin(
                             id: pinID,
