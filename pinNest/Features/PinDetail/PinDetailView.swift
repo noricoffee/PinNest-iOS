@@ -23,6 +23,9 @@ struct PinDetailView: View {
                     contentView
                         .padding(.horizontal, 20)
                         .padding(.top, 20)
+                    memoSection
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
                     tagSection
                         .padding(.horizontal, 20)
                         .padding(.top, 16)
@@ -405,6 +408,29 @@ struct PinDetailView: View {
                     .font(.caption2)
             }
             .foregroundStyle(.secondary)
+        }
+    }
+
+    // MARK: - Memo Section
+
+    private var memoSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Divider()
+
+            Text("メモ")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            if store.pin.memo.isEmpty {
+                Text("メモなし")
+                    .font(.subheadline)
+                    .foregroundStyle(.tertiary)
+            } else {
+                Text(store.pin.memo)
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 
