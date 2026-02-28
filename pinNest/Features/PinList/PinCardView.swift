@@ -3,6 +3,7 @@ import UIKit
 
 struct PinCardView: View {
     let pin: Pin
+    var onFavoriteTapped: () -> Void = {}
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -182,25 +183,41 @@ struct PinCardView: View {
     // MARK: - Info
 
     private var infoView: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text(pin.title)
-                .font(.subheadline.weight(.medium))
-                .lineLimit(2)
-                .foregroundStyle(.primary)
+        HStack(alignment: .top, spacing: 0) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(pin.title)
+                    .font(.subheadline.weight(.medium))
+                    .lineLimit(2)
+                    .foregroundStyle(.primary)
 
-            HStack(spacing: 3) {
-                Image(systemName: pin.contentType.iconName)
-                    .font(.caption2)
-                if let urlString = pin.urlString,
-                   let host = URL(string: urlString)?.host() {
-                    Text(host)
-                        .font(.caption)
-                        .lineLimit(1)
+                HStack(spacing: 3) {
+                    Image(systemName: pin.contentType.iconName)
+                        .font(.caption2)
+                    if let urlString = pin.urlString,
+                       let host = URL(string: urlString)?.host() {
+                        Text(host)
+                            .font(.caption)
+                            .lineLimit(1)
+                    }
                 }
+                .foregroundStyle(.secondary)
             }
-            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button {
+                onFavoriteTapped()
+            } label: {
+                Image(systemName: pin.isFavorite ? "heart.fill" : "heart")
+                    .font(.subheadline)
+                    .foregroundStyle(pin.isFavorite ? .red : Color(.tertiaryLabel))
+                    .frame(width: 36, height: 36)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(pin.isFavorite ? "お気に入り解除" : "お気に入りに追加")
         }
-        .padding(.horizontal, 10)
+        .padding(.leading, 10)
+        .padding(.trailing, 2)
         .padding(.vertical, 9)
     }
 }

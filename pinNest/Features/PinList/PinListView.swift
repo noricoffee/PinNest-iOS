@@ -112,7 +112,9 @@ struct PinListView: View {
                 Button {
                     store.send(.pinTapped(pin))
                 } label: {
-                    PinCardView(pin: pin)
+                    PinCardView(pin: pin) {
+                        store.send(.favoriteButtonTapped(pin))
+                    }
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(pin.title)

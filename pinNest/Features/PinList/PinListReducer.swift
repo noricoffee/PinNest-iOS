@@ -35,6 +35,8 @@ struct PinListReducer {
         case pinsResponse(Result<[Pin], Error>)
         case filterSelected(ContentType?)
         case pinTapped(Pin)
+        case favoriteButtonTapped(Pin)
+        case favoriteResponse(Result<Void, Error>)
         case settingsButtonTapped
         case detail(PresentationAction<PinDetailReducer.Action>)
     }
@@ -81,6 +83,31 @@ struct PinListReducer {
             case let .pinTapped(pin):
                 state.detail = PinDetailReducer.State(pin: pin)
                 return .none
+
+            case let .favoriteButtonTapped(pin):
+                guard let idx = state.pins.firstIndex(where: { $0.id == pin.id }) else { return .none }
+                state.pins[idx].isFavorite.toggle()
+                let updated = state.pins[idx]
+                return .run { send in
+                    await send(.favoriteResponse(Result {
+                        try await pinClient.update(
+                            updated.id,
+                            updated.title,
+                            updated.memo,
+                            updated.isFavorite,
+                            updated.urlString,
+                            updated.filePath,
+                            updated.bodyText
+                        )
+                    }))
+                }
+
+            case .favoriteResponse(.success):
+                return .none
+
+            case let .favoriteResponse(.failure(error)):
+                // 楽観的更新を元に戻す（再取得で確実にリストを同期）
+                return .send(.refresh)
 
             case .settingsButtonTapped:
                 return .none
