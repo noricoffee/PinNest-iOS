@@ -14,8 +14,6 @@ struct SearchReducer {
         var results: [Pin] = []
         var allTags: [TagItem] = []
         var isLoading: Bool = false
-        /// キーワードまたはタグフィルターが一度でも指定されたかどうか
-        var hasSearched: Bool = false
         @Presents var detail: PinDetailReducer.State? = nil
 
         static func == (lhs: State, rhs: State) -> Bool {
@@ -26,7 +24,6 @@ struct SearchReducer {
             lhs.results.map(\.isFavorite) == rhs.results.map(\.isFavorite) &&
             lhs.allTags == rhs.allTags &&
             lhs.isLoading == rhs.isLoading &&
-            lhs.hasSearched == rhs.hasSearched &&
             lhs.detail == rhs.detail
         }
     }
@@ -56,21 +53,17 @@ struct SearchReducer {
             switch action {
 
             case .onAppear:
+                state.isLoading = true
+                let sortOrder = state.sortOrder
                 return .run { send in
-                    await send(.tagsResponse(Result {
-                        try await pinClient.fetchAllTags()
-                    }))
+                    let tagsResult = await Result<[TagItem], Error> { try await pinClient.fetchAllTags() }
+                    await send(.tagsResponse(tagsResult))
+                    let pinsResult = await Result<[Pin], Error> { try await pinClient.search("", [], sortOrder) }
+                    await send(.searchResponse(pinsResult))
                 }
 
             case let .searchTextChanged(text):
                 state.searchText = text
-                let hasQuery = !text.isEmpty || !state.selectedTagIds.isEmpty
-                state.hasSearched = hasQuery
-                guard hasQuery else {
-                    state.results = []
-                    state.isLoading = false
-                    return .cancel(id: CancelID.search)
-                }
                 state.isLoading = true
                 let tagIds = state.selectedTagIds
                 let sortOrder = state.sortOrder
@@ -88,12 +81,6 @@ struct SearchReducer {
                 } else {
                     state.selectedTagIds.insert(tagId)
                 }
-                let hasQuery = !state.searchText.isEmpty || !state.selectedTagIds.isEmpty
-                state.hasSearched = hasQuery
-                guard hasQuery else {
-                    state.results = []
-                    return .none
-                }
                 state.isLoading = true
                 let text = state.searchText
                 let tagIds = state.selectedTagIds
@@ -106,7 +93,6 @@ struct SearchReducer {
 
             case let .sortOrderChanged(order):
                 state.sortOrder = order
-                guard state.hasSearched else { return .none }
                 state.isLoading = true
                 let text = state.searchText
                 let tagIds = state.selectedTagIds
@@ -144,7 +130,6 @@ struct SearchReducer {
 
             case .detail(.presented(.deleteResponse(.success))):
                 // dismiss は PinDetailReducer 側で即座に処理される
-                guard state.hasSearched else { return .none }
                 let text = state.searchText
                 let tagIds = state.selectedTagIds
                 let sortOrder = state.sortOrder
@@ -163,7 +148,6 @@ struct SearchReducer {
 
             case .detail(.dismiss):
                 // タグ変更後に検索結果を更新する
-                guard state.hasSearched else { return .none }
                 let text = state.searchText
                 let tagIds = state.selectedTagIds
                 let sortOrder = state.sortOrder

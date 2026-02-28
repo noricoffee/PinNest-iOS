@@ -41,9 +41,7 @@ struct SearchView: View {
                 if !store.allTags.isEmpty {
                     tagFilterBar
                 }
-                if !store.hasSearched {
-                    emptyPrompt
-                } else if store.isLoading {
+                if store.isLoading {
                     ProgressView()
                         .frame(maxWidth: .infinity)
                         .padding(.top, 60)
@@ -58,14 +56,6 @@ struct SearchView: View {
             .padding(.bottom, 64)
         }
         .scrollIndicators(.hidden)
-    }
-
-    private var emptyPrompt: some View {
-        ContentUnavailableView(
-            "ピンを検索",
-            systemImage: "magnifyingglass",
-            description: Text("タイトル・メモ・本文のキーワードで\n部分一致検索できます")
-        )
     }
 
     // MARK: - Tag Filter Bar

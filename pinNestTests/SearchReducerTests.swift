@@ -8,59 +8,80 @@ struct SearchReducerTests {
 
     // MARK: - onAppear
 
-    @Test("onAppear でタグ一覧を取得する")
-    func onAppear_fetchesTags() async {
+    @Test("onAppear でタグ一覧と全ピンを取得する")
+    func onAppear_fetchesTagsAndAllPins() async {
         let tag = TagItem(id: UUID(), name: "Swift")
+        let pin = Pin(id: UUID(), contentType: .url, title: "All Pins")
 
         let store = TestStore(initialState: SearchReducer.State()) {
             SearchReducer()
         } withDependencies: {
             $0.pinClient.fetchAllTags = { [tag] }
+            $0.pinClient.search = { _, _, _ in [pin] }
         }
 
-        await store.send(.onAppear)
+        await store.send(.onAppear) { state in
+            state.isLoading = true
+        }
 
         await store.receive(\.tagsResponse) { state in
             state.allTags = [tag]
         }
+
+        await store.receive(\.searchResponse) { state in
+            state.isLoading = false
+            state.results = [pin]
+        }
     }
 
-    @Test("onAppear でタグ取得に失敗しても状態は変わらない")
-    func onAppear_tagsFailure_noStateChange() async {
+    @Test("onAppear でタグ取得に失敗しても全ピン取得は完了する")
+    func onAppear_tagsFailure_allPinsStillLoaded() async {
+        let pin = Pin(id: UUID(), contentType: .url, title: "Pin A")
+
         let store = TestStore(initialState: SearchReducer.State()) {
             SearchReducer()
         } withDependencies: {
             struct FetchError: Error {}
             $0.pinClient.fetchAllTags = { throw FetchError() }
+            $0.pinClient.search = { _, _, _ in [pin] }
         }
 
-        await store.send(.onAppear)
+        await store.send(.onAppear) { state in
+            state.isLoading = true
+        }
 
         await store.receive(\.tagsResponse)
-        // tagsResponse(.failure) の場合は state は変わらない
+
+        await store.receive(\.searchResponse) { state in
+            state.isLoading = false
+            state.results = [pin]
+        }
     }
 
     // MARK: - searchTextChanged
 
-    @Test("空の検索テキストで結果をクリアし hasSearched が false になる")
-    func searchTextChanged_empty_clearsResults() async {
+    @Test("空の検索テキストで全件取得される")
+    func searchTextChanged_empty_fetchesAllPins() async {
+        let allPin = Pin(id: UUID(), contentType: .url, title: "All Pin")
         var initial = SearchReducer.State()
         initial.searchText = "previous query"
         initial.results = [Pin(contentType: .url, title: "Old Result")]
-        initial.hasSearched = true
         initial.isLoading = false
 
         let store = TestStore(initialState: initial) {
             SearchReducer()
         } withDependencies: {
-            $0.pinClient.fetchAllTags = { [] }
+            $0.pinClient.search = { _, _, _ in [allPin] }
         }
 
         await store.send(.searchTextChanged("")) { state in
             state.searchText = ""
-            state.hasSearched = false
-            state.results = []
+            state.isLoading = true
+        }
+
+        await store.receive(\.searchResponse) { state in
             state.isLoading = false
+            state.results = [allPin]
         }
     }
 
@@ -76,7 +97,6 @@ struct SearchReducerTests {
 
         await store.send(.searchTextChanged("Swift")) { state in
             state.searchText = "Swift"
-            state.hasSearched = true
             state.isLoading = true
         }
 
@@ -100,7 +120,6 @@ struct SearchReducerTests {
         // 最初の検索（キャンセルされる）
         await store.send(.searchTextChanged("a")) { state in
             state.searchText = "a"
-            state.hasSearched = true
             state.isLoading = true
         }
 
@@ -118,8 +137,8 @@ struct SearchReducerTests {
 
     // MARK: - tagFilterToggled
 
-    @Test("tagFilterToggled でタグが選択・解除される")
-    func tagFilterToggled_togglesTagSelection() async {
+    @Test("tagFilterToggled でタグが選択・解除され、解除後も全件取得される")
+    func tagFilterToggled_togglesTagSelectionAndRefetchesOnDeselect() async {
         let tagID = UUID()
 
         let store = TestStore(initialState: SearchReducer.State()) {
@@ -131,7 +150,6 @@ struct SearchReducerTests {
         // タグを選択 → 検索が走る
         await store.send(.tagFilterToggled(tagID)) { state in
             state.selectedTagIds = [tagID]
-            state.hasSearched = true
             state.isLoading = true
         }
 
@@ -139,10 +157,14 @@ struct SearchReducerTests {
             state.isLoading = false
         }
 
-        // タグを解除 → 選択がなくなると hasSearched = false に
+        // タグを解除 → 全件取得が走る
         await store.send(.tagFilterToggled(tagID)) { state in
             state.selectedTagIds = []
-            state.hasSearched = false
+            state.isLoading = true
+        }
+
+        await store.receive(\.searchResponse) { state in
+            state.isLoading = false
         }
     }
 
@@ -161,7 +183,6 @@ struct SearchReducerTests {
 
         await store.send(.tagFilterToggled(tagID)) { state in
             state.selectedTagIds = [tagID]
-            state.hasSearched = true
             state.isLoading = true
         }
 
@@ -173,15 +194,21 @@ struct SearchReducerTests {
 
     // MARK: - sortOrderChanged
 
-    @Test("sortOrderChanged でソート順が変更される")
-    func sortOrderChanged_updatesSortOrder() async {
+    @Test("sortOrderChanged でソート順が変更され再検索される")
+    func sortOrderChanged_updatesSortOrderAndRetriggersSearch() async {
         let store = TestStore(initialState: SearchReducer.State()) {
             SearchReducer()
+        } withDependencies: {
+            $0.pinClient.search = { _, _, _ in [] }
         }
 
-        // hasSearched = false の場合は検索しない
         await store.send(.sortOrderChanged(.oldestFirst)) { state in
             state.sortOrder = .oldestFirst
+            state.isLoading = true
+        }
+
+        await store.receive(\.searchResponse) { state in
+            state.isLoading = false
         }
     }
 
@@ -190,7 +217,6 @@ struct SearchReducerTests {
         let pin = Pin(id: UUID(), contentType: .url, title: "Pin A")
         var initial = SearchReducer.State()
         initial.searchText = "test"
-        initial.hasSearched = true
         initial.results = [pin]
 
         let store = TestStore(initialState: initial) {
