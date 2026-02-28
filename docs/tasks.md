@@ -89,7 +89,7 @@
   - ✅ 🔴 カードタップ → 詳細シート表示
 - ✅ 🔴 ピン作成画面（PinCreateView / PinCreateReducer）
   - ✅ 🔴 種別選択 UI（pill チップ）
-  - ⬜ 🔴 URL 入力 → メタデータ取得フロー（フェーズ 4 で対応）
+  - ✅ 🔴 URL 入力 → メタデータ取得フロー（フェーズ 4 で対応）
   - ✅ 🔴 URL 入力 + 保存（SwiftData）
   - ✅ 🔴 画像ピッカー（PhotosUI）
   - ✅ 🟡 動画ピッカー（PhotosUI）
