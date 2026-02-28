@@ -5,7 +5,7 @@ import Foundation
 enum AppGroupContainer {
 
     /// App Group 識別子（Xcode の Signing & Capabilities で設定したものと一致させること）
-    static let groupID = "group.com.yoshidanoriyuki.pinnest"
+    static let groupID = "group.com.noricoffee.pinNest"
 
     /// App Group コンテナのルート URL
     static var containerURL: URL? {

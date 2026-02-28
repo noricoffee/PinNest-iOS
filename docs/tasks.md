@@ -139,13 +139,13 @@
 
 > フェーズ 5 で生成したコードを実際に動かすために必要な Xcode・Apple Developer 側の設定。後回し可。
 
-- ✅ 🔴 Apple Developer Portal で App Group `group.com.yoshidanoriyuki.pinnest` を作成・登録
+- ✅ 🔴 Apple Developer Portal で App Group `group.com.noricoffee.pinNest` を作成・登録
 - ✅ 🔴 Xcode で Share Extension ターゲットを追加（`shareExtension` として作成）
 - ✅ 🔴 Extension ターゲットのソースファイル設定
   - `shareExtension/` 配下に Swift ファイルを配置（fileSystemSynchronizedGroups で自動認識）
   - `pinNest/Shared/` 配下の共有コードを Extension ターゲットのメンバーに追加
 - ✅ 🔴 両ターゲットに App Groups 設定
-  - Signing & Capabilities > App Groups > `group.com.yoshidanoriyuki.pinnest`（pinNest・Extension 両方）
+  - Signing & Capabilities > App Groups > `group.com.noricoffee.pinNest`（pinNest・Extension 両方）
 - ✅ 🔴 Code Signing Entitlements の設定
   - pinNest: `pinNest/pinNest.entitlements`
   - shareExtension: `shareExtension/shareExtension.entitlements`

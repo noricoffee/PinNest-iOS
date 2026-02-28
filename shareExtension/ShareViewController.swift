@@ -33,7 +33,7 @@ final class ShareViewController: UIViewController {
             },
             onCancel: { [weak self] in
                 let error = NSError(
-                    domain: "com.yoshidanoriyuki.pinnest.shareextension",
+                    domain: "com.noricoffee.pinNest.shareextension",
                     code: NSUserCancelledError,
                     userInfo: [NSLocalizedDescriptionKey: "ユーザーがキャンセルしました"]
                 )

@@ -90,7 +90,7 @@ Xcode → Product → Archive
 
 > App Group の Entitlements が正しく設定されていないとビルドが失敗します。
 > `pinNest/pinNest.entitlements` と `shareExtension/shareExtension.entitlements` に
-> `com.apple.security.application-groups: [group.com.yoshidanoriyuki.pinnest]` が含まれていることを確認。
+> `com.apple.security.application-groups: [group.com.noricoffee.pinNest]` が含まれていることを確認。
 
 ---
 
