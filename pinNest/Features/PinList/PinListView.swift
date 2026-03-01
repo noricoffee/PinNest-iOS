@@ -98,17 +98,8 @@ struct PinListView: View {
     // MARK: - Masonry Grid
 
     private var masonryGrid: some View {
-        let pins = store.filteredPins
-        let columns = splitIntoColumns(pins, count: 2)
-        return HStack(alignment: .top, spacing: 12) {
-            columnView(pins: columns[0])
-            columnView(pins: columns[1])
-        }
-    }
-
-    private func columnView(pins: [Pin]) -> some View {
-        LazyVStack(spacing: 12) {
-            ForEach(pins, id: \.id) { pin in
+        MasonryLayout(columns: 2, spacing: 12) {
+            ForEach(store.filteredPins, id: \.id) { pin in
                 Button {
                     store.send(.pinTapped(pin))
                 } label: {
@@ -121,13 +112,51 @@ struct PinListView: View {
             }
         }
     }
+}
 
-    private func splitIntoColumns(_ pins: [Pin], count: Int) -> [[Pin]] {
-        var result = Array(repeating: [Pin](), count: count)
-        for (index, pin) in pins.enumerated() {
-            result[index % count].append(pin)
+// MARK: - MasonryLayout
+
+private struct MasonryLayout: Layout {
+    var columns: Int = 2
+    var spacing: CGFloat = 12
+
+    struct Cache {
+        var placements: [(x: CGFloat, y: CGFloat)]
+        var totalHeight: CGFloat
+    }
+
+    func makeCache(subviews: Subviews) -> Cache {
+        Cache(placements: [], totalHeight: 0)
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) -> CGSize {
+        let totalWidth = proposal.width ?? 300
+        let columnWidth = (totalWidth - spacing * CGFloat(columns - 1)) / CGFloat(columns)
+        var columnHeights = Array(repeating: CGFloat(0), count: columns)
+        var placements: [(x: CGFloat, y: CGFloat)] = []
+
+        for subview in subviews {
+            let col = columnHeights.indices.min(by: { columnHeights[$0] < columnHeights[$1] }) ?? 0
+            placements.append((x: CGFloat(col) * (columnWidth + spacing), y: columnHeights[col]))
+            columnHeights[col] += subview.sizeThatFits(.init(width: columnWidth, height: nil)).height + spacing
         }
-        return result
+
+        let totalHeight = subviews.isEmpty ? 0 : (columnHeights.max() ?? 0) - spacing
+        cache.placements = placements
+        cache.totalHeight = totalHeight
+        return CGSize(width: totalWidth, height: max(totalHeight, 0))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) {
+        let columnWidth = (bounds.width - spacing * CGFloat(columns - 1)) / CGFloat(columns)
+        for (index, subview) in subviews.enumerated() {
+            guard index < cache.placements.count else { continue }
+            let p = cache.placements[index]
+            subview.place(
+                at: CGPoint(x: bounds.minX + p.x, y: bounds.minY + p.y),
+                proposal: .init(width: columnWidth, height: nil)
+            )
+        }
     }
 }
 
