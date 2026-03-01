@@ -1,4 +1,3 @@
-import AVKit
 import ComposableArchitecture
 import SwiftUI
 import UIKit
@@ -8,6 +7,7 @@ struct PinDetailView: View {
     @Environment(\.colorSchemePreference) private var colorSchemePreference
     @State private var isVideoPlayerPresented = false
     @State private var isImageViewerPresented = false
+    @State private var isPDFViewerPresented = false
 
     // MARK: - Body
 
@@ -215,11 +215,8 @@ struct PinDetailView: View {
                 }
             }
             .accessibilityLabel("動画を再生")
-            .sheet(isPresented: $isVideoPlayerPresented) {
-                AVPlayerViewControllerRepresentable(url: videoURL)
-                    .ignoresSafeArea()
-                    .presentationDetents([.large])
-                    .presentationDragIndicator(.visible)
+            .fullScreenCover(isPresented: $isVideoPlayerPresented) {
+                VideoPlayerView(url: videoURL)
             }
         } else {
             store.pin.contentType.displayColor
@@ -237,36 +234,49 @@ struct PinDetailView: View {
     @ViewBuilder
     private var pdfHeader: some View {
         let thumbnail = ThumbnailCache.loadThumbnail(for: store.pin.id)
-        if let thumbnail {
-            Color.clear
-                .aspectRatio(3 / 4, contentMode: .fit)
-                .frame(maxWidth: .infinity)
-                .overlay {
-                    Image(uiImage: thumbnail)
-                        .resizable()
-                        .scaledToFit()
-                }
-                .clipped()
-                .background(Color(.tertiarySystemBackground))
-                .overlay(alignment: .topTrailing) {
+        let hasPDF = store.pin.filePath != nil
+        Button {
+            guard hasPDF else { return }
+            isPDFViewerPresented = true
+        } label: {
+            if let thumbnail {
+                Color.clear
+                    .aspectRatio(3 / 4, contentMode: .fit)
+                    .frame(maxWidth: .infinity)
+                    .overlay {
+                        Image(uiImage: thumbnail)
+                            .resizable()
+                            .scaledToFit()
+                    }
+                    .clipped()
+                    .background(Color(.tertiarySystemBackground))
+                    .overlay(alignment: .topTrailing) {
+                        Image(systemName: "doc.richtext.fill")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.red)
+                            .padding(6)
+                            .background(.ultraThinMaterial, in: Circle())
+                            .padding(12)
+                    }
+            } else {
+                HStack(spacing: 16) {
                     Image(systemName: "doc.richtext.fill")
-                        .font(.caption.weight(.semibold))
+                        .font(.system(size: 56))
                         .foregroundStyle(.red)
-                        .padding(6)
-                        .background(.ultraThinMaterial, in: Circle())
-                        .padding(12)
+                    Spacer()
                 }
-                .accessibilityLabel("PDF サムネイル")
-        } else {
-            HStack(spacing: 16) {
-                Image(systemName: "doc.richtext.fill")
-                    .font(.system(size: 56))
-                    .foregroundStyle(.red)
-                Spacer()
+                .padding(.horizontal, 20)
+                .padding(.vertical, 24)
+                .background(Color(.tertiarySystemBackground))
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 24)
-            .background(Color(.tertiarySystemBackground))
+        }
+        .disabled(!hasPDF)
+        .accessibilityLabel(hasPDF ? "PDF を開く" : "PDF サムネイル")
+        .fullScreenCover(isPresented: $isPDFViewerPresented) {
+            if let filePath = store.pin.filePath {
+                let absolutePath = ThumbnailCache.resolveAbsolutePath(filePath)
+                PDFViewerView(url: URL(fileURLWithPath: absolutePath), title: store.pin.title)
+            }
         }
     }
 
@@ -367,11 +377,30 @@ struct PinDetailView: View {
     }
 
     private var pdfContent: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             metaHeader
             Text(store.pin.title)
                 .font(.title2.bold())
                 .fixedSize(horizontal: false, vertical: true)
+
+            if store.pin.filePath != nil {
+                Button {
+                    isPDFViewerPresented = true
+                } label: {
+                    HStack {
+                        Text("PDF を開く")
+                            .font(.body.weight(.medium))
+                        Spacer()
+                        Image(systemName: "doc.richtext")
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .background(Color.red.opacity(0.10))
+                    .foregroundStyle(Color.red)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .accessibilityLabel("PDF を開く")
+            }
         }
     }
 
@@ -494,59 +523,3 @@ struct PinDetailView: View {
     }
 }
 
-// MARK: - ImageViewerView
-
-private struct ImageViewerView: View {
-    let uiImage: UIImage
-    @Environment(\.dismiss) private var dismiss
-    @GestureState private var dragOffset: CGFloat = 0
-
-    var body: some View {
-        ZStack(alignment: .topTrailing) {
-            Color.black
-                .opacity(1 - Double(max(dragOffset, 0)) / 300)
-                .ignoresSafeArea()
-            Image(uiImage: uiImage)
-                .resizable()
-                .scaledToFit()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .offset(y: max(dragOffset, 0))
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 28))
-                    .foregroundStyle(.white, .white.opacity(0.3))
-                    .padding(16)
-            }
-            .accessibilityLabel("閉じる")
-        }
-        .gesture(
-            DragGesture()
-                .updating($dragOffset) { value, state, _ in
-                    guard value.translation.height > 0 else { return }
-                    state = value.translation.height
-                }
-                .onEnded { value in
-                    if value.translation.height > 100 {
-                        dismiss()
-                    }
-                }
-        )
-    }
-}
-
-// MARK: - AVPlayerViewControllerRepresentable
-
-private struct AVPlayerViewControllerRepresentable: UIViewControllerRepresentable {
-    let url: URL
-
-    func makeUIViewController(context: Context) -> AVPlayerViewController {
-        let controller = AVPlayerViewController()
-        controller.player = AVPlayer(url: url)
-        controller.player?.play()
-        return controller
-    }
-
-    func updateUIViewController(_ uiViewController: AVPlayerViewController, context: Context) {}
-}
