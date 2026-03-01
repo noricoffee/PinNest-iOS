@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import SwiftUI
+import UIKit
 
 // MARK: - HistoryView
 
@@ -8,7 +9,6 @@ struct HistoryView: View {
     @Environment(\.colorSchemePreference) private var colorSchemePreference
 
     private let timelineColumnWidth: CGFloat = 20
-    private let rowHalfHeight: CGFloat = 32
 
     private var groupedPins: [(dateLabel: String, date: Date, pins: [Pin])] {
         let cal = Calendar.current
@@ -72,19 +72,16 @@ struct HistoryView: View {
                 showTopLine: gi > 0,
                 timelineColumnWidth: timelineColumnWidth
             )
+            .padding(.top, gi > 0 ? 24 : 0)
             ForEach(Array(group.pins.enumerated()), id: \.element.id) { ei, pin in
                 let isLastItem = isLastGroup && ei == group.pins.count - 1
-                Button {
+                HistoryRowView(
+                    pin: pin,
+                    showBottomLine: !isLastItem,
+                    timelineColumnWidth: timelineColumnWidth
+                ) {
                     store.send(.pinTapped(pin))
-                } label: {
-                    HistoryRowView(
-                        pin: pin,
-                        showBottomLine: !isLastItem,
-                        rowHalfHeight: rowHalfHeight,
-                        timelineColumnWidth: timelineColumnWidth
-                    )
                 }
-                .buttonStyle(.plain)
             }
         }
     }
@@ -109,7 +106,7 @@ struct HistoryView: View {
     }
 }
 
-// MARK: - DateSectionHeader
+// MARK: - DateSectionHeader（元のまま）
 
 private struct DateSectionHeader: View {
     let label: String
@@ -151,40 +148,21 @@ private struct DateSectionHeader: View {
 private struct HistoryRowView: View {
     let pin: Pin
     let showBottomLine: Bool
-    let rowHalfHeight: CGFloat
     let timelineColumnWidth: CGFloat
-
-    private var timeString: String {
-        let f = DateFormatter()
-        f.dateFormat = "HH:mm"
-        return f.string(from: pin.createdAt)
-    }
+    let onTap: () -> Void
 
     var body: some View {
-        HStack(alignment: .center, spacing: 0) {
-            HStack(spacing: 8) {
-                Text(pin.title)
-                    .font(.subheadline)
-                    .lineLimit(1)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-
-                Image(systemName: pin.contentType.iconName)
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .frame(width: 20)
-
-                Text(timeString)
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
-                    .frame(width: 40, alignment: .trailing)
+        HStack(alignment: .top, spacing: 0) {
+            // カード（左側・可変幅）
+            Button { onTap() } label: {
+                HistoryRowCard(pin: pin)
             }
+            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity)
             .padding(.trailing, 12)
 
+            // ピンアイコン + 縦線（右端・固定幅）
             VStack(spacing: 0) {
-                Rectangle()
-                    .fill(Color(.separator))
-                    .frame(width: 1, height: rowHalfHeight)
-
                 Image(systemName: "pin.fill")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Color.accentColor)
@@ -193,15 +171,157 @@ private struct HistoryRowView: View {
                 if showBottomLine {
                     Rectangle()
                         .fill(Color(.separator))
-                        .frame(width: 1, height: rowHalfHeight)
+                        .frame(width: 1)
+                        .frame(maxHeight: .infinity)
                 } else {
-                    Color.clear.frame(height: rowHalfHeight)
+                    Color.clear
+                        .frame(maxHeight: .infinity)
                 }
             }
             .frame(width: timelineColumnWidth)
         }
         .padding(.horizontal, 16)
-        .accessibilityLabel("\(pin.title)、\(timeString)に追加")
+        .padding(.bottom, 16)
+        .accessibilityLabel("\(pin.title)、\(pin.createdAt.formatted(date: .omitted, time: .shortened))に追加")
+    }
+}
+
+// MARK: - HistoryRowCard
+
+private struct HistoryRowCard: View {
+    let pin: Pin
+
+    private var timeString: String {
+        let f = DateFormatter()
+        f.dateFormat = "HH:mm"
+        return f.string(from: pin.createdAt)
+    }
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            if pin.contentType != .text {
+                ThumbnailSquare(pin: pin)
+                    .frame(width: 56, height: 56)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(pin.title)
+                    .font(.subheadline.weight(.medium))
+                    .lineLimit(2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text(timeString)
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+}
+
+// MARK: - ThumbnailSquare
+
+private struct ThumbnailSquare: View {
+    let pin: Pin
+
+    var body: some View {
+        switch pin.contentType {
+        case .url:
+            urlThumbnail
+        case .image:
+            imageThumbnail
+        case .video:
+            videoThumbnail
+        case .pdf:
+            pdfThumbnail
+        case .text:
+            textThumbnail
+        }
+    }
+
+    @ViewBuilder
+    private var urlThumbnail: some View {
+        if let filePath = pin.filePath,
+           let uiImage = UIImage(contentsOfFile: ThumbnailCache.resolveAbsolutePath(filePath)) {
+            Image(uiImage: uiImage)
+                .resizable()
+                .scaledToFill()
+        } else {
+            pin.contentType.displayColor
+                .overlay {
+                    Image(systemName: "globe")
+                        .font(.title3)
+                        .foregroundStyle(.white)
+                }
+        }
+    }
+
+    @ViewBuilder
+    private var imageThumbnail: some View {
+        if let filePath = pin.filePath,
+           let uiImage = UIImage(contentsOfFile: ThumbnailCache.resolveAbsolutePath(filePath)) {
+            Image(uiImage: uiImage)
+                .resizable()
+                .scaledToFill()
+        } else {
+            pin.contentType.displayColor
+                .overlay {
+                    Image(systemName: "photo.fill")
+                        .font(.title3)
+                        .foregroundStyle(.white)
+                }
+        }
+    }
+
+    @ViewBuilder
+    private var videoThumbnail: some View {
+        if let thumbnail = ThumbnailCache.loadThumbnail(for: pin.id) {
+            ZStack {
+                Image(uiImage: thumbnail)
+                    .resizable()
+                    .scaledToFill()
+                Image(systemName: "play.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.4), radius: 4)
+            }
+        } else {
+            pin.contentType.displayColor
+                .overlay {
+                    Image(systemName: "play.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(.white)
+                }
+        }
+    }
+
+    @ViewBuilder
+    private var pdfThumbnail: some View {
+        if let thumbnail = ThumbnailCache.loadThumbnail(for: pin.id) {
+            Image(uiImage: thumbnail)
+                .resizable()
+                .scaledToFill()
+        } else {
+            Color(.tertiarySystemBackground)
+                .overlay {
+                    Image(systemName: "doc.richtext.fill")
+                        .font(.title3)
+                        .foregroundStyle(.red)
+                }
+        }
+    }
+
+    private var textThumbnail: some View {
+        pin.contentType.displayColor
+            .overlay {
+                Image(systemName: "text.alignleft")
+                    .font(.title3)
+                    .foregroundStyle(.white)
+            }
     }
 }
 
