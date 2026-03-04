@@ -106,6 +106,7 @@ struct PinCreateReducer {
         @Dependency(\.metadataClient) var metadataClient
         @Dependency(\.analyticsClient) var analyticsClient
         @Dependency(\.crashlyticsClient) var crashlyticsClient
+        @Dependency(\.hapticClient) var hapticClient
         switch action {
 
         case let .contentTypeChanged(type):
@@ -273,6 +274,7 @@ struct PinCreateReducer {
 
         case .saveResponse(.success):
             state.isSaving = false
+            hapticClient.notification(.success)
             switch state.mode {
             case .create:
                 analyticsClient.logEvent(.pinCreated(contentType: state.contentType.rawValue))
@@ -285,6 +287,7 @@ struct PinCreateReducer {
         case let .saveResponse(.failure(error)):
             state.isSaving = false
             state.saveError = error.localizedDescription
+            hapticClient.notification(.error)
             let context: String
             switch state.mode {
             case .create: context = "PinClient.create"

@@ -47,6 +47,7 @@ struct PinListReducer {
         Reduce { state, action in
             @Dependency(\.pinClient) var pinClient
             @Dependency(\.analyticsClient) var analyticsClient
+            @Dependency(\.hapticClient) var hapticClient
             switch action {
 
             case .onAppear:
@@ -77,6 +78,7 @@ struct PinListReducer {
 
             case let .filterSelected(filter):
                 state.selectedFilter = filter
+                hapticClient.selection()
                 analyticsClient.logEvent(.filterApplied(contentType: filter?.rawValue))
                 return .none
 
@@ -87,6 +89,7 @@ struct PinListReducer {
             case let .favoriteButtonTapped(pin):
                 guard let idx = state.pins.firstIndex(where: { $0.id == pin.id }) else { return .none }
                 state.pins[idx].isFavorite.toggle()
+                hapticClient.impact(.medium)
                 let updated = state.pins[idx]
                 return .run { send in
                     await send(.favoriteResponse(Result {

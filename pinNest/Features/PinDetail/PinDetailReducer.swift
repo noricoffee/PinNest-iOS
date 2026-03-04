@@ -69,6 +69,7 @@ struct PinDetailReducer {
             @Dependency(\.dismiss) var dismiss
             @Dependency(\.analyticsClient) var analyticsClient
             @Dependency(\.crashlyticsClient) var crashlyticsClient
+            @Dependency(\.hapticClient) var hapticClient
             switch action {
 
             case .closeButtonTapped:
@@ -77,6 +78,7 @@ struct PinDetailReducer {
             case .favoriteButtonTapped:
                 state.isFavoriteLoading = true
                 state.pin.isFavorite.toggle()
+                hapticClient.impact(.medium)
                 let id = state.pin.id
                 let title = state.pin.title
                 let memo = state.pin.memo
@@ -113,6 +115,7 @@ struct PinDetailReducer {
                 // 同期処理でフラグを立て、View が pin プロパティにアクセスしないようにする。
                 // deleteResponse が届くまでの間に SwiftData の変更通知で View が再描画されても安全。
                 state.isBeingDeleted = true
+                hapticClient.notification(.warning)
                 let id = state.pin.id
                 return .run { send in
                     await send(.deleteResponse(Result {

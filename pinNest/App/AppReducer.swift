@@ -52,10 +52,12 @@ struct AppReducer {
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             @Dependency(\.analyticsClient) var analyticsClient
+            @Dependency(\.hapticClient) var hapticClient
             switch action {
 
             case let .tabSelected(tab):
                 state.selectedTab = tab
+                hapticClient.selection()
                 let tabName: String
                 let refreshEffect: Effect<Action>
                 switch tab {
@@ -83,6 +85,7 @@ struct AppReducer {
 
             case .fabButtonTapped:
                 state.isFABExpanded.toggle()
+                hapticClient.impact(.medium)
                 return .none
 
             case let .fabMenuItemTapped(type):
