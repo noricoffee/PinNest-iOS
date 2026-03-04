@@ -81,8 +81,6 @@
 				Shared/Clients/PinDataStore.swift,
 				Shared/Models/ContentType.swift,
 				Shared/Models/Pin.swift,
-				Shared/Models/PinContentType.swift,
-				Shared/Models/PinPreviewItem.swift,
 				Shared/Models/Tag.swift,
 				Shared/Utilities/AppGroupContainer.swift,
 				Shared/Utilities/ThumbnailCache.swift,
