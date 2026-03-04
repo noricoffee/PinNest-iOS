@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "pinnest-icon-green.png",
+      "filename" : "pinnest-light.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,7 +13,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "pinnest-icon-dark.png",
+      "filename" : "pinnest-dark.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -25,7 +25,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "pinnest-icon-tinted.png",
+      "filename" : "pinnest-tint.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
