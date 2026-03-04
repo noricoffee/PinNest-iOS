@@ -59,7 +59,10 @@
 		AB0E000000000000000000A1 /* Exceptions for "pinNest" folder in "pinNestTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				AppDelegate.swift,
 				pinNestApp.swift,
+				"Shared/Clients/AnalyticsClient+Live.swift",
+				"Shared/Clients/CrashlyticsClient+Live.swift",
 			);
 			target = AB01000000000000000000A1 /* pinNestTests */;
 		};

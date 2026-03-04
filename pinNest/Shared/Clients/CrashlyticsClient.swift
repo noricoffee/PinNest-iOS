@@ -1,4 +1,3 @@
-@preconcurrency import FirebaseCrashlytics
 import ComposableArchitecture
 import Foundation
 
@@ -9,15 +8,7 @@ struct CrashlyticsClient: Sendable {
     var recordError: @Sendable (Error, String) -> Void
 }
 
-extension CrashlyticsClient: DependencyKey {
-    static let liveValue = CrashlyticsClient(
-        recordError: { error, context in
-            let instance = Crashlytics.crashlytics()
-            instance.log("[\(context)] \(error.localizedDescription)")
-            instance.record(error: error)
-        }
-    )
-
+extension CrashlyticsClient: TestDependencyKey {
     static let testValue = CrashlyticsClient(
         recordError: { _, _ in }
     )
