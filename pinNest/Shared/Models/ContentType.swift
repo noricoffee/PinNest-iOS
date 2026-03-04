@@ -2,7 +2,6 @@ import Foundation
 import SwiftUI
 
 /// ピンのコンテンツ種別
-/// SwiftUI の import は ContentType+Display.swift に切り出して @MainActor 隔離を防ぐ
 enum ContentType: String, Codable, Hashable, Sendable, CaseIterable {
     case url
     case image

@@ -215,7 +215,7 @@ private struct URLPreviewRow: View {
 
             // URL テキスト
             VStack(alignment: .leading, spacing: 4) {
-                if let host = URL(string: urlString)?.host {
+                if let host = URL(string: urlString)?.host() {
                     Text(host)
                         .font(.headline)
                         .lineLimit(1)

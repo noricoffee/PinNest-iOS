@@ -47,6 +47,7 @@ struct PinListReducer {
         Reduce { state, action in
             @Dependency(\.pinClient) var pinClient
             @Dependency(\.analyticsClient) var analyticsClient
+            @Dependency(\.crashlyticsClient) var crashlyticsClient
             @Dependency(\.hapticClient) var hapticClient
             switch action {
 
@@ -110,6 +111,7 @@ struct PinListReducer {
 
             case let .favoriteResponse(.failure(error)):
                 // 楽観的更新を元に戻す（再取得で確実にリストを同期）
+                crashlyticsClient.recordError(error, "PinClient.update.favorite")
                 return .send(.refresh)
 
             case .settingsButtonTapped:
