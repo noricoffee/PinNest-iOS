@@ -165,11 +165,15 @@ struct SearchView: View {
                     store.send(.pinTapped(pin))
                 } label: {
                     PinCardView(pin: pin)
-                        .pinContextMenu(
+                        .pinContextMenu(PinMenuAction.actions(
+                            contentType: pin.contentType,
+                            onOpenLink: { store.send(.contextMenu(.openLinkTapped(pin))) },
+                            onCopyLink: { store.send(.contextMenu(.copyLinkTapped(pin))) },
+                            onCopyBody: { store.send(.contextMenu(.copyBodyTapped(pin))) },
                             onShare: { store.send(.contextMenu(.shareTapped(pin))) },
                             onAddTag: { store.send(.contextMenu(.addTagTapped(pin))) },
                             onDelete: { store.send(.contextMenu(.deleteTapped(pin))) }
-                        )
+                        ))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(pin.title)

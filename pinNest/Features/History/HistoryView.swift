@@ -109,9 +109,15 @@ struct HistoryView: View {
                     showBottomLine: !isLastItem,
                     timelineColumnWidth: timelineColumnWidth,
                     onTap: { store.send(.pinTapped(pin)) },
-                    onDelete: { store.send(.contextMenu(.deleteTapped(pin))) },
-                    onAddTag: { store.send(.contextMenu(.addTagTapped(pin))) },
-                    onShare: { store.send(.contextMenu(.shareTapped(pin))) }
+                    menuActions: PinMenuAction.actions(
+                        contentType: pin.contentType,
+                        onOpenLink: { store.send(.contextMenu(.openLinkTapped(pin))) },
+                        onCopyLink: { store.send(.contextMenu(.copyLinkTapped(pin))) },
+                        onCopyBody: { store.send(.contextMenu(.copyBodyTapped(pin))) },
+                        onShare: { store.send(.contextMenu(.shareTapped(pin))) },
+                        onAddTag: { store.send(.contextMenu(.addTagTapped(pin))) },
+                        onDelete: { store.send(.contextMenu(.deleteTapped(pin))) }
+                    )
                 )
             }
         }
@@ -181,20 +187,14 @@ private struct HistoryRowView: View {
     let showBottomLine: Bool
     let timelineColumnWidth: CGFloat
     let onTap: () -> Void
-    let onDelete: () -> Void
-    let onAddTag: () -> Void
-    let onShare: () -> Void
+    let menuActions: [PinMenuAction]
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
             // カード（左側・可変幅）
             Button { onTap() } label: {
                 HistoryRowCard(pin: pin)
-                    .pinContextMenu(
-                        onShare: onShare,
-                        onAddTag: onAddTag,
-                        onDelete: onDelete
-                    )
+                    .pinContextMenu(menuActions)
             }
             .buttonStyle(.plain)
             .frame(maxWidth: .infinity)
