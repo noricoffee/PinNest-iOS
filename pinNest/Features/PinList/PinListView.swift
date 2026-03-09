@@ -29,6 +29,35 @@ struct PinListView: View {
                     PinDetailView(store: detailStore)
                         .preferredColorScheme(colorSchemePreference.colorScheme)
                 }
+                .sheet(item: $store.scope(state: \.contextMenu.tagPicker, action: \.contextMenu.tagPicker)) { pickerStore in
+                    TagPickerView(store: pickerStore)
+                        .preferredColorScheme(colorSchemePreference.colorScheme)
+                }
+                .alert(
+                    "ピンを削除しますか？",
+                    isPresented: Binding(
+                        get: { store.contextMenu.isDeleteAlertPresented },
+                        set: { if !$0 { store.send(.contextMenu(.deleteAlertDismissed)) } }
+                    )
+                ) {
+                    Button("削除", role: .destructive) {
+                        store.send(.contextMenu(.deleteConfirmed))
+                    }
+                    Button("キャンセル", role: .cancel) {
+                        store.send(.contextMenu(.deleteAlertDismissed))
+                    }
+                } message: {
+                    Text("この操作は取り消せません。")
+                }
+                .sheet(
+                    isPresented: Binding(
+                        get: { store.contextMenu.isShareSheetPresented },
+                        set: { if !$0 { store.send(.contextMenu(.shareSheetDismissed)) } }
+                    )
+                ) {
+                    ShareSheet(items: store.contextMenu.shareItems)
+                        .presentationDetents([.medium, .large])
+                }
         }
     }
 
@@ -106,6 +135,11 @@ struct PinListView: View {
                     PinCardView(pin: pin) {
                         store.send(.favoriteButtonTapped(pin))
                     }
+                    .pinContextMenu(
+                        onShare: { store.send(.contextMenu(.shareTapped(pin))) },
+                        onAddTag: { store.send(.contextMenu(.addTagTapped(pin))) },
+                        onDelete: { store.send(.contextMenu(.deleteTapped(pin))) }
+                    )
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(pin.title)

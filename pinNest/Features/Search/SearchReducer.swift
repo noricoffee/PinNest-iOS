@@ -15,6 +15,7 @@ struct SearchReducer {
         var allTags: [TagItem] = []
         var isLoading: Bool = false
         @Presents var detail: PinDetailReducer.State? = nil
+        var contextMenu: PinContextMenuReducer.State = .init()
 
         static func == (lhs: State, rhs: State) -> Bool {
             lhs.searchText == rhs.searchText &&
@@ -24,7 +25,8 @@ struct SearchReducer {
             lhs.results.map(\.isFavorite) == rhs.results.map(\.isFavorite) &&
             lhs.allTags == rhs.allTags &&
             lhs.isLoading == rhs.isLoading &&
-            lhs.detail == rhs.detail
+            lhs.detail == rhs.detail &&
+            lhs.contextMenu == rhs.contextMenu
         }
     }
 
@@ -40,6 +42,7 @@ struct SearchReducer {
         case tagsResponse(Result<[TagItem], Error>)
         case pinTapped(Pin)
         case detail(PresentationAction<PinDetailReducer.Action>)
+        case contextMenu(PinContextMenuReducer.Action)
     }
 
     private enum CancelID { case search }
@@ -143,15 +146,7 @@ struct SearchReducer {
                 return .none
 
             case .detail(.presented(.deleteResponse(.success))):
-                // dismiss は PinDetailReducer 側で即座に処理される
-                let text = state.searchText
-                let tagIds = state.selectedTagIds
-                let sortOrder = state.sortOrder
-                return .run { send in
-                    await send(.searchResponse(Result {
-                        try await pinClient.search(text, tagIds, sortOrder)
-                    }))
-                }
+                return searchEffect(state: state)
 
             case .detail(.presented(.favoriteResponse(.success))):
                 if let updatedPin = state.detail?.pin,
@@ -161,22 +156,43 @@ struct SearchReducer {
                 return .none
 
             case .detail(.dismiss):
-                // タグ変更後に検索結果を更新する
-                let text = state.searchText
-                let tagIds = state.selectedTagIds
-                let sortOrder = state.sortOrder
-                return .run { send in
-                    await send(.searchResponse(Result {
-                        try await pinClient.search(text, tagIds, sortOrder)
-                    }))
-                }
+                return searchEffect(state: state)
 
             case .detail:
+                return .none
+
+            // MARK: - Context Menu (親インターセプト)
+
+            case .contextMenu(.deleteResponse(.success)):
+                return searchEffect(state: state)
+
+            case .contextMenu(.tagPicker(.dismiss)):
+                return searchEffect(state: state)
+
+            case .contextMenu:
                 return .none
             }
         }
         .ifLet(\.$detail, action: \.detail) {
             PinDetailReducer()
+        }
+
+        Scope(state: \.contextMenu, action: \.contextMenu) {
+            PinContextMenuReducer()
+        }
+    }
+
+    // MARK: - Helpers
+
+    private func searchEffect(state: State) -> Effect<Action> {
+        @Dependency(\.pinClient) var pinClient
+        let text = state.searchText
+        let tagIds = state.selectedTagIds
+        let sortOrder = state.sortOrder
+        return .run { send in
+            await send(.searchResponse(Result {
+                try await pinClient.search(text, tagIds, sortOrder)
+            }))
         }
     }
 }

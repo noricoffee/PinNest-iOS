@@ -12,6 +12,7 @@ struct PinListReducer {
         var selectedFilter: ContentType? = nil
         var isLoading: Bool = false
         @Presents var detail: PinDetailReducer.State? = nil
+        var contextMenu: PinContextMenuReducer.State = .init()
 
         var filteredPins: [Pin] {
             guard let filter = selectedFilter else { return pins }
@@ -23,7 +24,8 @@ struct PinListReducer {
             lhs.pins.map(\.isFavorite) == rhs.pins.map(\.isFavorite) &&
             lhs.selectedFilter == rhs.selectedFilter &&
             lhs.isLoading == rhs.isLoading &&
-            lhs.detail == rhs.detail
+            lhs.detail == rhs.detail &&
+            lhs.contextMenu == rhs.contextMenu
         }
     }
 
@@ -39,6 +41,7 @@ struct PinListReducer {
         case favoriteResponse(Result<Void, Error>)
         case settingsButtonTapped
         case detail(PresentationAction<PinDetailReducer.Action>)
+        case contextMenu(PinContextMenuReducer.Action)
     }
 
     // MARK: - Body
@@ -110,7 +113,6 @@ struct PinListReducer {
                 return .none
 
             case let .favoriteResponse(.failure(error)):
-                // 楽観的更新を元に戻す（再取得で確実にリストを同期）
                 crashlyticsClient.recordError(error, "PinClient.update.favorite")
                 return .send(.refresh)
 
@@ -118,11 +120,9 @@ struct PinListReducer {
                 return .none
 
             case .detail(.presented(.deleteResponse(.success))):
-                // dismiss は PinDetailReducer 側で即座に処理される
                 return .send(.refresh)
 
             case .detail(.presented(.favoriteResponse(.success))):
-                // リスト内の該当ピンも更新
                 if let updatedPin = state.detail?.pin,
                    let idx = state.pins.firstIndex(where: { $0.id == updatedPin.id }) {
                     state.pins[idx].isFavorite = updatedPin.isFavorite
@@ -131,10 +131,25 @@ struct PinListReducer {
 
             case .detail:
                 return .none
+
+            // MARK: - Context Menu (親インターセプト)
+
+            case .contextMenu(.deleteResponse(.success)):
+                return .send(.refresh)
+
+            case .contextMenu(.tagPicker(.dismiss)):
+                return .send(.refresh)
+
+            case .contextMenu:
+                return .none
             }
         }
         .ifLet(\.$detail, action: \.detail) {
             PinDetailReducer()
+        }
+
+        Scope(state: \.contextMenu, action: \.contextMenu) {
+            PinContextMenuReducer()
         }
     }
 }

@@ -11,11 +11,13 @@ struct HistoryReducer {
         var pins: [Pin] = []
         var isLoading: Bool = false
         @Presents var detail: PinDetailReducer.State? = nil
+        var contextMenu: PinContextMenuReducer.State = .init()
 
         static func == (lhs: State, rhs: State) -> Bool {
             lhs.pins.map(\.id) == rhs.pins.map(\.id) &&
             lhs.isLoading == rhs.isLoading &&
-            lhs.detail == rhs.detail
+            lhs.detail == rhs.detail &&
+            lhs.contextMenu == rhs.contextMenu
         }
     }
 
@@ -27,6 +29,7 @@ struct HistoryReducer {
         case pinsResponse(Result<[Pin], Error>)
         case pinTapped(Pin)
         case detail(PresentationAction<PinDetailReducer.Action>)
+        case contextMenu(PinContextMenuReducer.Action)
     }
 
     // MARK: - Body
@@ -68,7 +71,6 @@ struct HistoryReducer {
                 return .none
 
             case .detail(.presented(.deleteResponse(.success))):
-                // dismiss は PinDetailReducer 側で即座に処理される
                 return .send(.refresh)
 
             case .detail(.presented(.favoriteResponse(.success))):
@@ -80,10 +82,25 @@ struct HistoryReducer {
 
             case .detail:
                 return .none
+
+            // MARK: - Context Menu (親インターセプト)
+
+            case .contextMenu(.deleteResponse(.success)):
+                return .send(.refresh)
+
+            case .contextMenu(.tagPicker(.dismiss)):
+                return .send(.refresh)
+
+            case .contextMenu:
+                return .none
             }
         }
         .ifLet(\.$detail, action: \.detail) {
             PinDetailReducer()
+        }
+
+        Scope(state: \.contextMenu, action: \.contextMenu) {
+            PinContextMenuReducer()
         }
     }
 }

@@ -121,6 +121,13 @@ struct AppReducer {
                         .send(.search(.refresh))
                     )
                 }
+                // コンテキストメニューからの削除 → 他の画面も更新
+                if case .contextMenu(.deleteResponse(.success)) = listAction {
+                    return .merge(
+                        .send(.history(.refresh)),
+                        .send(.search(.refresh))
+                    )
+                }
                 return .none
 
             case let .history(historyAction):
@@ -137,6 +144,13 @@ struct AppReducer {
                         .send(.search(.refresh))
                     )
                 }
+                // コンテキストメニューからの削除 → 他の画面も更新
+                if case .contextMenu(.deleteResponse(.success)) = historyAction {
+                    return .merge(
+                        .send(.pinList(.refresh)),
+                        .send(.search(.refresh))
+                    )
+                }
                 return .none
 
             case let .search(searchAction):
@@ -148,6 +162,13 @@ struct AppReducer {
                 }
                 // 詳細画面での削除後 → 他の画面も更新
                 if case .detail(.presented(.deleteResponse(.success))) = searchAction {
+                    return .merge(
+                        .send(.pinList(.refresh)),
+                        .send(.history(.refresh))
+                    )
+                }
+                // コンテキストメニューからの削除 → 他の画面も更新
+                if case .contextMenu(.deleteResponse(.success)) = searchAction {
                     return .merge(
                         .send(.pinList(.refresh)),
                         .send(.history(.refresh))

@@ -58,6 +58,35 @@ struct HistoryView: View {
             PinDetailView(store: detailStore)
                 .preferredColorScheme(colorSchemePreference.colorScheme)
         }
+        .sheet(item: $store.scope(state: \.contextMenu.tagPicker, action: \.contextMenu.tagPicker)) { pickerStore in
+            TagPickerView(store: pickerStore)
+                .preferredColorScheme(colorSchemePreference.colorScheme)
+        }
+        .alert(
+            "ピンを削除しますか？",
+            isPresented: Binding(
+                get: { store.contextMenu.isDeleteAlertPresented },
+                set: { if !$0 { store.send(.contextMenu(.deleteAlertDismissed)) } }
+            )
+        ) {
+            Button("削除", role: .destructive) {
+                store.send(.contextMenu(.deleteConfirmed))
+            }
+            Button("キャンセル", role: .cancel) {
+                store.send(.contextMenu(.deleteAlertDismissed))
+            }
+        } message: {
+            Text("この操作は取り消せません。")
+        }
+        .sheet(
+            isPresented: Binding(
+                get: { store.contextMenu.isShareSheetPresented },
+                set: { if !$0 { store.send(.contextMenu(.shareSheetDismissed)) } }
+            )
+        ) {
+            ShareSheet(items: store.contextMenu.shareItems)
+                .presentationDetents([.medium, .large])
+        }
     }
 
     // MARK: - Timeline Content
@@ -78,10 +107,12 @@ struct HistoryView: View {
                 HistoryRowView(
                     pin: pin,
                     showBottomLine: !isLastItem,
-                    timelineColumnWidth: timelineColumnWidth
-                ) {
-                    store.send(.pinTapped(pin))
-                }
+                    timelineColumnWidth: timelineColumnWidth,
+                    onTap: { store.send(.pinTapped(pin)) },
+                    onDelete: { store.send(.contextMenu(.deleteTapped(pin))) },
+                    onAddTag: { store.send(.contextMenu(.addTagTapped(pin))) },
+                    onShare: { store.send(.contextMenu(.shareTapped(pin))) }
+                )
             }
         }
     }
@@ -150,12 +181,20 @@ private struct HistoryRowView: View {
     let showBottomLine: Bool
     let timelineColumnWidth: CGFloat
     let onTap: () -> Void
+    let onDelete: () -> Void
+    let onAddTag: () -> Void
+    let onShare: () -> Void
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
             // カード（左側・可変幅）
             Button { onTap() } label: {
                 HistoryRowCard(pin: pin)
+                    .pinContextMenu(
+                        onShare: onShare,
+                        onAddTag: onAddTag,
+                        onDelete: onDelete
+                    )
             }
             .buttonStyle(.plain)
             .frame(maxWidth: .infinity)
