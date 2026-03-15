@@ -146,6 +146,7 @@ struct PinListView: View {
                     ))
                 }
                 .buttonStyle(.plain)
+                .contentShape(RoundedRectangle(cornerRadius: 14))
                 .accessibilityLabel(pin.title)
             }
         }
@@ -190,9 +191,10 @@ private struct MasonryLayout: Layout {
         for (index, subview) in subviews.enumerated() {
             guard index < cache.placements.count else { continue }
             let p = cache.placements[index]
+            let measuredHeight = subview.sizeThatFits(.init(width: columnWidth, height: nil)).height
             subview.place(
                 at: CGPoint(x: bounds.minX + p.x, y: bounds.minY + p.y),
-                proposal: .init(width: columnWidth, height: nil)
+                proposal: .init(width: columnWidth, height: measuredHeight)
             )
         }
     }
