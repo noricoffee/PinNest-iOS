@@ -10,7 +10,7 @@ struct PinListView: View {
     var body: some View {
         NavigationStack {
             scrollContent
-                .navigationTitle("pinNest")
+                .navigationTitle("Pinnest")
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {

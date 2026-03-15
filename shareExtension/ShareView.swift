@@ -11,7 +11,7 @@ struct ShareView: View {
     var body: some View {
         NavigationStack {
             content
-                .navigationTitle("pinNest に保存")
+                .navigationTitle("Pinnest に保存")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
