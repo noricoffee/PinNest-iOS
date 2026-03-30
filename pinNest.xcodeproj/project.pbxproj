@@ -215,8 +215,8 @@
 				ABEB28D42F4600A300A1FF9E /* Sources */,
 				ABEB28D52F4600A300A1FF9E /* Frameworks */,
 				ABEB28D62F4600A300A1FF9E /* Resources */,
-				ABEB2BAC2F4DF57200A1FF9E /* ShellScript */,
 				ABEB2E672F50737A00A1FF9E /* Embed Foundation Extensions */,
+				ABEB2BAC2F4DF57200A1FF9E /* ShellScript */,
 			);
 			buildRules = (
 			);
