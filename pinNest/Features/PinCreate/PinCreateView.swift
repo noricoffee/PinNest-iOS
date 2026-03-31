@@ -119,13 +119,24 @@ struct PinCreateView: View {
     // MARK: - Type Selector
 
     private var typeSelectorSection: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(ContentType.allCases, id: \.self) { type in
-                    typeChip(type)
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(ContentType.allCases, id: \.self) { type in
+                        typeChip(type)
+                            .id(type)
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+            .onAppear {
+                proxy.scrollTo(store.contentType, anchor: .center)
+            }
+            .onChange(of: store.contentType) { _, newValue in
+                withAnimation {
+                    proxy.scrollTo(newValue, anchor: .center)
                 }
             }
-            .padding(.vertical, 4)
         }
     }
 
