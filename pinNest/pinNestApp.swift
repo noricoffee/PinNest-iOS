@@ -13,11 +13,25 @@ import SwiftUI
 struct pinNestApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
+    init() {
+        if DemoData.isEnabled {
+            DemoData.setupThumbnails()
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
-            AppView(store: Store(initialState: AppReducer.State()) {
-                AppReducer()
-            })
+            if DemoData.isEnabled {
+                AppView(store: Store(initialState: AppReducer.State()) {
+                    AppReducer()
+                } withDependencies: {
+                    $0.pinClient = DemoData.demoClient
+                })
+            } else {
+                AppView(store: Store(initialState: AppReducer.State()) {
+                    AppReducer()
+                })
+            }
         }
     }
 }
