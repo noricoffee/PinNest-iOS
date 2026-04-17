@@ -7,7 +7,7 @@
 ## アプリ名
 
 ```
-Pinnest
+Pinnest - 何でもピン留め保存
 ```
 
 ## サブタイトル（30文字以内）
@@ -94,6 +94,14 @@ https://github.com/noricoffee/PinNest-iOS
 | iPad Pro（13インチ）| 2064 × 2752 px（App Store に iPad 対応と表示したい場合） |
 
 > 各サイズ最低1枚、最大10枚。Xcode Simulator でスクリーンショットを撮影するのが最も簡単。
+
+---
+
+## 著作権（Copyright）
+
+```
+© 2026 Noriyuki Yoshida
+```
 
 ---
 
