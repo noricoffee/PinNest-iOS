@@ -14,6 +14,7 @@ struct SearchReducer {
         var results: [Pin] = []
         var allTags: [TagItem] = []
         var isLoading: Bool = false
+        var errorMessage: String? = nil
         @Presents var detail: PinDetailReducer.State? = nil
         var contextMenu: PinContextMenuReducer.State = .init()
 
@@ -41,6 +42,7 @@ struct SearchReducer {
         case searchResponse(Result<[Pin], Error>)
         case tagsResponse(Result<[TagItem], Error>)
         case pinTapped(Pin)
+        case errorAlertDismissed
         case detail(PresentationAction<PinDetailReducer.Action>)
         case contextMenu(PinContextMenuReducer.Action)
     }
@@ -131,7 +133,12 @@ struct SearchReducer {
 
             case let .searchResponse(.failure(error)):
                 state.isLoading = false
+                state.errorMessage = error.localizedDescription
                 crashlyticsClient.recordError(error, "PinClient.search")
+                return .none
+
+            case .errorAlertDismissed:
+                state.errorMessage = nil
                 return .none
 
             case let .tagsResponse(.success(tags)):

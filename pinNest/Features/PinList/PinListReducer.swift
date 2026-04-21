@@ -11,6 +11,7 @@ struct PinListReducer {
         var pins: [Pin] = []
         var selectedFilter: ContentType? = nil
         var isLoading: Bool = false
+        var errorMessage: String? = nil
         @Presents var detail: PinDetailReducer.State? = nil
         var contextMenu: PinContextMenuReducer.State = .init()
 
@@ -40,6 +41,7 @@ struct PinListReducer {
         case favoriteButtonTapped(Pin)
         case favoriteResponse(Result<Void, Error>)
         case settingsButtonTapped
+        case errorAlertDismissed
         case detail(PresentationAction<PinDetailReducer.Action>)
         case contextMenu(PinContextMenuReducer.Action)
     }
@@ -76,8 +78,13 @@ struct PinListReducer {
                 state.pins = pins.sorted { $0.createdAt > $1.createdAt }
                 return .none
 
-            case .pinsResponse(.failure):
+            case let .pinsResponse(.failure(error)):
                 state.isLoading = false
+                state.errorMessage = error.localizedDescription
+                return .none
+
+            case .errorAlertDismissed:
+                state.errorMessage = nil
                 return .none
 
             case let .filterSelected(filter):

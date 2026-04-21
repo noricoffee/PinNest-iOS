@@ -75,6 +75,11 @@ actor PinDataStore {
             throw PinDataStoreError.pinNotFound(id)
         }
 
+        // URL ピンのサムネイルをキャッシュから削除してストレージを解放する
+        if let filePath = pin.filePath, pin.contentType == .url {
+            ThumbnailCache.remove(path: filePath)
+        }
+
         modelContext.delete(pin)
         try modelContext.save()
     }

@@ -106,73 +106,41 @@ struct AppReducer {
                         hapticFeedbackEnabled: state.hapticFeedbackEnabled
                     )
                 }
-                // 詳細画面の「編集」ボタン → PinCreate シートを開く
-                // state.pinList.detail を直接 nil にせず .dismiss を送ることで
-                // ifLet の「presented action when state absent」警告を回避する
                 if case .detail(.presented(.editButtonTapped)) = listAction,
                    let pin = state.pinList.detail?.pin {
-                    state.pinCreate = PinCreateReducer.State(mode: .edit(pin), contentType: pin.contentType)
-                    return .send(.pinList(.detail(.dismiss)))
+                    return openEditSheet(pin: pin, dismissEffect: .send(.pinList(.detail(.dismiss))), state: &state)
                 }
-                // 詳細画面での削除後 → 他の画面も更新
                 if case .detail(.presented(.deleteResponse(.success))) = listAction {
-                    return .merge(
-                        .send(.history(.refresh)),
-                        .send(.search(.refresh))
-                    )
+                    return crossTabRefresh(excluding: .home)
                 }
-                // コンテキストメニューからの削除 → 他の画面も更新
                 if case .contextMenu(.deleteResponse(.success)) = listAction {
-                    return .merge(
-                        .send(.history(.refresh)),
-                        .send(.search(.refresh))
-                    )
+                    return crossTabRefresh(excluding: .home)
                 }
                 return .none
 
             case let .history(historyAction):
-                // 履歴画面の詳細から「編集」ボタン → PinCreate シートを開く
                 if case .detail(.presented(.editButtonTapped)) = historyAction,
                    let pin = state.history.detail?.pin {
-                    state.pinCreate = PinCreateReducer.State(mode: .edit(pin), contentType: pin.contentType)
-                    return .send(.history(.detail(.dismiss)))
+                    return openEditSheet(pin: pin, dismissEffect: .send(.history(.detail(.dismiss))), state: &state)
                 }
-                // 詳細画面での削除後 → 他の画面も更新
                 if case .detail(.presented(.deleteResponse(.success))) = historyAction {
-                    return .merge(
-                        .send(.pinList(.refresh)),
-                        .send(.search(.refresh))
-                    )
+                    return crossTabRefresh(excluding: .history)
                 }
-                // コンテキストメニューからの削除 → 他の画面も更新
                 if case .contextMenu(.deleteResponse(.success)) = historyAction {
-                    return .merge(
-                        .send(.pinList(.refresh)),
-                        .send(.search(.refresh))
-                    )
+                    return crossTabRefresh(excluding: .history)
                 }
                 return .none
 
             case let .search(searchAction):
-                // 検索画面の詳細から「編集」ボタン → PinCreate シートを開く
                 if case .detail(.presented(.editButtonTapped)) = searchAction,
                    let pin = state.search.detail?.pin {
-                    state.pinCreate = PinCreateReducer.State(mode: .edit(pin), contentType: pin.contentType)
-                    return .send(.search(.detail(.dismiss)))
+                    return openEditSheet(pin: pin, dismissEffect: .send(.search(.detail(.dismiss))), state: &state)
                 }
-                // 詳細画面での削除後 → 他の画面も更新
                 if case .detail(.presented(.deleteResponse(.success))) = searchAction {
-                    return .merge(
-                        .send(.pinList(.refresh)),
-                        .send(.history(.refresh))
-                    )
+                    return crossTabRefresh(excluding: .search)
                 }
-                // コンテキストメニューからの削除 → 他の画面も更新
                 if case .contextMenu(.deleteResponse(.success)) = searchAction {
-                    return .merge(
-                        .send(.pinList(.refresh)),
-                        .send(.history(.refresh))
-                    )
+                    return crossTabRefresh(excluding: .search)
                 }
                 return .none
 
@@ -228,6 +196,29 @@ struct AppReducer {
 
         Scope(state: \.search, action: \.search) {
             SearchReducer()
+        }
+    }
+
+    // MARK: - Private Helpers
+
+    /// 詳細画面を閉じつつ PinCreate シートを開く共通処理
+    /// state.pinList.detail を直接 nil にせず .dismiss を送ることで
+    /// ifLet の「presented action when state absent」警告を回避する
+    private func openEditSheet(
+        pin: Pin,
+        dismissEffect: Effect<Action>,
+        state: inout State
+    ) -> Effect<Action> {
+        state.pinCreate = PinCreateReducer.State(mode: .edit(pin), contentType: pin.contentType)
+        return dismissEffect
+    }
+
+    /// 指定タブ以外をすべてリフレッシュする（削除・編集後のクロスタブ同期）
+    private func crossTabRefresh(excluding tab: Tab) -> Effect<Action> {
+        switch tab {
+        case .home:    return .merge(.send(.history(.refresh)), .send(.search(.refresh)))
+        case .history: return .merge(.send(.pinList(.refresh)), .send(.search(.refresh)))
+        case .search:  return .merge(.send(.pinList(.refresh)), .send(.history(.refresh)))
         }
     }
 }
