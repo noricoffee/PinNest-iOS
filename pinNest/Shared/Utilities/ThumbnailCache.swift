@@ -72,7 +72,9 @@ enum ThumbnailCache {
             return dir
         }
         // フォールバック: アプリのキャッシュディレクトリ
-        let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+        guard let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else {
+            throw CocoaError(.fileNoSuchFile)
+        }
         let dir = base.appendingPathComponent("thumbnails", isDirectory: true)
         if !FileManager.default.fileExists(atPath: dir.path) {
             try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)

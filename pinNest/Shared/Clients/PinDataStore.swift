@@ -1,6 +1,10 @@
 import Foundation
 import SwiftData
 
+enum PinDataStoreError: Error {
+    case pinNotFound(UUID)
+}
+
 /// SwiftData を使った CRUD 操作を @ModelActor actor として実装する。
 /// PinClient.liveValue から保持・呼び出しを行う。
 @ModelActor
@@ -48,7 +52,9 @@ actor PinDataStore {
     ) throws {
         let predicate = #Predicate<Pin> { $0.id == id }
         let descriptor = FetchDescriptor<Pin>(predicate: predicate)
-        guard let pin = try modelContext.fetch(descriptor).first else { return }
+        guard let pin = try modelContext.fetch(descriptor).first else {
+            throw PinDataStoreError.pinNotFound(id)
+        }
 
         pin.title = title
         pin.memo = memo
@@ -65,7 +71,9 @@ actor PinDataStore {
     func delete(id: UUID) throws {
         let predicate = #Predicate<Pin> { $0.id == id }
         let descriptor = FetchDescriptor<Pin>(predicate: predicate)
-        guard let pin = try modelContext.fetch(descriptor).first else { return }
+        guard let pin = try modelContext.fetch(descriptor).first else {
+            throw PinDataStoreError.pinNotFound(id)
+        }
 
         modelContext.delete(pin)
         try modelContext.save()
