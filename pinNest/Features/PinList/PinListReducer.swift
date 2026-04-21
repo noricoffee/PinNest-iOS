@@ -58,12 +58,7 @@ struct PinListReducer {
 
             case .onAppear:
                 guard state.pins.isEmpty else { return .none }
-                state.isLoading = true
-                return .run { send in
-                    await send(.pinsResponse(Result {
-                        try await pinClient.fetchAll()
-                    }))
-                }
+                return .send(.refresh)
 
             case .refresh:
                 state.isLoading = true
@@ -101,18 +96,11 @@ struct PinListReducer {
                 guard let idx = state.pins.firstIndex(where: { $0.id == pin.id }) else { return .none }
                 state.pins[idx].isFavorite.toggle()
                 hapticClient.impact(.medium)
-                let updated = state.pins[idx]
+                let id = state.pins[idx].id
+                let isFavorite = state.pins[idx].isFavorite
                 return .run { send in
                     await send(.favoriteResponse(Result {
-                        try await pinClient.update(
-                            updated.id,
-                            updated.title,
-                            updated.memo,
-                            updated.isFavorite,
-                            updated.urlString,
-                            updated.filePath,
-                            updated.bodyText
-                        )
+                        try await pinClient.updateFavorite(id, isFavorite)
                     }))
                 }
 

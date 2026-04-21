@@ -133,7 +133,7 @@ struct PinListView: View {
                     }
                 }
             }
-            .padding(.vertical, 2)
+            .padding(.vertical, 4)
         }
     }
 

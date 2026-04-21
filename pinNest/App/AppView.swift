@@ -70,7 +70,7 @@ struct AppView: View {
     // MARK: - Floating Bar
 
     private var floatingBar: some View {
-        HStack(alignment: .center, spacing: 12) {
+        HStack(alignment: .center, spacing: 16) {
             mainTabGroup
             Spacer()
             fabButton
@@ -107,7 +107,7 @@ struct AppView: View {
         return Button {
             store.send(.tabSelected(tab))
         } label: {
-            VStack(spacing: 3) {
+            VStack(spacing: 4) {
                 Image(systemName: icon)
                     .font(.system(size: 20, weight: isSelected ? .semibold : .regular))
                 Text(label)

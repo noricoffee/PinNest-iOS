@@ -17,7 +17,7 @@ struct PinCreateReducer {
             switch (lhs, rhs) {
             case (.create, .create): true
             case let (.edit(l), .edit(r)): l.id == r.id
-            default: false
+            case (.create, .edit), (.edit, .create): false
             }
         }
     }

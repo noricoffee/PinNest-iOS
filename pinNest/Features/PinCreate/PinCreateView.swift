@@ -91,7 +91,7 @@ struct PinCreateView: View {
                         store.send(.fileNameSelected(saved.filename))
                         savedVideoPath = saved.relativePath
                     }
-                default:
+                case .url, .text, .pdf:
                     break
                 }
             }
@@ -110,9 +110,9 @@ struct PinCreateView: View {
 
     private static func focusedField(for type: ContentType) -> FocusedField? {
         switch type {
-        case .url:  return .url
-        case .text: return .body
-        default:    return nil
+        case .url:               return .url
+        case .text:              return .body
+        case .image, .video, .pdf: return nil
         }
     }
 
@@ -145,7 +145,7 @@ struct PinCreateView: View {
         return Button {
             store.send(.contentTypeChanged(type), animation: .easeInOut(duration: 0.2))
         } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 Image(systemName: type.iconName)
                     .font(.subheadline)
                 Text(type.label)
@@ -280,7 +280,7 @@ struct PinCreateView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .overlay {
                             Image(systemName: "play.circle.fill")
-                                .font(.system(size: 40))
+                                .font(.title)
                                 .foregroundStyle(.white)
                                 .shadow(color: .black.opacity(0.3), radius: 6)
                         }
@@ -438,9 +438,9 @@ private struct PickerPlaceholderView: View {
     let label: String
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 16) {
             Image(systemName: icon)
-                .font(.system(size: 36))
+                .font(.title2)
                 .foregroundStyle(Color.accentColor)
             Text(label)
                 .font(.body.weight(.medium))

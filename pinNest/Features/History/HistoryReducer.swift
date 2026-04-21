@@ -43,12 +43,7 @@ struct HistoryReducer {
 
             case .onAppear:
                 guard state.pins.isEmpty else { return .none }
-                state.isLoading = true
-                return .run { send in
-                    await send(.pinsResponse(Result {
-                        try await pinClient.fetchAll()
-                    }))
-                }
+                return .send(.refresh)
 
             case .refresh:
                 state.isLoading = true

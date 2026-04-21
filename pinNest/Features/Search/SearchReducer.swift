@@ -59,14 +59,7 @@ struct SearchReducer {
             switch action {
 
             case .onAppear:
-                state.isLoading = true
-                let sortOrder = state.sortOrder
-                return .run { send in
-                    let tagsResult = await Result<[TagItem], Error> { try await pinClient.fetchAllTags() }
-                    await send(.tagsResponse(tagsResult))
-                    let pinsResult = await Result<[Pin], Error> { try await pinClient.search("", [], sortOrder) }
-                    await send(.searchResponse(pinsResult))
-                }
+                return .send(.refresh)
 
             case .refresh:
                 state.isLoading = true
