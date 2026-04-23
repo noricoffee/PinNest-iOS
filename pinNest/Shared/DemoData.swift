@@ -231,6 +231,9 @@ enum DemoData {
                     filePath: filePath, bodyText: bodyText
                 )
             },
+            updateFavorite: { id, isFavorite in
+                try await store.updateFavorite(id: id, isFavorite: isFavorite)
+            },
             delete: { id in
                 try await store.delete(id: id)
             },
