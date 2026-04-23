@@ -414,7 +414,7 @@ private struct VideoFileSaved: Transferable {
             if let appGroupDir = AppGroupContainer.filesURL {
                 dir = appGroupDir
             } else {
-                guard let base = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return VideoFileSaved(savedPath: nil) }
+                guard let base = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return VideoFileSaved(filename: "", relativePath: nil) }
                 dir = base.appendingPathComponent("PinFiles", isDirectory: true)
                 try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
             }
