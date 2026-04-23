@@ -219,6 +219,7 @@ private struct HistoryRowView: View {
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Color.accentColor)
                     .rotationEffect(.degrees(45))
+                    .accessibilityHidden(true)
 
                 if showBottomLine {
                     Rectangle()

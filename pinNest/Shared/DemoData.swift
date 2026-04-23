@@ -165,7 +165,7 @@ enum DemoData {
         for (index, entry) in entries.enumerated() {
             guard let assetName = entry.assetName,
                   let uiImage = UIImage(named: assetName),
-                  let jpegData = uiImage.jpegData(compressionQuality: 0.85) else { continue }
+                  let jpegData = uiImage.jpegData(compressionQuality: ThumbnailCache.compressionQuality) else { continue }
             _ = try? ThumbnailCache.save(data: jpegData, for: ids[index])
         }
     }

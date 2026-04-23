@@ -120,7 +120,8 @@ struct SearchReducer {
                 analyticsClient.logEvent(.searchPerformed(
                     hasKeyword: !state.searchText.isEmpty,
                     hasTagFilter: !state.selectedTagIds.isEmpty,
-                    sortOrder: state.sortOrder.rawValue
+                    sortOrder: state.sortOrder.rawValue,
+                    resultCount: pins.count
                 ))
                 return .none
 
