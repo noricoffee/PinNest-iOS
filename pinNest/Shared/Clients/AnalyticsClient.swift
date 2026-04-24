@@ -10,7 +10,7 @@ enum AnalyticsEvent: Sendable {
     case pinFavoriteToggled(isFavorite: Bool)
     case pinViewed(contentType: String)
     case urlOpened
-    case searchPerformed(hasKeyword: Bool, hasTagFilter: Bool, sortOrder: String)
+    case searchPerformed(hasKeyword: Bool, hasTagFilter: Bool, sortOrder: String, resultCount: Int)
     case tagCreated
     case tagAssigned
     case tagRemoved
@@ -56,11 +56,12 @@ enum AnalyticsEvent: Sendable {
             ["content_type": contentType]
         case .urlOpened:
             [:]
-        case let .searchPerformed(hasKeyword, hasTagFilter, sortOrder):
+        case let .searchPerformed(hasKeyword, hasTagFilter, sortOrder, resultCount):
             [
                 "has_keyword": hasKeyword ? "true" : "false",
                 "has_tag_filter": hasTagFilter ? "true" : "false",
-                "sort_order": sortOrder
+                "sort_order": sortOrder,
+                "result_count": "\(resultCount)"
             ]
         case .tagCreated:
             [:]

@@ -29,6 +29,12 @@ enum HapticNotificationType: Sendable {
     }
 }
 
+// MARK: - Helpers
+
+private var isHapticFeedbackEnabled: Bool {
+    UserDefaults.standard.object(forKey: "hapticFeedbackEnabled") as? Bool ?? true
+}
+
 // MARK: - HapticClient
 
 struct HapticClient: Sendable {
@@ -40,15 +46,15 @@ struct HapticClient: Sendable {
 extension HapticClient: DependencyKey {
     static let liveValue = HapticClient(
         impact: { style in
-            guard UserDefaults.standard.object(forKey: "hapticFeedbackEnabled") as? Bool ?? true else { return }
+            guard isHapticFeedbackEnabled else { return }
             UIImpactFeedbackGenerator(style: style.uiKitStyle).impactOccurred()
         },
         notification: { type in
-            guard UserDefaults.standard.object(forKey: "hapticFeedbackEnabled") as? Bool ?? true else { return }
+            guard isHapticFeedbackEnabled else { return }
             UINotificationFeedbackGenerator().notificationOccurred(type.uiKitType)
         },
         selection: {
-            guard UserDefaults.standard.object(forKey: "hapticFeedbackEnabled") as? Bool ?? true else { return }
+            guard isHapticFeedbackEnabled else { return }
             UISelectionFeedbackGenerator().selectionChanged()
         }
     )

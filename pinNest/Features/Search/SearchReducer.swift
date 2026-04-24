@@ -14,6 +14,7 @@ struct SearchReducer {
         var results: [Pin] = []
         var allTags: [TagItem] = []
         var isLoading: Bool = false
+        var errorMessage: String? = nil
         @Presents var detail: PinDetailReducer.State? = nil
         var contextMenu: PinContextMenuReducer.State = .init()
 
@@ -41,6 +42,7 @@ struct SearchReducer {
         case searchResponse(Result<[Pin], Error>)
         case tagsResponse(Result<[TagItem], Error>)
         case pinTapped(Pin)
+        case errorAlertDismissed
         case detail(PresentationAction<PinDetailReducer.Action>)
         case contextMenu(PinContextMenuReducer.Action)
     }
@@ -57,14 +59,7 @@ struct SearchReducer {
             switch action {
 
             case .onAppear:
-                state.isLoading = true
-                let sortOrder = state.sortOrder
-                return .run { send in
-                    let tagsResult = await Result<[TagItem], Error> { try await pinClient.fetchAllTags() }
-                    await send(.tagsResponse(tagsResult))
-                    let pinsResult = await Result<[Pin], Error> { try await pinClient.search("", [], sortOrder) }
-                    await send(.searchResponse(pinsResult))
-                }
+                return .send(.refresh)
 
             case .refresh:
                 state.isLoading = true
@@ -125,13 +120,19 @@ struct SearchReducer {
                 analyticsClient.logEvent(.searchPerformed(
                     hasKeyword: !state.searchText.isEmpty,
                     hasTagFilter: !state.selectedTagIds.isEmpty,
-                    sortOrder: state.sortOrder.rawValue
+                    sortOrder: state.sortOrder.rawValue,
+                    resultCount: pins.count
                 ))
                 return .none
 
             case let .searchResponse(.failure(error)):
                 state.isLoading = false
+                state.errorMessage = error.localizedDescription
                 crashlyticsClient.recordError(error, "PinClient.search")
+                return .none
+
+            case .errorAlertDismissed:
+                state.errorMessage = nil
                 return .none
 
             case let .tagsResponse(.success(tags)):

@@ -4,6 +4,11 @@ import UIKit
 /// URL ピンのサムネイル画像をアプリのキャッシュディレクトリに保存・読み込みするユーティリティ
 enum ThumbnailCache {
 
+    // MARK: - Constants
+
+    /// サムネイル JPEG 圧縮品質（0.0〜1.0）。DemoData でも同じ定数を使用する。
+    static let compressionQuality: CGFloat = 0.8
+
     // MARK: - Save
 
     /// 画像データを JPEG として保存し、ホームディレクトリからの相対パスを返す
@@ -16,7 +21,7 @@ enum ThumbnailCache {
         let fileURL = dir.appendingPathComponent("\(pinID.uuidString).jpg")
 
         if let uiImage = UIImage(data: data),
-           let jpegData = uiImage.jpegData(compressionQuality: 0.7) {
+           let jpegData = uiImage.jpegData(compressionQuality: compressionQuality) {
             try jpegData.write(to: fileURL, options: .atomic)
         } else {
             try data.write(to: fileURL, options: .atomic)
@@ -72,7 +77,9 @@ enum ThumbnailCache {
             return dir
         }
         // フォールバック: アプリのキャッシュディレクトリ
-        let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+        guard let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else {
+            throw CocoaError(.fileNoSuchFile)
+        }
         let dir = base.appendingPathComponent("thumbnails", isDirectory: true)
         if !FileManager.default.fileExists(atPath: dir.path) {
             try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)

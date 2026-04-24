@@ -44,6 +44,8 @@ struct PinClient: Sendable {
     var fetchAll: @Sendable () async throws -> [Pin]
     var create: @Sendable (NewPin) async throws -> Void
     var update: @Sendable (UUID, String, String, Bool, String?, String?, String?) async throws -> Void
+    /// お気に入りフラグのみを更新する専用メソッド（全フィールド更新の繰り返しコードを削減）
+    var updateFavorite: @Sendable (UUID, Bool) async throws -> Void
     var delete: @Sendable (UUID) async throws -> Void
 
     // Search
@@ -58,21 +60,40 @@ struct PinClient: Sendable {
     var fetchTagsForPin: @Sendable (UUID) async throws -> [TagItem]
 }
 
+// MARK: - Schema Versioning
+
+/// スキーマバージョン管理。モデル変更時はここに新バージョンを追加し、
+/// PinMigrationPlan にマイグレーションステップを記述する。
+enum SchemaV1: VersionedSchema {
+    static let versionIdentifier = Schema.Version(1, 0, 0)
+    static var models: [any PersistentModel.Type] { [Pin.self, Tag.self] }
+}
+
+enum PinMigrationPlan: SchemaMigrationPlan {
+    static var schemas: [any VersionedSchema.Type] { [SchemaV1.self] }
+    /// 現在はバージョンが1つのみのためマイグレーションステップなし。
+    /// 次バージョン追加時: MigrationStage.custom(fromVersion:, toVersion:, ...) を追加する。
+    static var stages: [MigrationStage] { [] }
+}
+
 // MARK: - Live Implementation
 
 extension PinClient: DependencyKey {
     static let liveValue: PinClient = {
         let container: ModelContainer
         do {
-            let schema = Schema([Pin.self, Tag.self])
             // App Group コンテナが利用可能な場合はそちらに保存（Share Extension と共有）
             let config: ModelConfiguration
             if let storeURL = AppGroupContainer.storeURL {
-                config = ModelConfiguration(schema: schema, url: storeURL)
+                config = ModelConfiguration(schema: Schema(SchemaV1.models), url: storeURL)
             } else {
-                config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+                config = ModelConfiguration(schema: Schema(SchemaV1.models), isStoredInMemoryOnly: false)
             }
-            container = try ModelContainer(for: schema, configurations: config)
+            container = try ModelContainer(
+                for: Schema(SchemaV1.models),
+                migrationPlan: PinMigrationPlan.self,
+                configurations: config
+            )
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }
@@ -95,6 +116,9 @@ extension PinClient: DependencyKey {
                     filePath: filePath,
                     bodyText: bodyText
                 )
+            },
+            updateFavorite: { id, isFavorite in
+                try await store.updateFavorite(id: id, isFavorite: isFavorite)
             },
             delete: { id in
                 try await store.delete(id: id)
@@ -127,6 +151,7 @@ extension PinClient: DependencyKey {
         fetchAll: unimplemented("\(Self.self).fetchAll", placeholder: []),
         create: unimplemented("\(Self.self).create"),
         update: unimplemented("\(Self.self).update"),
+        updateFavorite: unimplemented("\(Self.self).updateFavorite"),
         delete: unimplemented("\(Self.self).delete"),
         search: unimplemented("\(Self.self).search", placeholder: []),
         fetchAllTags: unimplemented("\(Self.self).fetchAllTags", placeholder: []),

@@ -80,15 +80,10 @@ struct PinDetailReducer {
                 state.pin.isFavorite.toggle()
                 hapticClient.impact(.medium)
                 let id = state.pin.id
-                let title = state.pin.title
-                let memo = state.pin.memo
                 let isFavorite = state.pin.isFavorite
-                let urlString = state.pin.urlString
-                let filePath = state.pin.filePath
-                let bodyText = state.pin.bodyText
                 return .run { send in
                     await send(.favoriteResponse(Result {
-                        try await pinClient.update(id, title, memo, isFavorite, urlString, filePath, bodyText)
+                        try await pinClient.updateFavorite(id, isFavorite)
                     }))
                 }
 

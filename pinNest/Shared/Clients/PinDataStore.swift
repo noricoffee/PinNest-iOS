@@ -1,6 +1,10 @@
 import Foundation
 import SwiftData
 
+enum PinDataStoreError: Error {
+    case pinNotFound(UUID)
+}
+
 /// SwiftData を使った CRUD 操作を @ModelActor actor として実装する。
 /// PinClient.liveValue から保持・呼び出しを行う。
 @ModelActor
@@ -48,7 +52,9 @@ actor PinDataStore {
     ) throws {
         let predicate = #Predicate<Pin> { $0.id == id }
         let descriptor = FetchDescriptor<Pin>(predicate: predicate)
-        guard let pin = try modelContext.fetch(descriptor).first else { return }
+        guard let pin = try modelContext.fetch(descriptor).first else {
+            throw PinDataStoreError.pinNotFound(id)
+        }
 
         pin.title = title
         pin.memo = memo
@@ -60,12 +66,30 @@ actor PinDataStore {
         try modelContext.save()
     }
 
+    /// お気に入りフラグのみを更新する（全フィールド再送が不要なため）
+    func updateFavorite(id: UUID, isFavorite: Bool) throws {
+        let predicate = #Predicate<Pin> { $0.id == id }
+        let descriptor = FetchDescriptor<Pin>(predicate: predicate)
+        guard let pin = try modelContext.fetch(descriptor).first else {
+            throw PinDataStoreError.pinNotFound(id)
+        }
+        pin.isFavorite = isFavorite
+        try modelContext.save()
+    }
+
     // MARK: - Delete
 
     func delete(id: UUID) throws {
         let predicate = #Predicate<Pin> { $0.id == id }
         let descriptor = FetchDescriptor<Pin>(predicate: predicate)
-        guard let pin = try modelContext.fetch(descriptor).first else { return }
+        guard let pin = try modelContext.fetch(descriptor).first else {
+            throw PinDataStoreError.pinNotFound(id)
+        }
+
+        // URL ピンのサムネイルをキャッシュから削除してストレージを解放する
+        if let filePath = pin.filePath, pin.contentType == .url {
+            ThumbnailCache.remove(path: filePath)
+        }
 
         modelContext.delete(pin)
         try modelContext.save()

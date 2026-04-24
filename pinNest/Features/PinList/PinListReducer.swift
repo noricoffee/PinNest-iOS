@@ -11,6 +11,7 @@ struct PinListReducer {
         var pins: [Pin] = []
         var selectedFilter: ContentType? = nil
         var isLoading: Bool = false
+        var errorMessage: String? = nil
         @Presents var detail: PinDetailReducer.State? = nil
         var contextMenu: PinContextMenuReducer.State = .init()
 
@@ -40,6 +41,7 @@ struct PinListReducer {
         case favoriteButtonTapped(Pin)
         case favoriteResponse(Result<Void, Error>)
         case settingsButtonTapped
+        case errorAlertDismissed
         case detail(PresentationAction<PinDetailReducer.Action>)
         case contextMenu(PinContextMenuReducer.Action)
     }
@@ -56,12 +58,7 @@ struct PinListReducer {
 
             case .onAppear:
                 guard state.pins.isEmpty else { return .none }
-                state.isLoading = true
-                return .run { send in
-                    await send(.pinsResponse(Result {
-                        try await pinClient.fetchAll()
-                    }))
-                }
+                return .send(.refresh)
 
             case .refresh:
                 state.isLoading = true
@@ -76,8 +73,13 @@ struct PinListReducer {
                 state.pins = pins.sorted { $0.createdAt > $1.createdAt }
                 return .none
 
-            case .pinsResponse(.failure):
+            case let .pinsResponse(.failure(error)):
                 state.isLoading = false
+                state.errorMessage = error.localizedDescription
+                return .none
+
+            case .errorAlertDismissed:
+                state.errorMessage = nil
                 return .none
 
             case let .filterSelected(filter):
@@ -94,18 +96,11 @@ struct PinListReducer {
                 guard let idx = state.pins.firstIndex(where: { $0.id == pin.id }) else { return .none }
                 state.pins[idx].isFavorite.toggle()
                 hapticClient.impact(.medium)
-                let updated = state.pins[idx]
+                let id = state.pins[idx].id
+                let isFavorite = state.pins[idx].isFavorite
                 return .run { send in
                     await send(.favoriteResponse(Result {
-                        try await pinClient.update(
-                            updated.id,
-                            updated.title,
-                            updated.memo,
-                            updated.isFavorite,
-                            updated.urlString,
-                            updated.filePath,
-                            updated.bodyText
-                        )
+                        try await pinClient.updateFavorite(id, isFavorite)
                     }))
                 }
 

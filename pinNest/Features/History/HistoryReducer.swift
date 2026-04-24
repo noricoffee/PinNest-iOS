@@ -10,6 +10,7 @@ struct HistoryReducer {
     struct State: Equatable {
         var pins: [Pin] = []
         var isLoading: Bool = false
+        var errorMessage: String? = nil
         @Presents var detail: PinDetailReducer.State? = nil
         var contextMenu: PinContextMenuReducer.State = .init()
 
@@ -28,6 +29,7 @@ struct HistoryReducer {
         case refresh
         case pinsResponse(Result<[Pin], Error>)
         case pinTapped(Pin)
+        case errorAlertDismissed
         case detail(PresentationAction<PinDetailReducer.Action>)
         case contextMenu(PinContextMenuReducer.Action)
     }
@@ -41,12 +43,7 @@ struct HistoryReducer {
 
             case .onAppear:
                 guard state.pins.isEmpty else { return .none }
-                state.isLoading = true
-                return .run { send in
-                    await send(.pinsResponse(Result {
-                        try await pinClient.fetchAll()
-                    }))
-                }
+                return .send(.refresh)
 
             case .refresh:
                 state.isLoading = true
@@ -62,8 +59,13 @@ struct HistoryReducer {
                 state.pins = pins.sorted { $0.createdAt < $1.createdAt }
                 return .none
 
-            case .pinsResponse(.failure):
+            case let .pinsResponse(.failure(error)):
                 state.isLoading = false
+                state.errorMessage = error.localizedDescription
+                return .none
+
+            case .errorAlertDismissed:
+                state.errorMessage = nil
                 return .none
 
             case let .pinTapped(pin):

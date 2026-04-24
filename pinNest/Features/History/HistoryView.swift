@@ -87,6 +87,19 @@ struct HistoryView: View {
             ShareSheet(items: store.contextMenu.shareItems)
                 .presentationDetents([.medium, .large])
         }
+        .alert(
+            "読み込みエラー",
+            isPresented: Binding(
+                get: { store.errorMessage != nil },
+                set: { if !$0 { store.send(.errorAlertDismissed) } }
+            )
+        ) {
+            Button("OK", role: .cancel) {
+                store.send(.errorAlertDismissed)
+            }
+        } message: {
+            Text(store.errorMessage ?? "")
+        }
     }
 
     // MARK: - Timeline Content
@@ -206,6 +219,7 @@ private struct HistoryRowView: View {
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Color.accentColor)
                     .rotationEffect(.degrees(45))
+                    .accessibilityHidden(true)
 
                 if showBottomLine {
                     Rectangle()
