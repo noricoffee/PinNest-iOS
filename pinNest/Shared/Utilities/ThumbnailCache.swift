@@ -58,7 +58,11 @@ enum ThumbnailCache {
     static func resolveAbsolutePath(_ storedPath: String) -> String {
         // "/" で始まる場合はレガシーの絶対パス — そのまま返す（後方互換）
         guard !storedPath.hasPrefix("/") else { return storedPath }
-        return "\(NSHomeDirectory())/\(storedPath)"
+        let resolved = "\(NSHomeDirectory())/\(storedPath)"
+        // パストラバーサル防止: "../" を含むパスがホームディレクトリ外に逸脱しないことを確認
+        let home = NSHomeDirectory() + "/"
+        guard resolved.hasPrefix(home) else { return NSHomeDirectory() }
+        return resolved
     }
 
     /// 絶対パスをホームディレクトリからの相対パスに変換する

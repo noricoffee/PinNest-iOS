@@ -59,9 +59,9 @@ struct HistoryReducer {
                 state.pins = pins.sorted { $0.createdAt < $1.createdAt }
                 return .none
 
-            case let .pinsResponse(.failure(error)):
+            case .pinsResponse(.failure):
                 state.isLoading = false
-                state.errorMessage = error.localizedDescription
+                state.errorMessage = "データの読み込みに失敗しました。"
                 return .none
 
             case .errorAlertDismissed:
