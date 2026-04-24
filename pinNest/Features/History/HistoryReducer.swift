@@ -39,6 +39,7 @@ struct HistoryReducer {
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             @Dependency(\.pinClient) var pinClient
+            @Dependency(\.crashlyticsClient) var crashlyticsClient
             switch action {
 
             case .onAppear:
@@ -59,7 +60,8 @@ struct HistoryReducer {
                 state.pins = pins.sorted { $0.createdAt < $1.createdAt }
                 return .none
 
-            case .pinsResponse(.failure):
+            case let .pinsResponse(.failure(error)):
+                crashlyticsClient.recordError(error, "PinClient.fetchAll")
                 state.isLoading = false
                 state.errorMessage = "データの読み込みに失敗しました。"
                 return .none

@@ -73,7 +73,8 @@ struct PinListReducer {
                 state.pins = pins.sorted { $0.createdAt > $1.createdAt }
                 return .none
 
-            case .pinsResponse(.failure):
+            case let .pinsResponse(.failure(error)):
+                crashlyticsClient.recordError(error, "PinClient.fetchAll")
                 state.isLoading = false
                 state.errorMessage = "データの読み込みに失敗しました。"
                 return .none
