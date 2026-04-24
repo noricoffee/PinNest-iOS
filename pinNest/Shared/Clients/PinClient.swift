@@ -95,7 +95,7 @@ extension PinClient: DependencyKey {
                 configurations: config
             )
         } catch {
-            fatalError("Failed to create ModelContainer: \(error)")
+            fatalError("Failed to create ModelContainer")
         }
         let store = PinDataStore(modelContainer: container)
 

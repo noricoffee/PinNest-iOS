@@ -127,7 +127,7 @@ struct SearchReducer {
 
             case let .searchResponse(.failure(error)):
                 state.isLoading = false
-                state.errorMessage = error.localizedDescription
+                state.errorMessage = "検索に失敗しました。"
                 crashlyticsClient.recordError(error, "PinClient.search")
                 return .none
 

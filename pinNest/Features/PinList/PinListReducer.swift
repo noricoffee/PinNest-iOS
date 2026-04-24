@@ -74,8 +74,9 @@ struct PinListReducer {
                 return .none
 
             case let .pinsResponse(.failure(error)):
+                crashlyticsClient.recordError(error, "PinClient.fetchAll")
                 state.isLoading = false
-                state.errorMessage = error.localizedDescription
+                state.errorMessage = "データの読み込みに失敗しました。"
                 return .none
 
             case .errorAlertDismissed:

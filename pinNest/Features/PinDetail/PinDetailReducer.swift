@@ -133,7 +133,8 @@ struct PinDetailReducer {
 
             case .safariOpenTapped:
                 guard let urlString = state.pin.urlString,
-                      let url = URL(string: urlString) else { return .none }
+                      let url = URL(string: urlString),
+                      url.scheme == "https" || url.scheme == "http" else { return .none }
                 analyticsClient.logEvent(.urlOpened)
                 return .run { _ in
                     await openURL(url)
