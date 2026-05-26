@@ -34,37 +34,7 @@ struct AppView: View {
         // 暗転・ラジアルメニュー・FAB を一つの overlay で管理
         .overlay {
             GeometryReader { geo in
-                let originY = geo.frame(in: .global).minY
-
-                ZStack {
-                    // 暗転
-                    if store.isFABExpanded {
-                        Color.black.opacity(0.35)
-                            .ignoresSafeArea()
-                            .onTapGesture {
-                                store.send(.overlayTapped, animation: shouldReduceMotion ? nil : .spring(duration: 0.3))
-                            }
-                            .transition(shouldReduceMotion ? .identity : .opacity.animation(.easeOut(duration: 0.15)))
-                    }
-
-                    if let tabFrame = tabBarGlobalFrame {
-                        let originX = geo.frame(in: .global).minX
-                        // tabFrame は _UITabBarAuxiliaryView（検索ボタン）の global frame
-                        // FAB は検索ボタンの上端から 8pt 上に独立して配置
-                        let fabSize = tabFrame.height
-                        let gap: CGFloat = 8
-                        let fabX = tabFrame.midX - originX
-                        let fabY = tabFrame.minY - originY - gap - fabSize / 2
-
-                        ZStack {
-                            fabRadialItems(fabX: fabX, fabY: fabY)
-                                .allowsHitTesting(store.isFABExpanded)
-                            fabButton(size: fabSize)
-                                .position(x: fabX, y: fabY)
-                        }
-                        .transition(.opacity)
-                    }
-                }
+                fabOverlay(in: geo)
             }
         }
         .preferredColorScheme(store.colorSchemePreference.colorScheme)
@@ -81,6 +51,42 @@ struct AppView: View {
         .sheet(item: $store.scope(state: \.settings, action: \.settings)) { settingsStore in
             SettingsView(store: settingsStore)
                 .preferredColorScheme(store.colorSchemePreference.colorScheme)
+        }
+    }
+
+    // MARK: - FAB Overlay
+
+    private func fabPosition(geoFrame: CGRect, geoSize: CGSize) -> (x: CGFloat, y: CGFloat, size: CGFloat) {
+        if let tabFrame = tabBarGlobalFrame {
+            // tabFrame は _UITabBarAuxiliaryView（検索ボタン）の global frame
+            // FAB は検索ボタンの上端から 8pt 上に配置。サイズは 44-64pt にクランプ
+            let size = min(max(tabFrame.height, 44), 64)
+            return (tabFrame.midX - geoFrame.minX, tabFrame.minY - geoFrame.minY - 8 - size / 2, size)
+        }
+        // フォールバック: tabBarGlobalFrame 確定前は右下固定位置
+        return (geoSize.width - 48, geoSize.height - 80, 56)
+    }
+
+    @ViewBuilder
+    private func fabOverlay(in geo: GeometryProxy) -> some View {
+        let pos = fabPosition(geoFrame: geo.frame(in: .global), geoSize: geo.size)
+        ZStack {
+            if store.isFABExpanded {
+                Color.black.opacity(0.35)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        store.send(.overlayTapped, animation: shouldReduceMotion ? nil : .spring(duration: 0.3))
+                    }
+                    .transition(shouldReduceMotion ? .identity : .opacity.animation(.easeOut(duration: 0.15)))
+            }
+            ZStack {
+                fabRadialItems(fabX: pos.x, fabY: pos.y)
+                    .allowsHitTesting(store.isFABExpanded)
+                fabButton(size: pos.size)
+                    .position(x: pos.x, y: pos.y)
+            }
+            // tabBarGlobalFrame 確定時に位置がスムーズに移動する
+            .animation(shouldReduceMotion ? nil : .easeOut(duration: 0.15), value: tabBarGlobalFrame)
         }
     }
 
@@ -221,17 +227,28 @@ private struct TabBarFrameReader: UIViewRepresentable {
         }
 
         private func reportWithCapsule(_ tabBar: UITabBar) {
-            // Tab(role: .search) のボタン（正方形の補助ビュー）を探してそのフレームを使う
-            // UITabBar の直接サブビューのうち、正方形かつ全幅の半分より小さいものが検索ボタン
-            for sub in tabBar.subviews {
+            // Tab(role: .search) = _UITabBarAuxiliaryView（検索ボタン）の frame を取得
+            // 判定基準: 正方形（誤差 4pt 以内）かつタブバー幅の半分未満
+            let candidates: [(UIView, CGRect)] = tabBar.subviews.compactMap { sub in
                 let frame = sub.convert(sub.bounds, to: nil)
-                if !frame.isEmpty,
-                   abs(frame.width - frame.height) < 2,
-                   frame.width < tabBar.bounds.width * 0.5 {
-                    report(frame)
-                    return
-                }
+                guard !frame.isEmpty,
+                      abs(frame.width - frame.height) < 4,
+                      frame.width < tabBar.bounds.width * 0.5
+                else { return nil }
+                return (sub, frame)
             }
+
+            // クラス名に "Auxiliary" / "Search" を含むビューを優先（private API 名に依存しない文字列マッチ）
+            let preferred = candidates.first { sub, _ in
+                let name = NSStringFromClass(type(of: sub))
+                return name.contains("Auxiliary") || name.contains("Search")
+            }
+
+            if let match = preferred ?? candidates.first {
+                report(match.1)
+                return
+            }
+
             // フォールバック: TabBar 全体のフレーム
             report(tabBar.convert(tabBar.bounds, to: nil))
         }
