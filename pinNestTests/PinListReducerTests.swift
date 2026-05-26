@@ -29,7 +29,9 @@ struct PinListReducerTests {
             $0.pinClient.fetchAll = { [pin1, pin2] }
         }
 
-        await store.send(.onAppear) { state in
+        await store.send(.onAppear)
+
+        await store.receive(\.refresh) { state in
             state.isLoading = true
         }
 
@@ -157,7 +159,9 @@ struct PinListReducerTests {
             $0.pinClient.fetchAll = { [older, newer] }
         }
 
-        await store.send(.onAppear) { state in
+        await store.send(.onAppear)
+
+        await store.receive(\.refresh) { state in
             state.isLoading = true
         }
 
