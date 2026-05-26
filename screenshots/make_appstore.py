@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 App Store スクリーンショット生成スクリプト
-- 上部15%: キャッチコピー（背景はアプリ画面の上端色に合わせる）
+- 上部15%: キャッチコピー（青帯 + 白テキスト）
 - 下部85%: アプリ画面（角丸付き、両脇に小さなマージン）
 """
 from PIL import Image, ImageDraw, ImageFont
@@ -11,11 +11,13 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 OUT  = os.path.join(BASE, "ForAppStore")
 os.makedirs(OUT, exist_ok=True)
 
-CANVAS_W = 1320
-CANVAS_H = 2868
-HEADER_H = 300       # 上部テキスト領域
-APP_H    = CANVAS_H - HEADER_H   # 2568
-CORNER   = 100       # 角丸半径（スクリーンショットに付与）
+CANVAS_W  = 1320
+CANVAS_H  = 2868
+HEADER_H  = 300       # 上部テキスト領域
+APP_H     = CANVAS_H - HEADER_H   # 2568
+CORNER    = 100       # 角丸半径（スクリーンショットに付与）
+HEADER_BG = "#007AFF" # ヘッダー帯の背景色
+HEADER_FG = "#FFFFFF" # ヘッダー帯のテキスト色
 
 # W3 = Regular, W6 = SemiBold
 FONT_W6 = "/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc"
@@ -28,6 +30,7 @@ CONFIGS = [
     dict(src="detail.png", out="04_detail.png", text="5種類を一元管理。",     bg="#FFFFFF", fg="#1C1C1E"),
     dict(src="pin.png",    out="05_pin.png",    text="かんたんに保存。",      bg="#F2F2F7", fg="#1C1C1E"),
     dict(src="dark.png",   out="06_dark.png",   text="ダークも、もちろん。", bg="#1C1C1E", fg="#FFFFFF"),
+    dict(src="radial.png", out="07_radial.png", text="5種類に対応。",         bg="#FFFFFF", fg="#1C1C1E"),
 ]
 
 
@@ -59,19 +62,23 @@ def make(cfg):
     mask = rounded_mask((new_w, new_h), CORNER)
     app_img.putalpha(mask)
 
-    # --- キャンバス作成 ---
+    # --- キャンバス作成（アプリエリアの背景色） ---
     bg = hex_rgb(cfg["bg"]) + (255,)
     canvas = Image.new("RGBA", (CANVAS_W, CANVAS_H), bg)
+
+    # --- ヘッダー帯を青で塗りつぶす ---
+    draw = ImageDraw.Draw(canvas)
+    draw.rectangle([0, 0, CANVAS_W - 1, HEADER_H - 1], fill=hex_rgb(HEADER_BG) + (255,))
 
     # アプリ画面を中央揃えで貼り付け
     x = (CANVAS_W - new_w) // 2
     y = HEADER_H + (APP_H - new_h) // 2
     canvas.alpha_composite(app_img, dest=(x, y))
 
-    # --- キャッチコピーを描画 ---
+    # --- キャッチコピーを描画（常に白テキスト） ---
     draw = ImageDraw.Draw(canvas)
     text = cfg["text"]
-    fg   = hex_rgb(cfg["fg"]) + (255,)
+    fg   = hex_rgb(HEADER_FG) + (255,)
 
     font_size = 88
     try:
