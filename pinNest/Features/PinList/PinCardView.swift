@@ -112,7 +112,7 @@ struct PinCardView: View {
                 }
                 .overlay {
                     Image(systemName: "play.circle.fill")
-                        .font(.system(size: 32))
+                        .font(.title3)
                         .foregroundStyle(.white)
                         .shadow(color: .black.opacity(0.4), radius: 6)
                 }
@@ -124,7 +124,7 @@ struct PinCardView: View {
                 .aspectRatio(pin.contentType.defaultAspectRatio, contentMode: .fit)
                 .overlay {
                     Image(systemName: "play.circle.fill")
-                        .font(.system(size: 36))
+                        .font(.title2)
                         .foregroundStyle(.white)
                         .shadow(color: .black.opacity(0.3), radius: 6)
                 }
@@ -156,7 +156,7 @@ struct PinCardView: View {
         } else {
             HStack(spacing: 10) {
                 Image(systemName: "doc.richtext.fill")
-                    .font(.system(size: 38))
+                    .font(.title2)
                     .foregroundStyle(.red)
                 Spacer()
             }
@@ -184,13 +184,13 @@ struct PinCardView: View {
 
     private var infoView: some View {
         HStack(alignment: .top, spacing: 0) {
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(pin.title)
                     .font(.subheadline.weight(.medium))
                     .lineLimit(2)
                     .foregroundStyle(.primary)
 
-                HStack(spacing: 3) {
+                HStack(spacing: 4) {
                     Image(systemName: pin.contentType.iconName)
                         .font(.caption2)
                     if let urlString = pin.urlString,
@@ -210,14 +210,14 @@ struct PinCardView: View {
                 Image(systemName: pin.isFavorite ? "heart.fill" : "heart")
                     .font(.subheadline)
                     .foregroundStyle(pin.isFavorite ? .red : Color(.tertiaryLabel))
-                    .frame(width: 36, height: 36)
+                    .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel(pin.isFavorite ? "お気に入り解除" : "お気に入りに追加")
         }
-        .padding(.leading, 10)
-        .padding(.trailing, 2)
-        .padding(.vertical, 9)
+        .padding(.leading, 12)
+        .padding(.trailing, 4)
+        .padding(.vertical, 8)
     }
 }

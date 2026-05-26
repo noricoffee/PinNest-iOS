@@ -21,6 +21,15 @@ final class Pin: @unchecked Sendable {
     // テキストペイロード
     var bodyText: String?
 
+    // MARK: - Computed
+
+    /// filePath を絶対 URL に解決して返す（相対パス・レガシー絶対パス両対応）
+    /// ビルド・再インストール時にサンドボックスパスが変わっても正しく解決できる
+    var absoluteFilePath: URL? {
+        guard let path = filePath else { return nil }
+        return URL(fileURLWithPath: ThumbnailCache.resolveAbsolutePath(path))
+    }
+
     // MARK: - Relationships
 
     @Relationship(deleteRule: .nullify, inverse: \Tag.pins)

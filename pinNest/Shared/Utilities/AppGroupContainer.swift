@@ -34,8 +34,10 @@ enum AppGroupContainer {
     private static func makeDirectory(name: String) -> URL? {
         guard let base = containerURL else { return nil }
         let dir = base.appendingPathComponent(name, isDirectory: true)
-        if !FileManager.default.fileExists(atPath: dir.path) {
-            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        do {
+            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        } catch {
+            return nil
         }
         return dir
     }

@@ -209,7 +209,7 @@ struct PinDetailView: View {
                 }
                 .overlay {
                     Image(systemName: "play.circle.fill")
-                        .font(.system(size: 56))
+                        .font(.system(.largeTitle))
                         .foregroundStyle(.white)
                         .shadow(color: .black.opacity(0.3), radius: 8)
                 }
@@ -224,7 +224,7 @@ struct PinDetailView: View {
                 .frame(maxWidth: .infinity)
                 .overlay {
                     Image(systemName: "play.circle.fill")
-                        .font(.system(size: 56))
+                        .font(.system(.largeTitle))
                         .foregroundStyle(.white)
                         .shadow(color: .black.opacity(0.3), radius: 8)
                 }
@@ -261,7 +261,7 @@ struct PinDetailView: View {
             } else {
                 HStack(spacing: 16) {
                     Image(systemName: "doc.richtext.fill")
-                        .font(.system(size: 56))
+                        .font(.system(.largeTitle))
                         .foregroundStyle(.red)
                     Spacer()
                 }

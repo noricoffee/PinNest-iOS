@@ -58,6 +58,19 @@ struct SearchView: View {
                     ShareSheet(items: store.contextMenu.shareItems)
                         .presentationDetents([.medium, .large])
                 }
+                .alert(
+                    "検索エラー",
+                    isPresented: Binding(
+                        get: { store.errorMessage != nil },
+                        set: { if !$0 { store.send(.errorAlertDismissed) } }
+                    )
+                ) {
+                    Button("OK", role: .cancel) {
+                        store.send(.errorAlertDismissed)
+                    }
+                } message: {
+                    Text(store.errorMessage ?? "")
+                }
         }
     }
 

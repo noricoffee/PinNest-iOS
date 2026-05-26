@@ -20,7 +20,9 @@ struct SearchReducerTests {
             $0.pinClient.search = { _, _, _ in [pin] }
         }
 
-        await store.send(.onAppear) { state in
+        await store.send(.onAppear)
+
+        await store.receive(\.refresh) { state in
             state.isLoading = true
         }
 
@@ -46,7 +48,9 @@ struct SearchReducerTests {
             $0.pinClient.search = { _, _, _ in [pin] }
         }
 
-        await store.send(.onAppear) { state in
+        await store.send(.onAppear)
+
+        await store.receive(\.refresh) { state in
             state.isLoading = true
         }
 

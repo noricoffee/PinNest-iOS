@@ -4,6 +4,11 @@ import UIKit
 /// URL ピンのサムネイル画像をアプリのキャッシュディレクトリに保存・読み込みするユーティリティ
 enum ThumbnailCache {
 
+    // MARK: - Constants
+
+    /// サムネイル JPEG 圧縮品質（0.0〜1.0）。DemoData でも同じ定数を使用する。
+    static let compressionQuality: CGFloat = 0.8
+
     // MARK: - Save
 
     /// 画像データを JPEG として保存し、ホームディレクトリからの相対パスを返す
@@ -16,7 +21,7 @@ enum ThumbnailCache {
         let fileURL = dir.appendingPathComponent("\(pinID.uuidString).jpg")
 
         if let uiImage = UIImage(data: data),
-           let jpegData = uiImage.jpegData(compressionQuality: 0.7) {
+           let jpegData = uiImage.jpegData(compressionQuality: compressionQuality) {
             try jpegData.write(to: fileURL, options: .atomic)
         } else {
             try data.write(to: fileURL, options: .atomic)
@@ -53,7 +58,11 @@ enum ThumbnailCache {
     static func resolveAbsolutePath(_ storedPath: String) -> String {
         // "/" で始まる場合はレガシーの絶対パス — そのまま返す（後方互換）
         guard !storedPath.hasPrefix("/") else { return storedPath }
-        return "\(NSHomeDirectory())/\(storedPath)"
+        let resolved = "\(NSHomeDirectory())/\(storedPath)"
+        // パストラバーサル防止: "../" を含むパスがホームディレクトリ外に逸脱しないことを確認
+        let home = NSHomeDirectory() + "/"
+        guard resolved.hasPrefix(home) else { return NSHomeDirectory() }
+        return resolved
     }
 
     /// 絶対パスをホームディレクトリからの相対パスに変換する
@@ -72,7 +81,9 @@ enum ThumbnailCache {
             return dir
         }
         // フォールバック: アプリのキャッシュディレクトリ
-        let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+        guard let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else {
+            throw CocoaError(.fileNoSuchFile)
+        }
         let dir = base.appendingPathComponent("thumbnails", isDirectory: true)
         if !FileManager.default.fileExists(atPath: dir.path) {
             try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
