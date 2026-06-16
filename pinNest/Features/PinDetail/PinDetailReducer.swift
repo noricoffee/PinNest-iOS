@@ -12,6 +12,8 @@ struct PinDetailReducer {
         var isDeleteAlertPresented: Bool = false
         var isFavoriteLoading: Bool = false
         var isRefreshingMetadata: Bool = false
+        var isSummarizing: Bool = false
+        var summarizeAvailability: SummarizationAvailability = .available
         /// 削除処理中フラグ。true になった後は pin プロパティにアクセスしない
         var isBeingDeleted: Bool = false
         var pinTags: [TagItem] = []
@@ -26,9 +28,12 @@ struct PinDetailReducer {
             return lhs.pin.id == rhs.pin.id &&
             lhs.pin.isFavorite == rhs.pin.isFavorite &&
             lhs.pin.filePath == rhs.pin.filePath &&
+            lhs.pin.summary == rhs.pin.summary &&
             lhs.isDeleteAlertPresented == rhs.isDeleteAlertPresented &&
             lhs.isFavoriteLoading == rhs.isFavoriteLoading &&
             lhs.isRefreshingMetadata == rhs.isRefreshingMetadata &&
+            lhs.isSummarizing == rhs.isSummarizing &&
+            lhs.summarizeAvailability == rhs.summarizeAvailability &&
             lhs.pinTags == rhs.pinTags &&
             lhs.allTags == rhs.allTags &&
             lhs.tagPicker == rhs.tagPicker
@@ -50,6 +55,10 @@ struct PinDetailReducer {
         case safariOpenTapped
         case refreshMetadataTapped
         case metadataRefreshResponse(Result<String?, Error>)
+        // AI 要約
+        case summarySectionAppeared
+        case summarizeButtonTapped
+        case summarizeResponse(Result<String, Error>)
         // タグ管理
         case tagSectionAppeared
         case tagsLoaded(Result<([TagItem], [TagItem]), Error>)
@@ -65,6 +74,8 @@ struct PinDetailReducer {
         Reduce { state, action in
             @Dependency(\.pinClient) var pinClient
             @Dependency(\.metadataClient) var metadataClient
+            @Dependency(\.summarizationClient) var summarizationClient
+            @Dependency(\.contentExtractorClient) var contentExtractorClient
             @Dependency(\.openURL) var openURL
             @Dependency(\.dismiss) var dismiss
             @Dependency(\.analyticsClient) var analyticsClient
@@ -179,6 +190,47 @@ struct PinDetailReducer {
             case let .metadataRefreshResponse(.failure(error)):
                 state.isRefreshingMetadata = false
                 crashlyticsClient.recordError(error, "MetadataClient.fetch")
+                return .none
+
+            // MARK: - Summary actions
+
+            case .summarySectionAppeared:
+                state.summarizeAvailability = summarizationClient.availability()
+                return .none
+
+            case .summarizeButtonTapped:
+                // 要約対象は URL / テキスト / PDF のみ。利用可能かつ多重実行でないこと。
+                guard !state.isSummarizing,
+                      state.summarizeAvailability == .available,
+                      state.pin.contentType == .url
+                        || state.pin.contentType == .text
+                        || state.pin.contentType == .pdf else { return .none }
+                state.isSummarizing = true
+                let contentType = state.pin.contentType
+                let urlString = state.pin.urlString
+                let filePath = state.pin.filePath
+                let bodyText = state.pin.bodyText
+                return .run { send in
+                    await send(.summarizeResponse(Result {
+                        let source = try await contentExtractorClient.extract(
+                            contentType, urlString, filePath, bodyText
+                        )
+                        return try await summarizationClient.summarize(source)
+                    }))
+                }
+
+            case let .summarizeResponse(.success(summary)):
+                state.isSummarizing = false
+                state.pin.summary = summary
+                analyticsClient.logEvent(.summaryGenerated(contentType: state.pin.contentType.rawValue))
+                let id = state.pin.id
+                return .run { _ in
+                    try? await pinClient.updateSummary(id, summary)
+                }
+
+            case let .summarizeResponse(.failure(error)):
+                state.isSummarizing = false
+                crashlyticsClient.recordError(error, "SummarizationClient.summarize")
                 return .none
 
             // MARK: - Tag actions

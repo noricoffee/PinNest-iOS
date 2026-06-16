@@ -77,6 +77,17 @@ actor PinDataStore {
         try modelContext.save()
     }
 
+    /// AI 要約のみを更新する（全フィールド再送が不要なため）
+    func updateSummary(id: UUID, summary: String?) throws {
+        let predicate = #Predicate<Pin> { $0.id == id }
+        let descriptor = FetchDescriptor<Pin>(predicate: predicate)
+        guard let pin = try modelContext.fetch(descriptor).first else {
+            throw PinDataStoreError.pinNotFound(id)
+        }
+        pin.summary = summary
+        try modelContext.save()
+    }
+
     // MARK: - Delete
 
     func delete(id: UUID) throws {

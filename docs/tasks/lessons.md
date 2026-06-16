@@ -1,5 +1,31 @@
 # Lessons Learned
 
+## 2026-06-16: オンデバイス要約は CoreML ではなく Foundation Models
+
+### 学び
+- iOS 26+ では「テキスト要約」に CoreML 同梱モデルを使うべきではない（数百MB・トークナイザ自前・低品質）。
+  Apple の **Foundation Models framework**（`import FoundationModels` / `SystemLanguageModel`）が正解。
+  モデル同梱不要・完全オンデバイス・高品質。
+- ユーザーが「CoreML で」と指定しても、タスク（要約）に対する最適エンジンを技術的に提示して確認を取る。
+
+### 実装上の要点
+- `SystemLanguageModel.default.availability` を必ず判定（`.unavailable(.deviceNotEligible / .appleIntelligenceNotEnabled / .modelNotReady)`）。
+  Apple Intelligence 非対応端末・未有効時はボタンを無効化して理由を表示する。
+- context 上限があるため入力テキストは事前に truncate（約 6,000 字）してから `LanguageModelSession.respond(to:)` に渡す。
+- `import FoundationModels` / `import PDFKit` は専用クライアントファイルに閉じ込め、Reducer / View に漏らさない。
+- **PinClient のクロージャ literal を構築している箇所は複数ある**（`liveValue` だけでなく `DemoData.swift` のプレビュー用も）。
+  プロパティ追加時は両方を更新しないと「missing argument for parameter」ビルドエラーになる。
+
+### スキーマ変更（重要・ハマった）
+- **単一 @Model クラス運用では VersionedSchema を複数に増やしてはいけない。**
+  `SchemaV1` と `SchemaV2` が両方とも同じ現行 `Pin` クラスを参照すると、チェックサムが一致して
+  `ModelContainer` 初期化時に **"Duplicate version checksums detected" で起動クラッシュ**する（データ有無に関係なく毎回）。
+- **オプショナルフィールドの追加は自動 lightweight マイグレーションで吸収される。**
+  → スキーマは現行モデルを指す **1 つだけ**（`CurrentSchema`）にし、`stages` は空でよい。明示ステージも別バージョンも不要。
+- 旧形状を別バージョンとして正しく表現するには、各 VersionedSchema が「そのバージョン時点のモデル型」を
+  スナップショットする必要があるが、単一クラス運用では不可能。複数バージョンが本当に必要になったら
+  モデル型のスナップショットを別途用意すること。
+
 ## 2026-03-11: SwiftUI `.contextMenu` のタイプ別メニュー遅延問題
 
 ### 症状
