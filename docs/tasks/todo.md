@@ -16,15 +16,18 @@
 - [x] 対象 View を拡大（PinList / History / PinDetail / Settings をフルスクリーンで追加 = 8 枚）
       ※ `EmptyReducer` + 固定 State + `.device(config: .iPhone13Pro)` 方式。glassEffect は ContentView 側のみで各画面には無し
 - [x] CI ワークフロー追加（`.github/workflows/vrt.yml`、GitHub-hosted / main への PR）
-- [ ] **【要・手動】初回 CI 参照画像の記録**: Actions から `Visual Regression Tests` を `mode=record` で実行 → `recorded-snapshots` artifact をDL → `__Snapshots__/` を差し替えコミット（hosted runner と描画環境を一致させるため）
+- [x] CI 参照画像を runner(26.2) 基準で記録・コミット → **verify green 確認済み**（10 tests / 20 枚 pass）
 
-## CI 構成（`.github/workflows/vrt.yml`）
+## CI 構成（`.github/workflows/vrt.yml`）— 確定
 
-- runner: `macos-26` / Xcode 26.1（`maxim-lobanov/setup-xcode`）
+- runner: `macos-26` / **Xcode 26.2 / iOS 26.2 / iPhone 17 Pro**
 - トリガー: `pull_request`(main) で検証 / `workflow_dispatch`(mode=record) で参照記録
 - 失敗時は `TestResults.xcresult`（reference/取得/差分画像つき）を artifact 化
-- **重要**: ローカル記録の参照画像は hosted runner と描画が異なり初回 PR は失敗する想定。
-  先に `mode=record` で runner 上の画像を記録 → コミットして基準を揃えること。
+- 参照画像は **runner(26.2) 基準**（ローカル26.1とは別）。View 追加時は `mode=record` → artifact `recorded-snapshots` を差し替えコミット
+- 必須フラグ: `-skipMacroValidation` / `-enableCodeCoverage NO` / `-parallel-testing-enabled NO`
+- record の env は `TEST_RUNNER_SNAPSHOT_TESTING_RECORD=all`（testmanagerd 経由のため）
+- ダミー `GoogleService-Info.plist` を CI で生成（gitignore のため）
+- 詳細な落とし穴は `lessons.md` / メモリ `vrt-snapshot-testing.md` 参照
 
 ## 実行コマンド（確定）
 
