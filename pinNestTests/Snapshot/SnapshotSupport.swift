@@ -83,20 +83,89 @@ func assertSnapshotInBothColorSchemes(
 /// filePath を nil にしてディスク依存を排除する。
 @MainActor
 func makeSnapshotPin(
+    id: UUID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
     contentType: ContentType,
     title: String,
     urlString: String? = nil,
     bodyText: String? = nil,
-    isFavorite: Bool = false
+    memo: String = "",
+    isFavorite: Bool = false,
+    createdAt: Date = Date(timeIntervalSince1970: 1_700_000_000)
 ) -> Pin {
     Pin(
-        id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+        id: id,
         contentType: contentType,
         title: title,
-        createdAt: Date(timeIntervalSince1970: 1_700_000_000),
+        memo: memo,
+        createdAt: createdAt,
         isFavorite: isFavorite,
         urlString: urlString,
         filePath: nil,
         bodyText: bodyText
     )
+}
+
+/// 決定論的な連番 UUID。
+func snapshotUUID(_ n: Int) -> UUID {
+    UUID(uuidString: String(format: "00000000-0000-0000-0000-%012d", n))!
+}
+
+/// リスト/タイムライン用のサンプル Pin 群（タイプ・日付・お気に入りを混在）。
+@MainActor
+func makeSnapshotPins() -> [Pin] {
+    let base = Date(timeIntervalSince1970: 1_700_000_000)
+    let day: TimeInterval = 86_400
+    return [
+        makeSnapshotPin(id: snapshotUUID(1), contentType: .url,
+                        title: "Apple（日本）", urlString: "https://www.apple.com/jp/",
+                        createdAt: base),
+        makeSnapshotPin(id: snapshotUUID(2), contentType: .text,
+                        title: "あとで読み返すメモ",
+                        bodyText: "複数行にわたる長めのテキスト。要点をまとめておく。",
+                        createdAt: base - day),
+        makeSnapshotPin(id: snapshotUUID(3), contentType: .image,
+                        title: "風景写真", createdAt: base - day),
+        makeSnapshotPin(id: snapshotUUID(4), contentType: .pdf,
+                        title: "仕様書.pdf", createdAt: base - 2 * day),
+        makeSnapshotPin(id: snapshotUUID(5), contentType: .video,
+                        title: "デモ動画", isFavorite: true, createdAt: base - 2 * day),
+    ]
+}
+
+// MARK: - 画面（フルスクリーン）スナップショット
+
+/// 画面全体を固定デバイスサイズでライト/ダーク両モードでスナップショットする。
+/// レコードと検証は同一シミュレータで行う前提（フォント/描画差を排除）。
+@MainActor
+func assertScreenSnapshotInBothColorSchemes(
+    of view: some View,
+    named name: String,
+    config: ViewImageConfig = .iPhone13Pro,
+    record: SnapshotTestingConfiguration.Record? = nil,
+    fileID: StaticString = #fileID,
+    file filePath: StaticString = #filePath,
+    testName: String = #function,
+    line: UInt = #line,
+    column: UInt = #column
+) {
+    for style: UIUserInterfaceStyle in [.light, .dark] {
+        let suffix = style == .light ? "light" : "dark"
+        let themed = view.environment(\.colorScheme, style == .dark ? .dark : .light)
+        assertSnapshot(
+            of: themed,
+            as: .image(
+                precision: SnapshotConfig.precision,
+                perceptualPrecision: SnapshotConfig.perceptualPrecision,
+                layout: .device(config: config),
+                traits: UITraitCollection(userInterfaceStyle: style)
+            ),
+            named: "\(name).\(suffix)",
+            record: record,
+            fileID: fileID,
+            file: filePath,
+            testName: testName,
+            line: line,
+            column: column
+        )
+    }
 }

@@ -13,7 +13,8 @@
 - [x] Xcode で `swift-snapshot-testing` を `pinNestTests` ターゲットへ追加（1.19.2）
 - [x] 参照画像を記録（12 枚）し検証パス（要 `__Snapshots__/` をコミット）
 - [x] 比較モードで再実行し全パス確認（決定論性の検証）→ `** TEST SUCCEEDED **`
-- [ ] 対象 View を順次拡大（PinList / History / PinDetail / Settings ※glassEffect 部は要検証）
+- [x] 対象 View を拡大（PinList / History / PinDetail / Settings をフルスクリーンで追加 = 8 枚）
+      ※ `EmptyReducer` + 固定 State + `.device(config: .iPhone13Pro)` 方式。glassEffect は ContentView 側のみで各画面には無し
 - [x] CI ワークフロー追加（`.github/workflows/vrt.yml`、GitHub-hosted / main への PR）
 - [ ] **【要・手動】初回 CI 参照画像の記録**: Actions から `Visual Regression Tests` を `mode=record` で実行 → `recorded-snapshots` artifact をDL → `__Snapshots__/` を差し替えコミット（hosted runner と描画環境を一致させるため）
 
