@@ -217,6 +217,20 @@
 
 ---
 
+## フェーズ 10: AI 要約（オンデバイス）
+
+- ✅ 🔴 `Pin.summary` フィールド追加（SchemaV2 lightweight マイグレーション）
+- ✅ 🔴 `SummarizationClient`（Foundation Models / `SystemLanguageModel` ラッパー）
+  - ✅ availability 判定（端末非対応 / AI 未有効 / モデル準備中）
+  - ✅ 入力テキスト truncate（約 6,000 字）+ 日本語要約指示
+- ✅ 🔴 `ContentExtractorClient`（URL 本文 / PDF / テキスト抽出）
+- ✅ 🔴 `PinClient.updateSummary` で要約を永続化
+- ✅ 🔴 `PinDetailReducer` / `PinDetailView` に要約セクション（生成・再要約・非対応時メッセージ）
+- ✅ 🔴 `PinDetailReducerTests`（要約フロー 6 テスト）
+- ⬜ 🟡 実機（Apple Intelligence 対応端末）での生成品質・UX 確認
+
+---
+
 ## 変更履歴
 
 | 日付 | 変更内容 |
@@ -251,3 +265,4 @@
 | 2026-03-02 | PDF プレビュー機能追加（PinDetailView）。pdfHeader タップ /「PDF を開く」ボタンで PDFKit ベースのフルスクリーンビューアを表示。画像・動画・PDF プレビューのスタイル統一（fullScreenCover + topBarTrailing × ボタン + 下スワイプ dismiss）。MediaViewerView 共通ラッパーを新設し ImageViewerView / VideoPlayerView / PDFViewerView を各独立ファイルに分離 |
 | 2026-02-26 | 画像・動画のアプリ内表示機能を追加。動画ピン作成時に VideoFileSaved Transferable で動画ファイルを App Group へコピー保存し filePath を記録。PinDetailView で画像タップ → フルスクリーン表示（ImageViewerView）、動画タップ → AVPlayerViewController フルスクリーン再生に対応 |
 | 2026-02-28 | 全画面リアルタイム更新を実装。SearchReducer に .refresh アクション追加。AppReducer でタブ切り替え時・ピン作成/編集保存後・詳細からの削除後に全画面（PinList / History / Search）へ refresh を送信。.sceneDidBecomeActive アクション追加・AppView で scenePhase 監視により Share Extension 保存後にホストアプリへ戻った際も自動更新 |
+| 2026-06-16 | フェーズ 10（AI 要約）コード実装完了。Pin に summary 追加 + SchemaV2 lightweight マイグレーション。SummarizationClient（Foundation Models / SystemLanguageModel）・ContentExtractorClient（URL本文/PDF/テキスト抽出）を新規作成。PinClient.updateSummary で永続化。PinDetailReducer/View に要約セクション（生成・再要約・非対応時メッセージ）追加。PinDetailReducerTests 6 件追加・全テストパス。実機での生成品質確認のみ残り |

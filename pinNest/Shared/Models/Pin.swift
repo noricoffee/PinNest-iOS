@@ -21,6 +21,9 @@ final class Pin: @unchecked Sendable {
     // テキストペイロード
     var bodyText: String?
 
+    // AI 要約（オンデバイス生成・optional 追加のため自動 lightweight 移行）
+    var summary: String?
+
     // MARK: - Computed
 
     /// filePath を絶対 URL に解決して返す（相対パス・レガシー絶対パス両対応）
@@ -46,7 +49,8 @@ final class Pin: @unchecked Sendable {
         isFavorite: Bool = false,
         urlString: String? = nil,
         filePath: String? = nil,
-        bodyText: String? = nil
+        bodyText: String? = nil,
+        summary: String? = nil
     ) {
         self.id = id
         self.contentType = contentType
@@ -57,5 +61,6 @@ final class Pin: @unchecked Sendable {
         self.urlString = urlString
         self.filePath = filePath
         self.bodyText = bodyText
+        self.summary = summary
     }
 }

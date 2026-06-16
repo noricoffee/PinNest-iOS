@@ -46,6 +46,8 @@ struct PinClient: Sendable {
     var update: @Sendable (UUID, String, String, Bool, String?, String?, String?) async throws -> Void
     /// お気に入りフラグのみを更新する専用メソッド（全フィールド更新の繰り返しコードを削減）
     var updateFavorite: @Sendable (UUID, Bool) async throws -> Void
+    /// AI 要約のみを更新する専用メソッド
+    var updateSummary: @Sendable (UUID, String?) async throws -> Void
     var delete: @Sendable (UUID) async throws -> Void
 
     // Search
@@ -62,17 +64,22 @@ struct PinClient: Sendable {
 
 // MARK: - Schema Versioning
 
-/// スキーマバージョン管理。モデル変更時はここに新バージョンを追加し、
-/// PinMigrationPlan にマイグレーションステップを記述する。
-enum SchemaV1: VersionedSchema {
-    static let versionIdentifier = Schema.Version(1, 0, 0)
+/// スキーマバージョン管理。Pin / Tag を単一の @Model クラスで運用しているため、
+/// VersionedSchema は常に「現行モデル」を 1 つだけ参照する。
+///
+/// 重要: ここに「過去形状を表す別バージョン」を追加してはいけない。
+/// 単一クラス運用では旧バージョンも同じ現行クラスを指すため、チェックサムが一致し
+/// "Duplicate version checksums detected" でクラッシュする。
+/// `summary` のような **オプショナル追加** は SwiftData の自動 lightweight マイグレーションで移行されるため、
+/// スキーマを増やす必要はない（現行モデルを記述するだけでよい）。
+enum CurrentSchema: VersionedSchema {
+    static let versionIdentifier = Schema.Version(2, 0, 0)
     static var models: [any PersistentModel.Type] { [Pin.self, Tag.self] }
 }
 
 enum PinMigrationPlan: SchemaMigrationPlan {
-    static var schemas: [any VersionedSchema.Type] { [SchemaV1.self] }
-    /// 現在はバージョンが1つのみのためマイグレーションステップなし。
-    /// 次バージョン追加時: MigrationStage.custom(fromVersion:, toVersion:, ...) を追加する。
+    static var schemas: [any VersionedSchema.Type] { [CurrentSchema.self] }
+    /// オプショナル追加は自動 lightweight 移行で吸収されるため明示ステージ不要。
     static var stages: [MigrationStage] { [] }
 }
 
@@ -85,12 +92,12 @@ extension PinClient: DependencyKey {
             // App Group コンテナが利用可能な場合はそちらに保存（Share Extension と共有）
             let config: ModelConfiguration
             if let storeURL = AppGroupContainer.storeURL {
-                config = ModelConfiguration(schema: Schema(SchemaV1.models), url: storeURL)
+                config = ModelConfiguration(schema: Schema(CurrentSchema.models), url: storeURL)
             } else {
-                config = ModelConfiguration(schema: Schema(SchemaV1.models), isStoredInMemoryOnly: false)
+                config = ModelConfiguration(schema: Schema(CurrentSchema.models), isStoredInMemoryOnly: false)
             }
             container = try ModelContainer(
-                for: Schema(SchemaV1.models),
+                for: Schema(CurrentSchema.models),
                 migrationPlan: PinMigrationPlan.self,
                 configurations: config
             )
@@ -119,6 +126,9 @@ extension PinClient: DependencyKey {
             },
             updateFavorite: { id, isFavorite in
                 try await store.updateFavorite(id: id, isFavorite: isFavorite)
+            },
+            updateSummary: { id, summary in
+                try await store.updateSummary(id: id, summary: summary)
             },
             delete: { id in
                 try await store.delete(id: id)
@@ -152,6 +162,7 @@ extension PinClient: DependencyKey {
         create: unimplemented("\(Self.self).create"),
         update: unimplemented("\(Self.self).update"),
         updateFavorite: unimplemented("\(Self.self).updateFavorite"),
+        updateSummary: unimplemented("\(Self.self).updateSummary"),
         delete: unimplemented("\(Self.self).delete"),
         search: unimplemented("\(Self.self).search", placeholder: []),
         fetchAllTags: unimplemented("\(Self.self).fetchAllTags", placeholder: []),

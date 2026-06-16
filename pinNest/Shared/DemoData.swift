@@ -234,6 +234,9 @@ enum DemoData {
             updateFavorite: { id, isFavorite in
                 try await store.updateFavorite(id: id, isFavorite: isFavorite)
             },
+            updateSummary: { id, summary in
+                try await store.updateSummary(id: id, summary: summary)
+            },
             delete: { id in
                 try await store.delete(id: id)
             },

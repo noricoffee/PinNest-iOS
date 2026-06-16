@@ -23,6 +23,11 @@ struct PinDetailView: View {
                     contentView
                         .padding(.horizontal, 20)
                         .padding(.top, 20)
+                    if isSummarizable {
+                        summarySection
+                            .padding(.horizontal, 20)
+                            .padding(.top, 16)
+                    }
                     memoSection
                         .padding(.horizontal, 20)
                         .padding(.top, 16)
@@ -438,6 +443,82 @@ struct PinDetailView: View {
             }
             .foregroundStyle(.secondary)
         }
+    }
+
+    // MARK: - Summary Section
+
+    /// 要約対象は URL / テキスト / PDF のみ
+    private var isSummarizable: Bool {
+        switch store.pin.contentType {
+        case .url, .text, .pdf: true
+        case .image, .video:    false
+        }
+    }
+
+    @ViewBuilder
+    private var summarySection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Divider()
+
+            HStack(spacing: 6) {
+                Image(systemName: "sparkles")
+                    .font(.subheadline)
+                Text("AI 要約")
+                    .font(.subheadline.weight(.semibold))
+            }
+            .foregroundStyle(.secondary)
+
+            if let summary = store.pin.summary, !summary.isEmpty {
+                Text(summary)
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            summarizeButton
+
+            if let message = store.summarizeAvailability.unavailableMessage {
+                Text(message)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .onAppear {
+            store.send(.summarySectionAppeared)
+        }
+    }
+
+    private var summarizeButton: some View {
+        let hasSummary = !(store.pin.summary?.isEmpty ?? true)
+        let isAvailable = store.summarizeAvailability == .available
+        return Button {
+            store.send(.summarizeButtonTapped)
+        } label: {
+            HStack(spacing: 8) {
+                if store.isSummarizing {
+                    ProgressView()
+                        .controlSize(.small)
+                } else {
+                    Image(systemName: "sparkles")
+                }
+                Text(summarizeButtonTitle(hasSummary: hasSummary))
+                    .font(.subheadline.weight(.medium))
+            }
+            .foregroundStyle(isAvailable ? Color.accentColor : Color.secondary)
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .background(
+                (isAvailable ? Color.accentColor : Color.secondary).opacity(0.12),
+                in: RoundedRectangle(cornerRadius: 10)
+            )
+        }
+        .disabled(store.isSummarizing || !isAvailable)
+        .accessibilityLabel(summarizeButtonTitle(hasSummary: hasSummary))
+    }
+
+    private func summarizeButtonTitle(hasSummary: Bool) -> String {
+        if store.isSummarizing { return "要約中..." }
+        return hasSummary ? "再要約する" : "要約する"
     }
 
     // MARK: - Memo Section
