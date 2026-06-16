@@ -95,8 +95,9 @@ jobs:
           if-no-files-found: ignore
 
       # record モード: runner 環境で記録した参照画像をアップロード（→ コミットする）
+      # record では記録時に毎回「失敗」扱いになる（exit 70）ため always() で必ず実行する
       - name: Upload recorded snapshots
-        if: ${{ github.event.inputs.mode == 'record' }}
+        if: ${{ always() && github.event.inputs.mode == 'record' }}
         uses: actions/upload-artifact@v4
         with:
           name: recorded-snapshots
