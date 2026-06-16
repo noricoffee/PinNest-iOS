@@ -7,6 +7,8 @@ name: Visual Regression Tests
 #
 # 注意: スナップショットはピクセル比較のため、参照画像は CI runner と同一環境で
 # 記録したものを基準にする必要がある。初回は mode=record で記録 → コミットすること。
+# シミュレータの iOS ランタイムは runner にインストール済みの最新を動的に使う
+# （識別子をハードコードすると runner のパッチ版差異で "Invalid runtime" になるため）。
 
 on:
   pull_request:
@@ -29,8 +31,6 @@ jobs:
     env:
       SCHEME: pinNest
       DEVICE: iPhone 17 Pro
-      OS: "26.1"
-      TEST_TARGET: pinNestTests/PinCardSnapshotTests
     steps:
       - uses: actions/checkout@v4
 
@@ -42,15 +42,26 @@ jobs:
       - name: Show toolchain
         run: |
           xcodebuild -version
-          xcrun simctl list runtimes | grep -i ios || true
+          xcrun simctl list runtimes
 
-      - name: Ensure simulator exists
+      - name: Prepare simulator
+        id: sim
         run: |
-          if ! xcrun simctl list devices "iOS ${OS}" | grep -q "${DEVICE} ("; then
-            xcrun simctl create "${DEVICE}" \
-              "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro" \
-              "com.apple.CoreSimulator.SimRuntime.iOS-26-1"
+          set -euo pipefail
+          # インストール済み iOS シミュレータランタイム（最新）を識別子で取得
+          RUNTIME=$(xcrun simctl list runtimes \
+            | grep -Eo 'com.apple.CoreSimulator.SimRuntime.iOS-[0-9-]+' \
+            | sort -V | tail -1)
+          echo "Using runtime: $RUNTIME"
+          # 既存の対象デバイスがあれば再利用、無ければ作成（"Pro (" で Max 等を除外）
+          UDID=$(xcrun simctl list devices \
+            | grep "${DEVICE} (" \
+            | grep -Eo '[0-9A-Fa-f-]{36}' | head -1 || true)
+          if [ -z "$UDID" ]; then
+            UDID=$(xcrun simctl create "${DEVICE}" "${DEVICE}" "$RUNTIME")
           fi
+          echo "Simulator UDID: $UDID"
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
 
       - name: Resolve Swift packages
         run: |
@@ -67,8 +78,9 @@ jobs:
           env $RECORD xcodebuild test \
             -project pinNest.xcodeproj \
             -scheme "$SCHEME" \
-            -destination "platform=iOS Simulator,name=${DEVICE},OS=${OS}" \
-            -only-testing:"$TEST_TARGET" \
+            -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" \
+            -only-testing:pinNestTests/PinCardSnapshotTests \
+            -only-testing:pinNestTests/ScreenSnapshotTests \
             -parallel-testing-enabled NO \
             -resultBundlePath TestResults.xcresult
 
