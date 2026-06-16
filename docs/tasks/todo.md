@@ -14,7 +14,16 @@
 - [x] 参照画像を記録（12 枚）し検証パス（要 `__Snapshots__/` をコミット）
 - [x] 比較モードで再実行し全パス確認（決定論性の検証）→ `** TEST SUCCEEDED **`
 - [ ] 対象 View を順次拡大（PinList / History / PinDetail / Settings ※glassEffect 部は要検証）
-- [ ] CI ワークフローにスナップショットテスト実行を追加
+- [x] CI ワークフロー追加（`.github/workflows/vrt.yml`、GitHub-hosted / main への PR）
+- [ ] **【要・手動】初回 CI 参照画像の記録**: Actions から `Visual Regression Tests` を `mode=record` で実行 → `recorded-snapshots` artifact をDL → `__Snapshots__/` を差し替えコミット（hosted runner と描画環境を一致させるため）
+
+## CI 構成（`.github/workflows/vrt.yml`）
+
+- runner: `macos-26` / Xcode 26.1（`maxim-lobanov/setup-xcode`）
+- トリガー: `pull_request`(main) で検証 / `workflow_dispatch`(mode=record) で参照記録
+- 失敗時は `TestResults.xcresult`（reference/取得/差分画像つき）を artifact 化
+- **重要**: ローカル記録の参照画像は hosted runner と描画が異なり初回 PR は失敗する想定。
+  先に `mode=record` で runner 上の画像を記録 → コミットして基準を揃えること。
 
 ## 実行コマンド（確定）
 
