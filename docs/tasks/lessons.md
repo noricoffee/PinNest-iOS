@@ -1,5 +1,29 @@
 # Lessons Learned
 
+## 2026-06-16: ヴィジュアルリグレッションテスト（swift-snapshot-testing）導入
+
+### 固定環境
+- VRT の固定機種は **iPhone 17 Pro / iOS 26.1**（実機 indullのiPhone17pro に一致）。
+  `iPhone 16`（無印）は OS 26.1 のシミュレータにインストールされていない → destination で見つからない。
+- 記録・検証は必ず同一機種・OS で行う。機種/OS が変わるとピクセル差分で全滅する。
+
+### ハマりどころ（重要）
+- **`.sizeThatFits` は `Color + aspectRatio(.fit)` のサムネイルを高さ 0 に潰す。**
+  圧縮フィッティング（layoutFittingCompressedSize）は固有高さの無い View を最小化するため。
+  実機グリッドは親が幅を与え高さを導出する → 再現には **幅固定 + `UIHostingController.sizeThatFits(in: (width, .greatestFiniteMagnitude))` で高さ実測 → `.fixed(width:height:)` で撮る**。
+  （`SnapshotSupport.assertSnapshotInBothColorSchemes` 参照）
+- **`-parallel-testing-enabled NO` 必須。** Swift Testing はデフォルトでシミュレータ Clone を複数並列起動し、
+  共有の `__Snapshots__/` を同時に記録/読込みしてレース（pass/fail が不整合に）。記録・検証とも直列で実行する。
+- **記録モード制御は `SNAPSHOT_TESTING_RECORD` 環境変数**（`missing` = 無い分だけ記録 / `all` = 全上書き）。
+  撮り直し時は古い参照を消した上で `all`、または確実に削除してから `missing`。
+- **バックグラウンドの Bash は cwd がプロジェクトルートと異なることがある** → `xcodebuild -project` も `rm` も**絶対パス**で。
+  特に `rm -rf` は対象が無くてもエラーを出さないので「削除成功」表示を鵜呑みにしない（残数を `find | wc -l` で検証）。
+
+### 検証
+- `assertSnapshot` の `precision: 1.0` / `perceptualPrecision: 0.98`（`.ultraThinMaterial` 等の微差を許容）。
+- 記録 → コミット → 比較モード再実行で全パスを確認、が決定論性の証明。完了の証跡にする。
+- glassEffect を使う floating bar / FAB は非決定論リスクが高いので対象から外し、純粋コンポーネントから着手した。
+
 ## 2026-06-16: オンデバイス要約は CoreML ではなく Foundation Models
 
 ### 学び
