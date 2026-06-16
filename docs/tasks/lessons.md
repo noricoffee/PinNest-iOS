@@ -1,5 +1,30 @@
 # Lessons Learned
 
+## 2026-06-17: VRT の CI 化で 9 回失敗した振り返り（仕様 vs 進め方）
+
+PR #6 マージ(`b3fba25`)以降、CI green(`dc8cc0d`)まで 9 回の修正を要した。原因を分けて分析。
+
+### 仕様（環境）起因 — 避けがたかったもの
+- GitHub-hosted runner に **iOS 26.1 ランタイムが無い**（26.2/26.4/26.5 のみ）。**Apple も 26.1 シムを配布していない**ため後入れ不可 → ローカル(26.1)完全一致は物理的に不可能。
+- **Xcode は自分より新しいランタイムを使えない**（26.1 で 26.5 シム不可）。runner の Xcode/ランタイム組み合わせは固定で選択肢が狭い。
+- **最新 Xcode 26.5 + TCA 1.23.1 が非互換**（`WritableKeyPath … does not conform to Sendable`）。ライブラリ×コンパイラのスキューで事前予測ほぼ不可。
+- スナップショットは Xcode/iOS バージョンで描画が変わる（26.1↔26.2 で 20枚全相違）→ baseline は runner 側で記録するしかない。
+→ 本質的に不可避だったのは「26.5 で TCA が壊れる」「26.1 入手不可」の 2 点のみ。
+
+### AI／進め方起因 — 減らせた失敗（過半数）
+1. **環境調査をせずローカル前提で着手した**（最大の失敗）。最初に「環境を出力するだけの cheap な診断 run」を1本回せば、ランタイム不在→Xcode非互換→TCA崩れ→26.1入手不可の連鎖を1回で把握できた。
+2. **既知の iOS-CI 定番を前倒ししなかった**。`-skipMacroValidation` / ダミー `GoogleService-Info.plist` / `-enableCodeCoverage NO` / record の `TEST_RUNNER_` は「SPMマクロ+Firebase+snapshot 記録を CI で回す」定番要件。最初のドラフトに入れていれば 3〜4 回削れた。
+3. **検証不足による誤診**（最悪の1回）。artifact の存在＋「ローカルと0差分」で成功判定したが、実際はテストが destination エラーで走っていなかっただけ。「runner≠ローカルなら差分が出るはず」という自分の仮説と矛盾する0差分を赤信号にしなかった。
+4. **推測で2回失敗**（record の env を host→`SIMCTL_CHILD_`→`TEST_RUNNER_`）。一次情報を先に確認すれば1回で済んだ。
+5. **仮説の検証順序が非効率**。「iOS 26.1 を入れて一致」を、配布有無を確認せず CI で試した。
+
+### 再発防止（CI・高コストround-trip全般）
+- **偵察ファースト**: 新環境では本実装前に「環境を出力するだけ」の run を1本。教訓「2回失敗→Plan Mode」を CI では**1回目から**適用する。
+- **既知要件のチェックリスト化**: iOS×TCA×Firebase×snapshot CI = `-skipMacroValidation` / ダミー plist / `TEST_RUNNER_SNAPSHOT_TESTING_RECORD` / runner 基準 baseline / record upload は `if: always()`。
+- **「成功」判定を厳格化**: exit コードや成果物の有無ではなく、**意図した処理が実行された証跡**（テスト件数・`Recorded snapshot`・差分の有無）で確認。自分の仮説と矛盾する観測は必ず深掘り。
+- **推測より一次情報**: 未知の機構（env 伝播など）を当て推量で CI に投げない。
+（詳細な技術手順はメモリ `vrt-snapshot-testing.md` 参照）
+
 ## 2026-06-16: ヴィジュアルリグレッションテスト（swift-snapshot-testing）導入
 
 ### 固定環境

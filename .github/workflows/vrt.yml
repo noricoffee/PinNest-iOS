@@ -7,6 +7,8 @@ name: Visual Regression Tests
 #
 # 注意: スナップショットはピクセル比較のため、参照画像は CI runner と同一環境で
 # 記録したものを基準にする必要がある。初回は mode=record で記録 → コミットすること。
+# シミュレータの iOS ランタイムは runner にインストール済みの最新を動的に使う
+# （識別子をハードコードすると runner のパッチ版差異で "Invalid runtime" になるため）。
 
 on:
   pull_request:
@@ -29,28 +31,71 @@ jobs:
     env:
       SCHEME: pinNest
       DEVICE: iPhone 17 Pro
-      OS: "26.1"
-      TEST_TARGET: pinNestTests/PinCardSnapshotTests
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select Xcode 26.1
+      # iOS 26.1 ランタイムは runner に無く(26.2/26.4/26.5 のみ)、Apple も配布していない。
+      # 最新 Xcode(26.5) は TCA 1.23.1 が Sendable エラーで非対応のため、runner にある中で
+      # 最も古い Xcode 26.2 + iOS 26.2 を使う（Swift が緩く TCA がコンパイルできる）。
+      # baseline は runner(26.2) で記録したものを基準にする（ローカル 26.1 とは別）。
+      - name: Select Xcode 26.2
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: "26.1"
+          xcode-version: "26.2"
 
       - name: Show toolchain
         run: |
           xcodebuild -version
-          xcrun simctl list runtimes | grep -i ios || true
+          xcrun simctl list runtimes
 
-      - name: Ensure simulator exists
+      - name: Prepare simulator
+        id: sim
         run: |
-          if ! xcrun simctl list devices "iOS ${OS}" | grep -q "${DEVICE} ("; then
-            xcrun simctl create "${DEVICE}" \
-              "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro" \
-              "com.apple.CoreSimulator.SimRuntime.iOS-26-1"
+          set -euo pipefail
+          # iOS 26.2 ランタイムを優先（無ければインストール済み最新にフォールバック）
+          RUNTIME=$(xcrun simctl list runtimes \
+            | grep -Eo 'com.apple.CoreSimulator.SimRuntime.iOS-26-2' | head -1 || true)
+          if [ -z "$RUNTIME" ]; then
+            RUNTIME=$(xcrun simctl list runtimes \
+              | grep -Eo 'com.apple.CoreSimulator.SimRuntime.iOS-[0-9-]+' \
+              | sort -V | tail -1)
           fi
+          echo "Using runtime: $RUNTIME"
+          # 既存の対象デバイスがあれば再利用、無ければ作成（"Pro (" で Max 等を除外）
+          UDID=$(xcrun simctl list devices \
+            | grep "${DEVICE} (" \
+            | grep -Eo '[0-9A-Fa-f-]{36}' | head -1 || true)
+          if [ -z "$UDID" ]; then
+            UDID=$(xcrun simctl create "${DEVICE}" "${DEVICE}" "$RUNTIME")
+          fi
+          echo "Simulator UDID: $UDID"
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+
+      # GoogleService-Info.plist は秘密情報のため gitignore されており repo に無い。
+      # VRT は Firebase を実行時に使わない（@main の初期化はテスト対象外）ので、
+      # ビルドを通すためのダミーを生成する。
+      - name: Create dummy GoogleService-Info.plist
+        run: |
+          cat > GoogleService-Info.plist <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>API_KEY</key><string>DUMMY_API_KEY</string>
+            <key>GCM_SENDER_ID</key><string>000000000000</string>
+            <key>PLIST_VERSION</key><string>1</string>
+            <key>BUNDLE_ID</key><string>com.noricoffee.pinNest</string>
+            <key>PROJECT_ID</key><string>dummy-project</string>
+            <key>STORAGE_BUCKET</key><string>dummy-project.appspot.com</string>
+            <key>IS_ADS_ENABLED</key><false/>
+            <key>IS_ANALYTICS_ENABLED</key><false/>
+            <key>IS_APPINVITE_ENABLED</key><false/>
+            <key>IS_GCM_ENABLED</key><true/>
+            <key>IS_SIGNIN_ENABLED</key><true/>
+            <key>GOOGLE_APP_ID</key><string>1:000000000000:ios:0000000000000000000000</string>
+          </dict>
+          </plist>
+          PLIST
 
       - name: Resolve Swift packages
         run: |
@@ -62,14 +107,22 @@ jobs:
           set -o pipefail
           RECORD=""
           if [ "${{ github.event.inputs.mode }}" = "record" ]; then
-            RECORD="SNAPSHOT_TESTING_RECORD=all"
+            # TEST_RUNNER_ プレフィックスで xcodebuild test のテストランナープロセスへ
+            # env を渡す（testmanagerd 経由のため host/SIMCTL_CHILD_ では届かない）。
+            # テスト側は SNAPSHOT_TESTING_RECORD=all を受け取り全参照を上書き記録する。
+            RECORD="TEST_RUNNER_SNAPSHOT_TESTING_RECORD=all"
           fi
+          # -skipMacroValidation: SPM の Swift マクロ（TCA 等）の fingerprint 承認を
+          # CI で自動的にスキップする（GUI の "Trust & Enable" 相当）
           env $RECORD xcodebuild test \
             -project pinNest.xcodeproj \
             -scheme "$SCHEME" \
-            -destination "platform=iOS Simulator,name=${DEVICE},OS=${OS}" \
-            -only-testing:"$TEST_TARGET" \
+            -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" \
+            -only-testing:pinNestTests/PinCardSnapshotTests \
+            -only-testing:pinNestTests/ScreenSnapshotTests \
             -parallel-testing-enabled NO \
+            -skipMacroValidation \
+            -enableCodeCoverage NO \
             -resultBundlePath TestResults.xcresult
 
       # 失敗時: 参照/取得/差分画像を含む xcresult をアップロード（レビュー用）
@@ -83,8 +136,9 @@ jobs:
           if-no-files-found: ignore
 
       # record モード: runner 環境で記録した参照画像をアップロード（→ コミットする）
+      # record では記録時に毎回「失敗」扱いになる（exit 70）ため always() で必ず実行する
       - name: Upload recorded snapshots
-        if: ${{ github.event.inputs.mode == 'record' }}
+        if: ${{ always() && github.event.inputs.mode == 'record' }}
         uses: actions/upload-artifact@v4
         with:
           name: recorded-snapshots
