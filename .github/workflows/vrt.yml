@@ -107,7 +107,9 @@ jobs:
           set -o pipefail
           RECORD=""
           if [ "${{ github.event.inputs.mode }}" = "record" ]; then
-            RECORD="SNAPSHOT_TESTING_RECORD=all"
+            # SIMCTL_CHILD_ プレフィックスでシミュレータのテストプロセスへ env を渡す
+            # （ホストの env は simulator の子プロセスに継承されないため）
+            RECORD="SIMCTL_CHILD_SNAPSHOT_TESTING_RECORD=all"
           fi
           # -skipMacroValidation: SPM の Swift マクロ（TCA 等）の fingerprint 承認を
           # CI で自動的にスキップする（GUI の "Trust & Enable" 相当）
