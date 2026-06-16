@@ -34,27 +34,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # runner にインストール済みの iOS シミュレータランタイムは新しめ（例: 26.2/26.4/26.5）
-      # のことがあり、古い Xcode だと「自分より新しいランタイム」を使えず destination 解決に
-      # 失敗する。最新 Xcode を使い、後段で最新ランタイムを選ぶことで整合させる。
-      - name: Select latest Xcode
+      # ローカル記録環境（Xcode 26.1 / iOS 26.1）に一致させる。
+      # 最新 Xcode(26.5) は TCA 1.23.1 がコンパイルできない（Sendable エラー）ため使わない。
+      - name: Select Xcode 26.1
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: latest-stable
+          xcode-version: "26.1"
 
       - name: Show toolchain
         run: |
           xcodebuild -version
           xcrun simctl list runtimes
 
+      # runner には iOS 26.1 ランタイムが無い場合がある（26.2/26.4/26.5 のみ）。
+      # ローカル基準（26.1）に合わせるため明示的にインストールする。
+      - name: Install iOS 26.1 runtime
+        run: |
+          set -euxo pipefail
+          if ! xcrun simctl list runtimes | grep -q "iOS 26.1 "; then
+            sudo xcodes runtimes install "iOS 26.1"
+          fi
+          xcrun simctl list runtimes | grep -i ios
+
       - name: Prepare simulator
         id: sim
         run: |
           set -euo pipefail
-          # インストール済み iOS シミュレータランタイム（最新）を識別子で取得
+          # iOS 26.1 ランタイムを優先（無ければインストール済み最新にフォールバック）
           RUNTIME=$(xcrun simctl list runtimes \
-            | grep -Eo 'com.apple.CoreSimulator.SimRuntime.iOS-[0-9-]+' \
-            | sort -V | tail -1)
+            | grep -Eo 'com.apple.CoreSimulator.SimRuntime.iOS-26-1' | head -1 || true)
+          if [ -z "$RUNTIME" ]; then
+            RUNTIME=$(xcrun simctl list runtimes \
+              | grep -Eo 'com.apple.CoreSimulator.SimRuntime.iOS-[0-9-]+' \
+              | sort -V | tail -1)
+          fi
           echo "Using runtime: $RUNTIME"
           # 既存の対象デバイスがあれば再利用、無ければ作成（"Pro (" で Max 等を除外）
           UDID=$(xcrun simctl list devices \
@@ -88,6 +101,7 @@ jobs:
             -only-testing:pinNestTests/ScreenSnapshotTests \
             -parallel-testing-enabled NO \
             -skipMacroValidation \
+            -enableCodeCoverage NO \
             -resultBundlePath TestResults.xcresult
 
       # 失敗時: 参照/取得/差分画像を含む xcresult をアップロード（レビュー用）
