@@ -1,0 +1,93 @@
+name: Visual Regression Tests
+
+# ヴィジュアルリグレッションテスト（swift-snapshot-testing）
+# - main への PR で検証（pixel 比較）
+# - 手動実行（workflow_dispatch）で mode=record にすると runner 環境で参照画像を
+#   記録し直し、artifact としてアップロードする（→ ダウンロードしてコミットする）
+#
+# 注意: スナップショットはピクセル比較のため、参照画像は CI runner と同一環境で
+# 記録したものを基準にする必要がある。初回は mode=record で記録 → コミットすること。
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "verify（検証）か record（参照画像を記録）"
+        type: choice
+        options: [verify, record]
+        default: verify
+
+concurrency:
+  group: vrt-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  snapshot:
+    runs-on: macos-26
+    env:
+      SCHEME: pinNest
+      DEVICE: iPhone 17 Pro
+      OS: "26.1"
+      TEST_TARGET: pinNestTests/PinCardSnapshotTests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 26.1
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "26.1"
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          xcrun simctl list runtimes | grep -i ios || true
+
+      - name: Ensure simulator exists
+        run: |
+          if ! xcrun simctl list devices "iOS ${OS}" | grep -q "${DEVICE} ("; then
+            xcrun simctl create "${DEVICE}" \
+              "com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro" \
+              "com.apple.CoreSimulator.SimRuntime.iOS-26-1"
+          fi
+
+      - name: Resolve Swift packages
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project pinNest.xcodeproj -scheme "$SCHEME"
+
+      - name: Run snapshot tests
+        run: |
+          set -o pipefail
+          RECORD=""
+          if [ "${{ github.event.inputs.mode }}" = "record" ]; then
+            RECORD="SNAPSHOT_TESTING_RECORD=all"
+          fi
+          env $RECORD xcodebuild test \
+            -project pinNest.xcodeproj \
+            -scheme "$SCHEME" \
+            -destination "platform=iOS Simulator,name=${DEVICE},OS=${OS}" \
+            -only-testing:"$TEST_TARGET" \
+            -parallel-testing-enabled NO \
+            -resultBundlePath TestResults.xcresult
+
+      # 失敗時: 参照/取得/差分画像を含む xcresult をアップロード（レビュー用）
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vrt-xcresult
+          path: TestResults.xcresult
+          retention-days: 14
+          if-no-files-found: ignore
+
+      # record モード: runner 環境で記録した参照画像をアップロード（→ コミットする）
+      - name: Upload recorded snapshots
+        if: ${{ github.event.inputs.mode == 'record' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: recorded-snapshots
+          path: pinNestTests/Snapshot/__Snapshots__/
+          retention-days: 14
+          if-no-files-found: warn

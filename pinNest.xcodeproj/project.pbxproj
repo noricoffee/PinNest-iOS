@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		AB0A000000000000000000A1 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = AB0B000000000000000000A1 /* ComposableArchitecture */; };
+		AB6111912FE180BB0047E667 /* InlineSnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = AB6111902FE180BB0047E667 /* InlineSnapshotTesting */; };
+		AB6111932FE180BB0047E667 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = AB6111922FE180BB0047E667 /* SnapshotTesting */; };
+		AB6111952FE180BB0047E667 /* SnapshotTestingCustomDump in Frameworks */ = {isa = PBXBuildFile; productRef = AB6111942FE180BB0047E667 /* SnapshotTestingCustomDump */; };
 		ABEB28FF2F46097600A1FF9E /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = ABEB28FE2F46097600A1FF9E /* ComposableArchitecture */; };
 		ABEB2B9E2F4DF20100A1FF9E /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = ABEB2B9D2F4DF20100A1FF9E /* FirebaseAnalytics */; };
 		ABEB2BA02F4DF20100A1FF9E /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = ABEB2B9F2F4DF20100A1FF9E /* FirebaseCrashlytics */; };
@@ -124,6 +127,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AB6111952FE180BB0047E667 /* SnapshotTestingCustomDump in Frameworks */,
+				AB6111932FE180BB0047E667 /* SnapshotTesting in Frameworks */,
+				AB6111912FE180BB0047E667 /* InlineSnapshotTesting in Frameworks */,
 				AB0A000000000000000000A1 /* ComposableArchitecture in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -203,6 +209,9 @@
 			name = pinNestTests;
 			packageProductDependencies = (
 				AB0B000000000000000000A1 /* ComposableArchitecture */,
+				AB6111902FE180BB0047E667 /* InlineSnapshotTesting */,
+				AB6111922FE180BB0047E667 /* SnapshotTesting */,
+				AB6111942FE180BB0047E667 /* SnapshotTestingCustomDump */,
 			);
 			productName = pinNestTests;
 			productReference = AB05000000000000000000A1 /* pinNestTests.xctest */;
@@ -294,6 +303,7 @@
 			packageReferences = (
 				ABEB28FD2F46097600A1FF9E /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 				ABEB2B9C2F4DF20100A1FF9E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				AB61118F2FE180BB0047E667 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = ABEB28D92F4600A300A1FF9E /* Products */;
@@ -712,6 +722,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		AB61118F2FE180BB0047E667 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-snapshot-testing";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.19.2;
+			};
+		};
 		ABEB28FD2F46097600A1FF9E /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture.git";
@@ -735,6 +753,21 @@
 			isa = XCSwiftPackageProductDependency;
 			package = ABEB28FD2F46097600A1FF9E /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
 			productName = ComposableArchitecture;
+		};
+		AB6111902FE180BB0047E667 /* InlineSnapshotTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AB61118F2FE180BB0047E667 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = InlineSnapshotTesting;
+		};
+		AB6111922FE180BB0047E667 /* SnapshotTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AB61118F2FE180BB0047E667 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = SnapshotTesting;
+		};
+		AB6111942FE180BB0047E667 /* SnapshotTestingCustomDump */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AB61118F2FE180BB0047E667 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = SnapshotTestingCustomDump;
 		};
 		ABEB28FE2F46097600A1FF9E /* ComposableArchitecture */ = {
 			isa = XCSwiftPackageProductDependency;
