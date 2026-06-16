@@ -78,6 +78,8 @@ jobs:
           if [ "${{ github.event.inputs.mode }}" = "record" ]; then
             RECORD="SNAPSHOT_TESTING_RECORD=all"
           fi
+          # -skipMacroValidation: SPM の Swift マクロ（TCA 等）の fingerprint 承認を
+          # CI で自動的にスキップする（GUI の "Trust & Enable" 相当）
           env $RECORD xcodebuild test \
             -project pinNest.xcodeproj \
             -scheme "$SCHEME" \
@@ -85,6 +87,7 @@ jobs:
             -only-testing:pinNestTests/PinCardSnapshotTests \
             -only-testing:pinNestTests/ScreenSnapshotTests \
             -parallel-testing-enabled NO \
+            -skipMacroValidation \
             -resultBundlePath TestResults.xcresult
 
       # 失敗時: 参照/取得/差分画像を含む xcresult をアップロード（レビュー用）
