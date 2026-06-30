@@ -47,6 +47,8 @@ struct HistoryView: View {
                 }
                 .padding(.bottom, 104)
             }
+            // 初期表示は一番下（最新の日時）にスクロールする
+            .defaultScrollAnchor(.bottom)
             .scrollIndicators(.hidden)
             .navigationTitle("履歴")
             .navigationBarTitleDisplayMode(.large)
