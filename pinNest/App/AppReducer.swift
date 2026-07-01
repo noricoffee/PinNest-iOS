@@ -205,7 +205,7 @@ struct AppReducer {
     /// state.pinList.detail を直接 nil にせず .dismiss を送ることで
     /// ifLet の「presented action when state absent」警告を回避する
     private func openEditSheet(
-        pin: Pin,
+        pin: PinSnapshot,
         dismissEffect: Effect<Action>,
         state: inout State
     ) -> Effect<Action> {

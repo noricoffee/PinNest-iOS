@@ -68,3 +68,22 @@ xcodebuild test \
 - サムネイルは filePath = nil でプレースホルダー分岐 → ディスク依存なし
 - `.ultraThinMaterial`（blur）は perceptualPrecision 0.98 で許容
 - glassEffect を使う floating bar / FAB は非決定論リスクが高いため後回し
+
+---
+
+## レビュー: PinSnapshot 導入（@Model の actor 跨ぎ撲滅） — 2026-07-01
+
+### 実施内容
+- [x] `PinSnapshot`（Sendable 値型・`init(from: Pin)` 付き）を `PinClient.swift` に追加
+- [x] `PinDataStore.fetchAll`/`search` を actor 内で `.map(PinSnapshot.init(from:))` に変換して `[PinSnapshot]` を返す
+- [x] `PinClient.fetchAll`/`search` シグネチャを `[PinSnapshot]` に更新
+- [x] 全 Reducer（PinList/History/Search/PinDetail/PinContextMenu/PinCreate）と AppReducer の `pins`/`pin`/Action ペイロードを `PinSnapshot` 化
+- [x] 各 State の独自 `static func ==` を撤去し合成 Equatable に（id 比較のみによる「編集非反映」バグも同時解消）
+- [x] View 群（PinCardView/HistoryView/SearchView）の型注釈を更新（プロパティは全て PinSnapshot に存在するため本体は無変更）
+- [x] PinDetail の `isBeingDeleted` workaround（Reducer フラグ＋View 分岐）を撤去
+- [x] テスト・SnapshotSupport の `Pin(...)` 生成を `PinSnapshot(...)` に置換
+- [x] 全変更ファイルの `swiftc -parse` 構文検証（全 pass）
+
+### 検証状況
+- ローカルは Xcode 27.0 beta のみで、TCA 1.23.1 / swift-sharing 2.7.4 がこのコンパイラで型チェック不能（依存側の既知非互換）。
+- **未達（要 Xcode 26.2 / CI）**: 型チェック・`xcodebuild test`・`-com.apple.CoreData.ConcurrencyDebug 1` 起動での並行アクセス違反ゼロ確認。

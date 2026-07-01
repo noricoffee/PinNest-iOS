@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 
 struct PinCardView: View {
-    let pin: Pin
+    let pin: PinSnapshot
     var onFavoriteTapped: () -> Void = {}
 
     var body: some View {

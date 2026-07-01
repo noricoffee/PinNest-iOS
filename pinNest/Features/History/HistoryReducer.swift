@@ -8,18 +8,11 @@ struct HistoryReducer {
 
     @ObservableState
     struct State: Equatable {
-        var pins: [Pin] = []
+        var pins: [PinSnapshot] = []
         var isLoading: Bool = false
         var errorMessage: String? = nil
         @Presents var detail: PinDetailReducer.State? = nil
         var contextMenu: PinContextMenuReducer.State = .init()
-
-        static func == (lhs: State, rhs: State) -> Bool {
-            lhs.pins.map(\.id) == rhs.pins.map(\.id) &&
-            lhs.isLoading == rhs.isLoading &&
-            lhs.detail == rhs.detail &&
-            lhs.contextMenu == rhs.contextMenu
-        }
     }
 
     // MARK: - Action
@@ -27,8 +20,8 @@ struct HistoryReducer {
     enum Action {
         case onAppear
         case refresh
-        case pinsResponse(Result<[Pin], Error>)
-        case pinTapped(Pin)
+        case pinsResponse(Result<[PinSnapshot], Error>)
+        case pinTapped(PinSnapshot)
         case errorAlertDismissed
         case detail(PresentationAction<PinDetailReducer.Action>)
         case contextMenu(PinContextMenuReducer.Action)

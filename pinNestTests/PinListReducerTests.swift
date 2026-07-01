@@ -10,13 +10,13 @@ struct PinListReducerTests {
 
     @Test("初回 onAppear でピンを取得する")
     func onAppear_fetchesPinsWhenEmpty() async {
-        let pin1 = Pin(
+        let pin1 = PinSnapshot(
             id: UUID(),
             contentType: .url,
             title: "Newer Pin",
             createdAt: Date(timeIntervalSince1970: 2000)
         )
-        let pin2 = Pin(
+        let pin2 = PinSnapshot(
             id: UUID(),
             contentType: .text,
             title: "Older Pin",
@@ -44,7 +44,7 @@ struct PinListReducerTests {
 
     @Test("ピンがある場合の onAppear は何もしない")
     func onAppear_skipsWhenPinsAlreadyLoaded() async {
-        let pin = Pin(contentType: .url, title: "Existing")
+        let pin = PinSnapshot(contentType: .url, title: "Existing")
         var initial = PinListReducer.State()
         initial.pins = [pin]
 
@@ -59,7 +59,7 @@ struct PinListReducerTests {
 
     @Test("refresh は常にピンを再取得する")
     func refresh_fetchesPins() async {
-        let pin = Pin(id: UUID(), contentType: .text, title: "Refreshed")
+        let pin = PinSnapshot(id: UUID(), contentType: .text, title: "Refreshed")
 
         let store = TestStore(initialState: PinListReducer.State()) {
             PinListReducer()
@@ -102,8 +102,8 @@ struct PinListReducerTests {
 
     @Test("filteredPins はフィルター条件で絞り込む")
     func filteredPins_filtersByContentType() {
-        let urlPin = Pin(id: UUID(), contentType: .url, title: "URL Pin")
-        let textPin = Pin(id: UUID(), contentType: .text, title: "Text Pin")
+        let urlPin = PinSnapshot(id: UUID(), contentType: .url, title: "URL Pin")
+        let textPin = PinSnapshot(id: UUID(), contentType: .text, title: "Text Pin")
         var state = PinListReducer.State()
         state.pins = [urlPin, textPin]
 
@@ -139,13 +139,13 @@ struct PinListReducerTests {
 
     @Test("pinsResponse で新しい順に並び替えられる")
     func pinsResponse_sortsByCreatedAtDescending() async {
-        let older = Pin(
+        let older = PinSnapshot(
             id: UUID(),
             contentType: .url,
             title: "Older",
             createdAt: Date(timeIntervalSince1970: 1000)
         )
-        let newer = Pin(
+        let newer = PinSnapshot(
             id: UUID(),
             contentType: .url,
             title: "Newer",
@@ -176,7 +176,7 @@ struct PinListReducerTests {
 
     @Test("pinTapped で詳細が表示される")
     func pinTapped_setsDetailState() async {
-        let pin = Pin(id: UUID(), contentType: .url, title: "Test Pin", urlString: "https://example.com")
+        let pin = PinSnapshot(id: UUID(), contentType: .url, title: "Test Pin", urlString: "https://example.com")
         var initial = PinListReducer.State()
         initial.pins = [pin]
 
