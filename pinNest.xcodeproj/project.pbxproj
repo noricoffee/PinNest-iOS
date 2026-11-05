@@ -743,7 +743,7 @@
 			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.23.1;
+				minimumVersion = 1.26.2;
 			};
 		};
 		ABEB2B9C2F4DF20100A1FF9E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
