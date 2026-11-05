@@ -14,7 +14,9 @@ TCA 1.26.2 への更新で Xcode 27.2 でもビルド可能になった。以下
 
 ## CI の Xcode 27.2 移行 — 残作業
 
-- [ ] VRT の参照画像を `mode=record` で再記録し、差分を目視確認してコミット（`gh workflow run vrt.yml --ref <branch> -f mode=record`）
+- [x] VRT の参照画像を `mode=record` で再記録し、差分を目視確認してコミット
+- [ ] `mode=verify` で新しい参照画像と一致することを確認
+- [ ] 履歴画面の表示位置が上に移動した原因を確認（iOS 27.2 で記録した参照画像で発覚。崩れはない）
 
 ## バックログ（優先度低）
 
