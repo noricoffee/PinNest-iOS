@@ -9,12 +9,12 @@
 
 | 環境 | 機種 / OS | 用途 |
 |------|-----------|------|
-| ローカル | iPhone 17 Pro / iOS 26.1 | 開発時の記録・検証 |
-| CI（GitHub-hosted） | `macos-26` / Xcode 26.2 / iOS 26.2 / iPhone 17 Pro | PR ゲート |
+| ローカル | Xcode 27.2 / iOS 27.2 / iPhone 17 Pro | 開発時の検証 |
+| CI（GitHub-hosted） | `xcode-27` / Xcode 27.2 / iOS 27.2 / iPhone 17 Pro | PR ゲート・参照画像の記録 |
 
 - 記録と検証は**同一機種・同一 OS** で行うこと（バージョンが違うと描画が変わり全滅する）
-- 参照画像は **runner(26.2) 基準**。ローカル 26.1 とは別物として扱う
-- iPhone 16 無印は OS 26.1 シミュレータ未インストールのため不可
+- 参照画像は **runner 基準**。ローカルで不一致になる場合は CI の結果を正とする
+- iPhone 17 Pro の iOS 27.2 シミュレータは自動では作られないため、`xcrun simctl create "iPhone 17 Pro" "iPhone 17 Pro" com.apple.CoreSimulator.SimRuntime.iOS-27-2` で作成する（CI も同様）
 
 ## CI 構成（`.github/workflows/vrt.yml`）
 
@@ -32,7 +32,7 @@
 ```
 SNAPSHOT_TESTING_RECORD=all xcodebuild test \
   -project /ABS/PATH/pinNest.xcodeproj -scheme pinNest \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.1' \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=27.2' \
   -only-testing:pinNestTests/PinCardSnapshotTests -parallel-testing-enabled NO
 ```
 
@@ -41,7 +41,7 @@ SNAPSHOT_TESTING_RECORD=all xcodebuild test \
 ```
 xcodebuild test \
   -project /ABS/PATH/pinNest.xcodeproj -scheme pinNest \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.1' \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=27.2' \
   -only-testing:pinNestTests/PinCardSnapshotTests -parallel-testing-enabled NO
 ```
 

@@ -7,10 +7,14 @@
 ## PinSnapshot リファクタ — 残検証（2026-07-01 実装完了）
 
 実装は完了済み（詳細は [lessons.md](./lessons.md) 2026-07-01 の項）。
-ローカルが Xcode 27.0 beta のみで TCA 1.23.1 が型チェック不能なため、以下が未達:
+TCA 1.26.2 への更新で Xcode 27.2 でもビルド可能になった。以下が未達:
 
-- [ ] Xcode 26.2（CI またはローカル）での型チェック・`xcodebuild test` パス確認
+- [ ] CI（Xcode 27.2）での `xcodebuild test` パス確認
 - [ ] `-com.apple.CoreData.ConcurrencyDebug 1` 起動で並行アクセス違反ゼロを確認
+
+## CI の Xcode 27.2 移行 — 残作業
+
+- [ ] VRT の参照画像を `mode=record` で再記録し、差分を目視確認してコミット（`gh workflow run vrt.yml --ref <branch> -f mode=record`）
 
 ## バックログ（優先度低）
 

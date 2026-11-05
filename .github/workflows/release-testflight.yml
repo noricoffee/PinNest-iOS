@@ -24,19 +24,18 @@ concurrency:
 jobs:
   upload:
     name: Archive & upload to App Store Connect
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 60
     env:
       SCHEME: pinNest
     steps:
       - uses: actions/checkout@v4
 
-      # deployment target が iOS 26.1 で、かつ TCA 1.23.1 は最新 Xcode(26.5) の Swift で
-      # Sendable エラーになるため、vrt.yml と同じく 26.2 に固定する（緩い Swift でコンパイル可能）。
-      - name: Select Xcode 26.2
+      # vrt.yml と同じ Xcode に固定する。
+      - name: Select Xcode 27.2
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: "26.2"
+          xcode-version: "27.2"
 
       - name: Show toolchain
         run: xcodebuild -version
