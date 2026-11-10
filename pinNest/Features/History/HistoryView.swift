@@ -10,13 +10,13 @@ struct HistoryView: View {
 
     private let timelineColumnWidth: CGFloat = 20
 
-    private var groupedPins: [(dateLabel: String, date: Date, pins: [Pin])] {
+    private var groupedPins: [(dateLabel: String, date: Date, pins: [PinSnapshot])] {
         let cal = Calendar.current
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ja_JP")
         formatter.dateFormat = "M月d日"
 
-        var groups: [(dateLabel: String, date: Date, pins: [Pin])] = []
+        var groups: [(dateLabel: String, date: Date, pins: [PinSnapshot])] = []
         for pin in store.pins {
             let day = cal.startOfDay(for: pin.createdAt)
             if let idx = groups.firstIndex(where: { cal.isDate($0.date, inSameDayAs: day) }) {
@@ -47,6 +47,8 @@ struct HistoryView: View {
                 }
                 .padding(.bottom, 104)
             }
+            // 初期表示は一番下（最新の日時）にスクロールする
+            .defaultScrollAnchor(.bottom)
             .scrollIndicators(.hidden)
             .navigationTitle("履歴")
             .navigationBarTitleDisplayMode(.large)
@@ -196,7 +198,7 @@ private struct DateSectionHeader: View {
 // MARK: - HistoryRowView
 
 private struct HistoryRowView: View {
-    let pin: Pin
+    let pin: PinSnapshot
     let showBottomLine: Bool
     let timelineColumnWidth: CGFloat
     let onTap: () -> Void
@@ -242,7 +244,7 @@ private struct HistoryRowView: View {
 // MARK: - HistoryRowCard
 
 private struct HistoryRowCard: View {
-    let pin: Pin
+    let pin: PinSnapshot
 
     private var timeString: String {
         let f = DateFormatter()
@@ -279,7 +281,7 @@ private struct HistoryRowCard: View {
 // MARK: - ThumbnailSquare
 
 private struct ThumbnailSquare: View {
-    let pin: Pin
+    let pin: PinSnapshot
 
     var body: some View {
         switch pin.contentType {
