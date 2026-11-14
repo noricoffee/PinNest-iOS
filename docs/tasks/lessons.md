@@ -1,5 +1,29 @@
 # Lessons Learned
 
+## 2026-07-01: `@Model` を actor 境界の外へ出さない（read も値型スナップショットに変換）
+
+### 症状
+- 実機で「同じアイテムが2個表示」「他アイテムの取り違え」「メタデータ更新経路での上書き破損」。再現性が低く、目視での検出が困難。
+
+### 根本原因
+- SwiftData の `@Model` クラス `Pin` を `@ModelActor`（`PinDataStore`）の `fetchAll`/`search` からそのまま `[Pin]`（参照型）で返し、メインスレッドの View/Reducer が `pin.title` 等を読んでいた。
+- `ModelContext`・`@Model` はスレッドセーフでないため、actor 外からのプロパティ読み取りはデータ競合＝未定義動作。`Pin: @unchecked Sendable` がコンパイラの保護を握り潰して問題を隠していた。
+- create は `NewPin`、tag は `TagItem` で値型変換済みだったのに、**read 系だけが境界を破っていた**のが穴。
+
+### 修正
+- read 用の `Sendable` 値型 `PinSnapshot` を追加し、`PinDataStore` 内で `.map(PinSnapshot.init(from:))` して返す（変換は必ず actor 内）。
+- 各 State の `pins`/`pin`／Action ペイロード／View の型注釈を `PinSnapshot` に置換。局所更新する `isFavorite`/`filePath`/`summary` のみ `var`（値型なので再代入しても他コピーを汚染しない）。
+- 副産物: 各 State の独自 `static func ==`（id だけ比較 → 編集が反映されない別バグの温床）を撤去し合成 Equatable に戻せた。PinDetail の削除中クラッシュ回避 workaround（`isBeingDeleted` フラグ＋View の分岐）も、値型は detach/faulting しないため丸ごと不要化できた。
+
+### ルール化
+- **`@ModelActor` の外へ `@Model` を出さない。read（fetch/search）も境界で `Sendable` struct に変換する。** State/Action/View に `@Model` 参照を持たせない。
+- **`@unchecked Sendable` を見たら疑う** — コンパイラの並行性チェックを無効化しており、actor 跨ぎの罠を隠している可能性がある。
+- **検証**: 並行アクセスバグは `-com.apple.CoreData.ConcurrencyDebug 1` 起動での違反有無を主たる証跡にする（目視は再現性が低く不十分）。
+
+### 環境メモ（このセッションで完全ビルド未達）
+- ローカルに Xcode **27.0 beta** しか無く、TCA 1.23.1 / swift-sharing 2.7.4 がこのコンパイラで型チェックに失敗（`cannot access member type 'Default' on opaque type`）。これは 2026-06-17 の教訓「最新 Xcode で TCA が壊れる」の再来。
+- そのため全変更ファイルを `swiftc -parse` で構文検証（全 pass）＋コードレビューまで実施。**型チェック・テスト・ConcurrencyDebug 起動は CI（Xcode 26.2）または 26.2 ローカルで要実施**。
+
 ## 2026-06-17: VRT の CI 化で 9 回失敗した振り返り（仕様 vs 進め方）
 
 PR #6 マージ(`b3fba25`)以降、CI green(`dc8cc0d`)まで 9 回の修正を要した。原因を分けて分析。

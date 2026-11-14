@@ -220,7 +220,7 @@ struct PinCreateReducerTests {
 
     @Test("編集モードで保存すると PinClient.update が呼ばれる")
     func saveButtonTapped_editMode_callsUpdate() async {
-        let existingPin = Pin(
+        let existingPin = PinSnapshot(
             id: UUID(),
             contentType: .text,
             title: "Old Title",

@@ -11,7 +11,7 @@ struct PinCreateReducer {
 
     enum Mode: Equatable {
         case create
-        case edit(Pin)
+        case edit(PinSnapshot)
 
         static func == (lhs: Mode, rhs: Mode) -> Bool {
             switch (lhs, rhs) {
@@ -285,7 +285,7 @@ struct PinCreateReducer {
         }
     }
 
-    private static func editEffect(existing: Pin, state: State) -> Effect<Action> {
+    private static func editEffect(existing: PinSnapshot, state: State) -> Effect<Action> {
         let id = existing.id
         let isFavorite = existing.isFavorite
         let filePath = existing.filePath

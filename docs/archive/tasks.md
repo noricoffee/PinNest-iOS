@@ -1,6 +1,6 @@
 # pinNest タスク一覧
 
-要件定義は [requirements.md](./requirements.md) を参照してください。
+要件定義は [requirements.md](../requirements.md) を参照してください。
 
 ## 凡例
 

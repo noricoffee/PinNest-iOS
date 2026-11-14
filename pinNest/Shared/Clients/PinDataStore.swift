@@ -12,11 +12,12 @@ actor PinDataStore {
 
     // MARK: - Fetch
 
-    func fetchAll() throws -> [Pin] {
+    func fetchAll() throws -> [PinSnapshot] {
         let descriptor = FetchDescriptor<Pin>(
             sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
         )
-        return try modelContext.fetch(descriptor)
+        // @Model の Pin を actor 外へ出さず、境界で値型スナップショットに変換する
+        return try modelContext.fetch(descriptor).map(PinSnapshot.init(from:))
     }
 
     // MARK: - Create
@@ -110,7 +111,7 @@ actor PinDataStore {
 
     /// キーワード・タグ・ソート順でピンを絞り込む。
     /// SwiftData #Predicate のオプショナル制限を回避するため、全件取得後にメモリフィルターする。
-    func search(keyword: String, tagIds: Set<UUID>, sortOrder: PinSortOrder) throws -> [Pin] {
+    func search(keyword: String, tagIds: Set<UUID>, sortOrder: PinSortOrder) throws -> [PinSnapshot] {
         let order: Foundation.SortOrder = sortOrder == .newestFirst ? .reverse : .forward
         let descriptor = FetchDescriptor<Pin>(
             sortBy: [SortDescriptor(\.createdAt, order: order)]
@@ -136,7 +137,8 @@ actor PinDataStore {
             }
         }
 
-        return pins
+        // @Model の Pin を actor 外へ出さず、境界で値型スナップショットに変換する
+        return pins.map(PinSnapshot.init(from:))
     }
 
     // MARK: - Tag CRUD

@@ -171,7 +171,7 @@ struct SearchView: View {
         }
     }
 
-    private func columnView(pins: [Pin]) -> some View {
+    private func columnView(pins: [PinSnapshot]) -> some View {
         LazyVStack(spacing: 12) {
             ForEach(pins, id: \.id) { pin in
                 Button {
@@ -194,8 +194,8 @@ struct SearchView: View {
         }
     }
 
-    private func splitIntoColumns(_ pins: [Pin], count: Int) -> [[Pin]] {
-        var result = Array(repeating: [Pin](), count: count)
+    private func splitIntoColumns(_ pins: [PinSnapshot], count: Int) -> [[PinSnapshot]] {
+        var result = Array(repeating: [PinSnapshot](), count: count)
         for (index, pin) in pins.enumerated() {
             result[index % count].append(pin)
         }

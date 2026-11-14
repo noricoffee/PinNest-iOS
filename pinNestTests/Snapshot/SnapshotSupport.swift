@@ -7,7 +7,7 @@ import UIKit
 
 /// ヴィジュアルリグレッションテストの共通パラメータ。
 /// 決定論性を保つため、機種・OS をシミュレータで固定して記録・検証する想定。
-/// （固定ターゲット: iPhone 16 / iOS 26.1）
+/// （固定ターゲット: iPhone 17 Pro / iOS 27.2）
 @MainActor
 enum SnapshotConfig {
     /// ピクセル一致率。1.0 = 完全一致。
@@ -91,8 +91,8 @@ func makeSnapshotPin(
     memo: String = "",
     isFavorite: Bool = false,
     createdAt: Date = Date(timeIntervalSince1970: 1_700_000_000)
-) -> Pin {
-    Pin(
+) -> PinSnapshot {
+    PinSnapshot(
         id: id,
         contentType: contentType,
         title: title,
@@ -112,7 +112,7 @@ func snapshotUUID(_ n: Int) -> UUID {
 
 /// リスト/タイムライン用のサンプル Pin 群（タイプ・日付・お気に入りを混在）。
 @MainActor
-func makeSnapshotPins() -> [Pin] {
+func makeSnapshotPins() -> [PinSnapshot] {
     let base = Date(timeIntervalSince1970: 1_700_000_000)
     let day: TimeInterval = 86_400
     return [

@@ -8,36 +8,15 @@ struct PinDetailReducer {
 
     @ObservableState
     struct State: Equatable {
-        var pin: Pin
+        var pin: PinSnapshot
         var isDeleteAlertPresented: Bool = false
         var isFavoriteLoading: Bool = false
         var isRefreshingMetadata: Bool = false
         var isSummarizing: Bool = false
         var summarizeAvailability: SummarizationAvailability = .available
-        /// 削除処理中フラグ。true になった後は pin プロパティにアクセスしない
-        var isBeingDeleted: Bool = false
         var pinTags: [TagItem] = []
         var allTags: [TagItem] = []
         @Presents var tagPicker: TagPickerReducer.State? = nil
-
-        static func == (lhs: State, rhs: State) -> Bool {
-            // 削除処理中は pin プロパティへのアクセスをスキップ
-            guard !lhs.isBeingDeleted, !rhs.isBeingDeleted else {
-                return lhs.isBeingDeleted == rhs.isBeingDeleted
-            }
-            return lhs.pin.id == rhs.pin.id &&
-            lhs.pin.isFavorite == rhs.pin.isFavorite &&
-            lhs.pin.filePath == rhs.pin.filePath &&
-            lhs.pin.summary == rhs.pin.summary &&
-            lhs.isDeleteAlertPresented == rhs.isDeleteAlertPresented &&
-            lhs.isFavoriteLoading == rhs.isFavoriteLoading &&
-            lhs.isRefreshingMetadata == rhs.isRefreshingMetadata &&
-            lhs.isSummarizing == rhs.isSummarizing &&
-            lhs.summarizeAvailability == rhs.summarizeAvailability &&
-            lhs.pinTags == rhs.pinTags &&
-            lhs.allTags == rhs.allTags &&
-            lhs.tagPicker == rhs.tagPicker
-        }
     }
 
     // MARK: - Action
@@ -118,9 +97,6 @@ struct PinDetailReducer {
                 return .none
 
             case .deleteConfirmed:
-                // 同期処理でフラグを立て、View が pin プロパティにアクセスしないようにする。
-                // deleteResponse が届くまでの間に SwiftData の変更通知で View が再描画されても安全。
-                state.isBeingDeleted = true
                 hapticClient.notification(.warning)
                 let id = state.pin.id
                 return .run { send in
@@ -131,8 +107,6 @@ struct PinDetailReducer {
 
             case .deleteResponse(.success):
                 analyticsClient.logEvent(.pinDeleted)
-                // SwiftData が Pin を detach する前に即座に dismiss する。
-                // dismiss を遅らせると View が再描画時に pin.contentType 等にアクセスしクラッシュする。
                 return .run { _ in await dismiss() }
 
             case let .deleteResponse(.failure(error)):

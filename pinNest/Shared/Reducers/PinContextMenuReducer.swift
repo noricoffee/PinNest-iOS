@@ -13,37 +13,28 @@ struct PinContextMenuReducer {
 
     @ObservableState
     struct State: Equatable {
-        var pinToDelete: Pin? = nil
+        var pinToDelete: PinSnapshot? = nil
         var isDeleteAlertPresented: Bool = false
         var tagPinId: UUID? = nil
         @Presents var tagPicker: TagPickerReducer.State? = nil
         var shareItems: [String] = []
         var isShareSheetPresented: Bool = false
-
-        static func == (lhs: State, rhs: State) -> Bool {
-            lhs.pinToDelete?.id == rhs.pinToDelete?.id &&
-            lhs.isDeleteAlertPresented == rhs.isDeleteAlertPresented &&
-            lhs.tagPinId == rhs.tagPinId &&
-            lhs.tagPicker == rhs.tagPicker &&
-            lhs.shareItems == rhs.shareItems &&
-            lhs.isShareSheetPresented == rhs.isShareSheetPresented
-        }
     }
 
     // MARK: - Action
 
     enum Action {
-        case deleteTapped(Pin)
+        case deleteTapped(PinSnapshot)
         case deleteAlertDismissed
         case deleteConfirmed
         case deleteResponse(Result<Void, Error>)
-        case addTagTapped(Pin)
+        case addTagTapped(PinSnapshot)
         case tagsLoaded(Result<([TagItem], [TagItem]), Error>)
         case tagPicker(PresentationAction<TagPickerReducer.Action>)
-        case openLinkTapped(Pin)
-        case copyLinkTapped(Pin)
-        case copyBodyTapped(Pin)
-        case shareTapped(Pin)
+        case openLinkTapped(PinSnapshot)
+        case copyLinkTapped(PinSnapshot)
+        case copyBodyTapped(PinSnapshot)
+        case shareTapped(PinSnapshot)
         case shareSheetDismissed
     }
 

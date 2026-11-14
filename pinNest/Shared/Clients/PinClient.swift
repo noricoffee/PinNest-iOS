@@ -30,6 +30,69 @@ struct TagItem: Identifiable, Equatable, Hashable, Sendable {
     static let favorite = TagItem(id: favoriteID, name: "お気に入り")
 }
 
+// MARK: - PinSnapshot (value type for read)
+
+/// @Model の Pin をアクター境界を越えて渡せないため、
+/// read 時（fetchAll / search）は @ModelActor 内で値型スナップショットに変換して返す。
+/// これにより View / Reducer から @Model プロパティを別スレッドで読むデータ競合を防ぐ。
+/// - Note: `isFavorite` / `filePath` / `summary` は各 Reducer で局所更新するため `var`。
+///   値型なので再代入しても他のコピーを汚染しない。
+struct PinSnapshot: Identifiable, Equatable, Hashable, Sendable {
+    let id: UUID
+    let contentType: ContentType
+    let title: String
+    let memo: String
+    let createdAt: Date
+    var isFavorite: Bool
+    let urlString: String?
+    var filePath: String?
+    let bodyText: String?
+    var summary: String?
+
+    init(
+        id: UUID = UUID(),
+        contentType: ContentType,
+        title: String,
+        memo: String = "",
+        createdAt: Date = Date(),
+        isFavorite: Bool = false,
+        urlString: String? = nil,
+        filePath: String? = nil,
+        bodyText: String? = nil,
+        summary: String? = nil
+    ) {
+        self.id = id
+        self.contentType = contentType
+        self.title = title
+        self.memo = memo
+        self.createdAt = createdAt
+        self.isFavorite = isFavorite
+        self.urlString = urlString
+        self.filePath = filePath
+        self.bodyText = bodyText
+        self.summary = summary
+    }
+
+    /// @ModelActor 内でのみ呼び出すこと（Pin のプロパティ読み取りが actor スレッドで起きる必要がある）。
+    init(from pin: Pin) {
+        self.id = pin.id
+        self.contentType = pin.contentType
+        self.title = pin.title
+        self.memo = pin.memo
+        self.createdAt = pin.createdAt
+        self.isFavorite = pin.isFavorite
+        self.urlString = pin.urlString
+        self.filePath = pin.filePath
+        self.bodyText = pin.bodyText
+        self.summary = pin.summary
+    }
+
+    /// 旧 Pin.absoluteFilePath と同じ純粋ロジック（SwiftData 非依存）
+    var absoluteFilePath: URL? {
+        filePath.map { URL(fileURLWithPath: ThumbnailCache.resolveAbsolutePath($0)) }
+    }
+}
+
 // MARK: - PinSortOrder
 
 enum PinSortOrder: String, CaseIterable, Equatable, Sendable {
@@ -41,7 +104,7 @@ enum PinSortOrder: String, CaseIterable, Equatable, Sendable {
 
 struct PinClient: Sendable {
     // Existing
-    var fetchAll: @Sendable () async throws -> [Pin]
+    var fetchAll: @Sendable () async throws -> [PinSnapshot]
     var create: @Sendable (NewPin) async throws -> Void
     var update: @Sendable (UUID, String, String, Bool, String?, String?, String?) async throws -> Void
     /// お気に入りフラグのみを更新する専用メソッド（全フィールド更新の繰り返しコードを削減）
@@ -51,7 +114,7 @@ struct PinClient: Sendable {
     var delete: @Sendable (UUID) async throws -> Void
 
     // Search
-    var search: @Sendable (String, Set<UUID>, PinSortOrder) async throws -> [Pin]
+    var search: @Sendable (String, Set<UUID>, PinSortOrder) async throws -> [PinSnapshot]
 
     // Tags
     var fetchAllTags: @Sendable () async throws -> [TagItem]

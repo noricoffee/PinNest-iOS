@@ -7,8 +7,7 @@ name: Visual Regression Tests
 #
 # 注意: スナップショットはピクセル比較のため、参照画像は CI runner と同一環境で
 # 記録したものを基準にする必要がある。初回は mode=record で記録 → コミットすること。
-# シミュレータの iOS ランタイムは runner にインストール済みの最新を動的に使う
-# （識別子をハードコードすると runner のパッチ版差異で "Invalid runtime" になるため）。
+# Xcode と iOS ランタイムは参照画像の記録環境に合わせて固定する（Xcode 27.2 / iOS 27.2）。
 
 on:
   pull_request:
@@ -27,21 +26,18 @@ concurrency:
 
 jobs:
   snapshot:
-    runs-on: macos-26
+    runs-on: xcode-27
     env:
       SCHEME: pinNest
       DEVICE: iPhone 17 Pro
     steps:
       - uses: actions/checkout@v4
 
-      # iOS 26.1 ランタイムは runner に無く(26.2/26.4/26.5 のみ)、Apple も配布していない。
-      # 最新 Xcode(26.5) は TCA 1.23.1 が Sendable エラーで非対応のため、runner にある中で
-      # 最も古い Xcode 26.2 + iOS 26.2 を使う（Swift が緩く TCA がコンパイルできる）。
-      # baseline は runner(26.2) で記録したものを基準にする（ローカル 26.1 とは別）。
-      - name: Select Xcode 26.2
+      # macos-26 イメージには Xcode 27 が無いため、xcode-27 イメージを使う。
+      - name: Select Xcode 27.2
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: "26.2"
+          xcode-version: "27.2"
 
       - name: Show toolchain
         run: |
@@ -52,22 +48,9 @@ jobs:
         id: sim
         run: |
           set -euo pipefail
-          # iOS 26.2 ランタイムを優先（無ければインストール済み最新にフォールバック）
-          RUNTIME=$(xcrun simctl list runtimes \
-            | grep -Eo 'com.apple.CoreSimulator.SimRuntime.iOS-26-2' | head -1 || true)
-          if [ -z "$RUNTIME" ]; then
-            RUNTIME=$(xcrun simctl list runtimes \
-              | grep -Eo 'com.apple.CoreSimulator.SimRuntime.iOS-[0-9-]+' \
-              | sort -V | tail -1)
-          fi
-          echo "Using runtime: $RUNTIME"
-          # 既存の対象デバイスがあれば再利用、無ければ作成（"Pro (" で Max 等を除外）
-          UDID=$(xcrun simctl list devices \
-            | grep "${DEVICE} (" \
-            | grep -Eo '[0-9A-Fa-f-]{36}' | head -1 || true)
-          if [ -z "$UDID" ]; then
-            UDID=$(xcrun simctl create "${DEVICE}" "${DEVICE}" "$RUNTIME")
-          fi
+          # iPhone 17 Pro は xcode-27 イメージにプリインストールされていないため作成する。
+          # ランタイムが無ければ参照画像と環境がずれるので、ここで失敗させる。
+          UDID=$(xcrun simctl create "${DEVICE}" "${DEVICE}" com.apple.CoreSimulator.SimRuntime.iOS-27-2)
           echo "Simulator UDID: $UDID"
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
 

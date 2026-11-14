@@ -11,7 +11,7 @@ struct SearchReducerTests {
     @Test("onAppear でタグ一覧と全ピンを取得する")
     func onAppear_fetchesTagsAndAllPins() async {
         let tag = TagItem(id: UUID(), name: "Swift")
-        let pin = Pin(id: UUID(), contentType: .url, title: "All Pins")
+        let pin = PinSnapshot(id: UUID(), contentType: .url, title: "All Pins")
 
         let store = TestStore(initialState: SearchReducer.State()) {
             SearchReducer()
@@ -38,7 +38,7 @@ struct SearchReducerTests {
 
     @Test("onAppear でタグ取得に失敗しても全ピン取得は完了する")
     func onAppear_tagsFailure_allPinsStillLoaded() async {
-        let pin = Pin(id: UUID(), contentType: .url, title: "Pin A")
+        let pin = PinSnapshot(id: UUID(), contentType: .url, title: "Pin A")
 
         let store = TestStore(initialState: SearchReducer.State()) {
             SearchReducer()
@@ -66,10 +66,10 @@ struct SearchReducerTests {
 
     @Test("空の検索テキストで全件取得される")
     func searchTextChanged_empty_fetchesAllPins() async {
-        let allPin = Pin(id: UUID(), contentType: .url, title: "All Pin")
+        let allPin = PinSnapshot(id: UUID(), contentType: .url, title: "All Pin")
         var initial = SearchReducer.State()
         initial.searchText = "previous query"
-        initial.results = [Pin(contentType: .url, title: "Old Result")]
+        initial.results = [PinSnapshot(contentType: .url, title: "Old Result")]
         initial.isLoading = false
 
         let store = TestStore(initialState: initial) {
@@ -91,7 +91,7 @@ struct SearchReducerTests {
 
     @Test("検索テキスト変更で検索が実行され結果が更新される")
     func searchTextChanged_withQuery_triggersSearchAndUpdatesResults() async {
-        let pin = Pin(id: UUID(), contentType: .url, title: "Swift Tutorial")
+        let pin = PinSnapshot(id: UUID(), contentType: .url, title: "Swift Tutorial")
 
         let store = TestStore(initialState: SearchReducer.State()) {
             SearchReducer()
@@ -113,7 +113,7 @@ struct SearchReducerTests {
 
     @Test("検索テキスト変更で前のリクエストがキャンセルされる")
     func searchTextChanged_cancelsPreviousRequest() async {
-        let pin = Pin(id: UUID(), contentType: .text, title: "Final Result")
+        let pin = PinSnapshot(id: UUID(), contentType: .text, title: "Final Result")
 
         let store = TestStore(initialState: SearchReducer.State()) {
             SearchReducer()
@@ -175,7 +175,7 @@ struct SearchReducerTests {
     @Test("タグ選択時に検索が実行される")
     func tagFilterToggled_withTag_triggersSearch() async {
         let tagID = UUID()
-        let pin = Pin(id: UUID(), contentType: .image, title: "Tagged Pin")
+        let pin = PinSnapshot(id: UUID(), contentType: .image, title: "Tagged Pin")
 
         let store = TestStore(initialState: SearchReducer.State()) {
             SearchReducer()
@@ -218,7 +218,7 @@ struct SearchReducerTests {
 
     @Test("検索中に sortOrderChanged すると再検索される")
     func sortOrderChanged_whenSearched_retriggersSearch() async {
-        let pin = Pin(id: UUID(), contentType: .url, title: "Pin A")
+        let pin = PinSnapshot(id: UUID(), contentType: .url, title: "Pin A")
         var initial = SearchReducer.State()
         initial.searchText = "test"
         initial.results = [pin]
@@ -244,7 +244,7 @@ struct SearchReducerTests {
 
     @Test("searchResponse 成功で結果が更新される")
     func searchResponse_success_updatesResults() async {
-        let pin = Pin(id: UUID(), contentType: .url, title: "Found Pin")
+        let pin = PinSnapshot(id: UUID(), contentType: .url, title: "Found Pin")
         var initial = SearchReducer.State()
         initial.isLoading = true
 
@@ -277,7 +277,7 @@ struct SearchReducerTests {
 
     @Test("pinTapped で詳細が表示される")
     func pinTapped_setsDetailState() async {
-        let pin = Pin(id: UUID(), contentType: .text, title: "Detail Pin")
+        let pin = PinSnapshot(id: UUID(), contentType: .text, title: "Detail Pin")
         var initial = SearchReducer.State()
         initial.results = [pin]
 

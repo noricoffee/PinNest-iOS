@@ -8,25 +8,16 @@ struct PinListReducer {
 
     @ObservableState
     struct State: Equatable {
-        var pins: [Pin] = []
+        var pins: [PinSnapshot] = []
         var selectedFilter: ContentType? = nil
         var isLoading: Bool = false
         var errorMessage: String? = nil
         @Presents var detail: PinDetailReducer.State? = nil
         var contextMenu: PinContextMenuReducer.State = .init()
 
-        var filteredPins: [Pin] {
+        var filteredPins: [PinSnapshot] {
             guard let filter = selectedFilter else { return pins }
             return pins.filter { $0.contentType == filter }
-        }
-
-        static func == (lhs: State, rhs: State) -> Bool {
-            lhs.pins.map(\.id) == rhs.pins.map(\.id) &&
-            lhs.pins.map(\.isFavorite) == rhs.pins.map(\.isFavorite) &&
-            lhs.selectedFilter == rhs.selectedFilter &&
-            lhs.isLoading == rhs.isLoading &&
-            lhs.detail == rhs.detail &&
-            lhs.contextMenu == rhs.contextMenu
         }
     }
 
@@ -35,10 +26,10 @@ struct PinListReducer {
     enum Action {
         case onAppear
         case refresh
-        case pinsResponse(Result<[Pin], Error>)
+        case pinsResponse(Result<[PinSnapshot], Error>)
         case filterSelected(ContentType?)
-        case pinTapped(Pin)
-        case favoriteButtonTapped(Pin)
+        case pinTapped(PinSnapshot)
+        case favoriteButtonTapped(PinSnapshot)
         case favoriteResponse(Result<Void, Error>)
         case settingsButtonTapped
         case errorAlertDismissed

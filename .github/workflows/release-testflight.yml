@@ -1,0 +1,96 @@
+name: Release (TestFlight)
+
+# 手動実行のみ。App Store Connect（TestFlight）へ iOS ビルドをアップロードする。
+# 認証は ASC API キー + cloud signing（-allowProvisioningUpdates）。p12 / プロファイルの
+# Secrets 登録は不要だが、API キーには App Manager 以上のロールが必要
+# （cloud signing が Distribution 証明書 / プロファイルを自動発行するため）。
+#
+# 必要な Secrets:
+#   ASC_KEY_ID                      … App Store Connect API キー ID
+#   ASC_ISSUER_ID                   … 同 Issuer ID
+#   ASC_PRIVATE_KEY                 … 同 .p8 秘密鍵の中身（BEGIN/END 行を含む全文）
+#   GOOGLE_SERVICE_INFO_PLIST_BASE64 … 本番 GoogleService-Info.plist を base64 化した文字列
+on:
+  workflow_dispatch:
+
+# checkout しか使わないため GITHUB_TOKEN は読み取り専用に最小化
+permissions:
+  contents: read
+
+# アップロード処理の途中中断を避けるため cancel-in-progress は付けない
+concurrency:
+  group: release-testflight
+
+jobs:
+  upload:
+    name: Archive & upload to App Store Connect
+    runs-on: xcode-27
+    timeout-minutes: 60
+    env:
+      SCHEME: pinNest
+    steps:
+      - uses: actions/checkout@v4
+
+      # vrt.yml と同じ Xcode に固定する。
+      - name: Select Xcode 27.2
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "27.2"
+
+      - name: Show toolchain
+        run: xcodebuild -version
+
+      # GoogleService-Info.plist（Firebase）は秘密情報のため gitignore されており repo に無い。
+      # 無いとリソースコピー / Crashlytics の Run Script（dSYM アップロード）が失敗し、
+      # 出荷しても実機で Firebase / Crashlytics / Analytics が動かない。
+      # リポジトリ直下（project の group パス）に本番 plist を復元する。
+      - name: Restore GoogleService-Info.plist
+        env:
+          GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
+        run: |
+          if [ -z "$GOOGLE_SERVICE_INFO_PLIST_BASE64" ]; then
+            echo "::error::Missing required secret: GOOGLE_SERVICE_INFO_PLIST_BASE64"
+            exit 1
+          fi
+          echo "$GOOGLE_SERVICE_INFO_PLIST_BASE64" | base64 --decode > GoogleService-Info.plist
+          plutil -lint GoogleService-Info.plist
+
+      - name: Write ASC API key
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+        run: |
+          printf '%s\n' "$ASC_PRIVATE_KEY" > "$RUNNER_TEMP/AuthKey_${ASC_KEY_ID}.p8"
+
+      # SPM の Swift マクロ（TCA 等）は -skipMacroValidation で CI の fingerprint 承認を自動化する
+      # （GUI の "Trust & Enable" 相当）。share extension も同一アーカイブに含めて署名される。
+      - name: Archive
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          xcodebuild archive \
+            -project pinNest.xcodeproj \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -destination "generic/platform=iOS" \
+            -archivePath "$RUNNER_TEMP/pinNest.xcarchive" \
+            -skipMacroValidation \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/AuthKey_${ASC_KEY_ID}.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+
+      # ExportOptions.plist の destination=upload により、エクスポートと同時に ASC へアップロードされる
+      - name: Export & upload to App Store Connect
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/pinNest.xcarchive" \
+            -exportOptionsPlist Configuration/ExportOptions.plist \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/AuthKey_${ASC_KEY_ID}.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID"

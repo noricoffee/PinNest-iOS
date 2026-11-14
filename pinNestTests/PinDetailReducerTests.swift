@@ -6,8 +6,8 @@ import Testing
 @MainActor
 struct PinDetailReducerSummaryTests {
 
-    private func makePin(contentType: ContentType = .text, bodyText: String? = "本文テキスト") -> Pin {
-        Pin(
+    private func makePin(contentType: ContentType = .text, bodyText: String? = "本文テキスト") -> PinSnapshot {
+        PinSnapshot(
             id: UUID(),
             contentType: contentType,
             title: "タイトル",

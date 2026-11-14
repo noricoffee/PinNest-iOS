@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- App Store Connect（TestFlight）向けのエクスポート設定。 -->
+	<!-- destination=upload で -exportArchive と同時に ASC へアップロードする。 -->
+	<key>method</key>
+	<string>app-store-connect</string>
+	<key>destination</key>
+	<string>upload</string>
+
+	<!-- 自動署名（cloud signing）。証明書/プロファイルは -allowProvisioningUpdates で ASC が自動発行。 -->
+	<key>signingStyle</key>
+	<string>automatic</string>
+	<key>teamID</key>
+	<string>HL5AQP4983</string>
+
+	<!-- ビルド番号は ASC に自動採番させ、既存ビルドとの重複アップロードを回避する。 -->
+	<key>manageAppVersionAndBuildNumber</key>
+	<true/>
+
+	<!-- Crashlytics 用に dSYM をシンボルとしてアップロードする。 -->
+	<key>uploadSymbols</key>
+	<true/>
+</dict>
+</plist>

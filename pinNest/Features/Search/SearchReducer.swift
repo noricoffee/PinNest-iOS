@@ -11,24 +11,12 @@ struct SearchReducer {
         var searchText: String = ""
         var selectedTagIds: Set<UUID> = []
         var sortOrder: PinSortOrder = .newestFirst
-        var results: [Pin] = []
+        var results: [PinSnapshot] = []
         var allTags: [TagItem] = []
         var isLoading: Bool = false
         var errorMessage: String? = nil
         @Presents var detail: PinDetailReducer.State? = nil
         var contextMenu: PinContextMenuReducer.State = .init()
-
-        static func == (lhs: State, rhs: State) -> Bool {
-            lhs.searchText == rhs.searchText &&
-            lhs.selectedTagIds == rhs.selectedTagIds &&
-            lhs.sortOrder == rhs.sortOrder &&
-            lhs.results.map(\.id) == rhs.results.map(\.id) &&
-            lhs.results.map(\.isFavorite) == rhs.results.map(\.isFavorite) &&
-            lhs.allTags == rhs.allTags &&
-            lhs.isLoading == rhs.isLoading &&
-            lhs.detail == rhs.detail &&
-            lhs.contextMenu == rhs.contextMenu
-        }
     }
 
     // MARK: - Action
@@ -39,9 +27,9 @@ struct SearchReducer {
         case searchTextChanged(String)
         case tagFilterToggled(UUID)
         case sortOrderChanged(PinSortOrder)
-        case searchResponse(Result<[Pin], Error>)
+        case searchResponse(Result<[PinSnapshot], Error>)
         case tagsResponse(Result<[TagItem], Error>)
-        case pinTapped(Pin)
+        case pinTapped(PinSnapshot)
         case errorAlertDismissed
         case detail(PresentationAction<PinDetailReducer.Action>)
         case contextMenu(PinContextMenuReducer.Action)

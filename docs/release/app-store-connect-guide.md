@@ -37,13 +37,13 @@
 
 「iOS App 1.0 準備中」タブで以下を入力：
 
-### App Store 掲載テキスト（`docs/app-store-metadata.md` を参照）
+### App Store 掲載テキスト（`docs/release/app-store-metadata.md` を参照）
 
 | 項目 | 値 |
 |------|-----|
-| 説明 | `docs/app-store-metadata.md` の「説明文」をコピー |
-| キーワード | `docs/app-store-metadata.md` の「キーワード」をコピー |
-| プロモーションテキスト | `docs/app-store-metadata.md` の「プロモーションテキスト」をコピー |
+| 説明 | `docs/release/app-store-metadata.md` の「説明文」をコピー |
+| キーワード | `docs/release/app-store-metadata.md` の「キーワード」をコピー |
+| プロモーションテキスト | `docs/release/app-store-metadata.md` の「プロモーションテキスト」をコピー |
 | サポート URL | `https://github.com/noricoffee/PinNest-iOS` |
 | マーケティング URL | （空欄でも可） |
 | プライバシーポリシー URL | `https://noricoffee.github.io/PinNest-iOS/privacy-policy` |

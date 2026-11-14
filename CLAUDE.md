@@ -98,7 +98,11 @@
 | コーディング規約 | 命名・ファイル構成・実装ルール | `docs/coding-conventions.md` |
 | UI/UX ガイドライン | Apple HIG ベースの UI 設計方針 | `docs/ui-ux-guidelines.md` |
 | 要件定義 | 機能一覧・画面一覧・非機能要件 | `docs/requirements.md` |
-| タスク一覧 | フェーズ別タスク・進捗管理 | `docs/tasks.md` |
+| VRT 運用ガイド | スナップショットテストの記録・検証手順 | `docs/vrt.md` |
+| 進行中タスク | 現在のタスク（完了分は残さない） | `docs/tasks/todo.md` |
+| 教訓 | 失敗・修正パターンの蓄積（追記のみ） | `docs/tasks/lessons.md` |
+
+docs/ の構成と運用ルール（配置基準・archive のルールなど）は `docs/README.md` を参照。
 
 ---
 
